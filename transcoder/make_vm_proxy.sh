@@ -13,16 +13,17 @@ IMG="xenial"
 ARCH="amd64"
 IMG_URL="https://cloud-images.ubuntu.com/releases/16.04/release"
 IMG_NAME="ubuntu-16.04-server-cloudimg-${ARCH}-disk1.img"
+IMG_PATH=..
 KVM_DEF_POOL=default
 KVM_DEF_POOL_PATH=/var/lib/libvirt/images
 
 # vm prefs : specify vm preferences for your guest
-GUEST_NAME="seqacc"
+GUEST_NAME="transcoder"
 GUEST_DOMAIN=intranet.local
 GUEST_VROOTDISKSIZE=10G
-GUEST_VCPUS=4
+GUEST_VCPUS=8
 GUEST_VMEM=4096
-GUEST_NETWORK="bridge=virbr0,model=virtio"
+GUEST_NETWORK="bridge=virbr1,model=virtio"
 
 
 # guest image format: qcow2 or raw
@@ -40,8 +41,8 @@ POOL_PATH=$KVM_DEF_POOL_PATH
 # cloud-init config files : specify cloud-init data for your guest
 cat <<EOF > meta-data
 instance-id: iid-${GUEST_NAME};
-hostname: ${GUEST_NAME}
-local-hostname: ${GUEST_NAME}
+#hostname: ${GUEST_NAME}
+#local-hostname: ${GUEST_NAME}
 EOF
 
 cat <<EOF > user-data
@@ -51,12 +52,33 @@ write_files:
   - path: /etc/apt/apt.conf
     content: |
       Acquire::http::Proxy "$PROXY";
+
   - path: /etc/environment
     content: |
       HTTP_PROXY=$PROXY
       HTTPS_PROXY=$PROXY
       http_proxy=$PROXY
       https_proxy=$PROXY
+
+  - path: /provision.sh
+    content: |
+      #!/usr/bin/env bash
+      export HTTPS_PROXY=$PROXY
+      export HTTP_PROXY=$PROXY
+      export http_proxy=$PROXY
+      export https_proxy=$PROXY
+      wget https://dl.google.com/go/go1.9.3.linux-amd64.tar.gz -P /home/ubuntu
+      cd /home/ubuntu && tar zxvf /home/ubuntu/go1.9.3.linux-amd64.tar.gz
+      git clone https://github.com/anastop/simple-em /home/ubuntu/simple-em
+      cd /home/ubuntu/simple-em && /home/ubuntu/go/bin/go build 
+      git clone https://github.com/anastop/archbench /home/ubuntu/archbench
+      git clone https://github.com/anastop/util /home/ubuntu/util
+      cd /home/ubuntu/archbench/memory_tests && make
+     
+  - path: /etc/init.d/transcoder
+    content: |
+      #!/usr/bin/env bash
+      /home/ubuntu/archbench/memory_tests/randacc 20 2>&1 >/dev/null | /home/ubuntu/simple-em/simple-em
 
 password: $USER_PASSWD
 chpasswd: { expire: False }
@@ -76,13 +98,14 @@ packages:
 #manage_etc_hosts: true
 #fqdn: ${GUEST_NAME}.${GUEST_DOMAIN}
 # install additional packages
-#packages:
-#  - mc
-#  - htop
 
-# run commands
 runcmd:
-  - [apt-get, -y, remove, cloud-init]
+  - bash /provision.sh
+  - chmod +x /etc/init.d/transcoder
+  - update-rc.d transcoder defaults
+
+power_state:
+  mode: reboot
 EOF
 
 # don't edit below unless you know wat you're doing!
@@ -93,9 +116,9 @@ if [[ $USER != "root" ]]; then
 fi
 
 
-if [[ ! -f ${IMG_NAME} ]]; then
+if [[ ! -f ${IMG_PATH}/${IMG_NAME} ]]; then
   echo "Downloading image ${IMG_NAME}..."
-  wget ${IMG_URL}/${IMG_NAME} -O ${IMG_NAME}
+  wget ${IMG_URL}/${IMG_NAME} -O ${IMG_PATH}/${IMG_NAME}
 fi
 
 # check if pool exists, otherwise create it
@@ -120,13 +143,13 @@ virsh pool-refresh ${POOL}
 
 # copy image to libvirt's pool
 if [[ ! -f ${POOL_PATH}/${IMG_NAME} ]]; then
-  cp ${IMG_NAME} ${POOL_PATH}
+  cp ${IMG_PATH}/${IMG_NAME} ${POOL_PATH}
   virsh pool-refresh ${POOL}
 fi
 
 # clone cloud image
 virsh vol-clone --pool ${POOL} ${IMG_NAME} ${GUEST_NAME}.root.img
-virsh vol-resize --pool ${POOL} ${GUEST_NAME}.root.img ${GUEST_VROOTDISKSIZE}
+#virsh vol-resize --pool ${POOL} ${GUEST_NAME}.root.img ${GUEST_VROOTDISKSIZE}
 
 # convert image format
 if [[ "${CONVERT}" == "yes" ]]; then
