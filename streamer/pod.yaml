@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: streamer-pod
+spec:
+  containers:
+  - name: streamer-cont-0
+    image: nfvsap/streamer:latest
+    ports:
+    - containerPort: 8000
+    - containerPort: 8001
+    - containerPort: 8002
