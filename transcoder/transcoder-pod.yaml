@@ -1,11 +1,13 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: streamer-pod
+  name: transcoder-pod
+  labels:
+    app: transcoder
 spec:
   containers:
-  - name: streamer-cont-0
-    image: nfvsap/streamer:latest
+  - name: transcoder-cont-0
+    image: nfvsap/transcoder:latest
     ports:
     - containerPort: 8000
     - containerPort: 8001
