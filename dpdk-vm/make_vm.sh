@@ -149,17 +149,18 @@ if [[ "${CONVERT}" == "yes" ]]; then
 fi
 
 echo "Creating guest ${GUEST_NAME}..."
-virt-install \
-  --name ${GUEST_NAME} \
-  --ram ${GUEST_VMEM} \
-  --vcpus=${GUEST_VCPUS},sockets=1,cores=${GUEST_VCPUS},threads=1 \
-  --autostart \
-  --memballoon virtio \
-  --network ${GUEST_NETWORK} \
-  --boot hd \
-  --disk vol=${POOL}/${GUEST_NAME}.root.img,format=${FORMAT},bus=virtio \
-  --disk vol=${POOL}/${GUEST_NAME}.configuration.iso,bus=virtio \
-  --noautoconsole
+#virt-install \
+#  --name ${GUEST_NAME} \
+#  --ram ${GUEST_VMEM} \
+#  --vcpus=${GUEST_VCPUS},sockets=1,cores=${GUEST_VCPUS},threads=1 \
+#  --autostart \
+#  --memballoon virtio \
+#  --network ${GUEST_NETWORK} \
+#  --boot hd \
+#  --disk vol=${POOL}/${GUEST_NAME}.root.img,format=${FORMAT},bus=virtio \
+#  --disk vol=${POOL}/${GUEST_NAME}.configuration.iso,bus=virtio \
+#  --noautoconsole
+virsh create sample.xml
 
 # display result
 echo
