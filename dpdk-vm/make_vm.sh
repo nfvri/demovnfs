@@ -1,31 +1,46 @@
 #!/usr/bin/env bash
 
 set -ex
-
-#
 # requires the following packages on Ubuntu host:
 #  apt-get install qemu-kvm libvirt-bin virtinst bridge-utils cloud-image-utils
 
 USER_NAME="ubuntu"
 USER_PASSWD="ubuntu"
-IMG="xenial"
-ARCH="amd64"
 CLOUD_IMG_URL="https://cloud-images.ubuntu.com/releases/16.04/release"
-CLOUD_IMG_NAME="ubuntu-16.04-server-cloudimg-${ARCH}-disk1.img"
+CLOUD_IMG_NAME="ubuntu-16.04-server-cloudimg-amd64-disk1.img"
 CLOUD_IMG_PATH=.
 KVM_DEF_POOL=default
 KVM_DEF_POOL_PATH=/var/lib/libvirt/images
 
 # vm prefs : specify vm preferences for your guest
 GUEST_NAME="dpdk-vm"
-GUEST_DOMAIN=intranet.local
 #GUEST_VROOTDISKSIZE=10G
 GUEST_VCPUS=4
-let "LASTCPU=GUEST_VCPUS-1"
 GUEST_MEM_MB=4096
 GUEST_NETWORK="bridge=virbr0,model=virtio"
 
+# networks
+GUEST_NETIF1_TYPE="bridge"
+GUEST_NETIF1_BRIDGE="virbr0"
 
+GUEST_NETIF2_TYPE="bridge"
+GUEST_NETIF2_BRIDGE="virbr0"
+
+GUEST_NETIF5_TYPE="bridge"
+GUEST_NETIF5_BRIDGE="virbr0"
+
+GUEST_NETIF3_TYPE="vhostuser"
+GUEST_NETIF3_MACADDR="00:00:00:00:00:01"
+GUEST_NETIF3_UNIXPATH="/usr/local/var/run/openvswitch/dpdkvhostuser1"
+GUEST_NETIF3_QUEUES=2
+
+GUEST_NETIF4_TYPE="vhostuser"
+GUEST_NETIF4_MACADDR="00:00:00:00:00:02"
+GUEST_NETIF4_UNIXPATH="/usr/local/var/run/openvswitch/dpdkvhostuser2"
+GUEST_NETIF4_QUEUES=2
+
+
+let "LASTCPU=GUEST_VCPUS-1"
 # guest image format: qcow2 or raw
 FORMAT=qcow2
 # convert image format : yes or no
@@ -150,11 +165,22 @@ cat <<EOF > dom.xml
       <target dev='vdb' bus='virtio'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x08' function='0x0'/>
     </disk>
+EOF
+
+for NIF in `seq 1 10`
+do
+	if [[ -v GUEST_NETIF${NIF}_TYPE ]]
+	do
+
+
+	done
+done
+
     <interface type='bridge'>
       <!-- mac address='52:54:00:ec:96:13'/ -->
       <source bridge='virbr0'/>
       <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+      <!-- address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/ -->
     </interface>
     <!-- interface type='vhostuser'>
       <mac address='00:00:00:00:00:01'/>
@@ -172,6 +198,8 @@ cat <<EOF > dom.xml
         <host mrg_rxbuf='on'/>
       </driver>
     </interface-->
+
+cat <<EOF >> dom.xml    
     <serial type='pty'>
       <target port='0'/>
     </serial>
@@ -234,17 +262,6 @@ if [[ "${CONVERT}" == "yes" ]]; then
 fi
 
 echo "Creating guest ${GUEST_NAME}..."
-#virt-install \
-#  --name ${GUEST_NAME} \
-#  --ram ${GUEST_MEM_MB} \
-#  --vcpus=${GUEST_VCPUS},sockets=1,cores=${GUEST_VCPUS},threads=1 \
-#  --autostart \
-#  --memballoon virtio \
-#  --network ${GUEST_NETWORK} \
-#  --boot hd \
-#  --disk vol=${POOL}/${GUEST_NAME}.root.img,format=${FORMAT},bus=virtio \
-#  --disk vol=${POOL}/${GUEST_NAME}.configuration.iso,bus=virtio \
-#  --noautoconsole
 virsh define dom.xml
 virsh start ${GUEST_NAME}
 
