@@ -8,10 +8,13 @@ set -e
 let "LASTCPU=GUEST_VCPUS-1"
 
 show_help() {
+	scriptname=$(basename -- "$0")
 	echo "Usage:"
 	echo "1. Edit vars.sh according to the template"
-	echo "2. Run 'sudo bash create.sh provision' to provision the VM image"
-	echo "3. Run 'sudo bash create.sh launch' to launch the instance"
+	echo "2. Run 'sudo bash $scriptname provision' to provision the VM image"
+	echo "3. Run 'sudo bash $scriptname launch' to launch the instance"
+	echo "4. Run 'sudo bash $scriptname undefine' to undefine the instance"
+	echo "5. Run 'sudo bash $scriptname unprovision' to undefine the instance and remove its volumes"
 }
 
 create_cloud_config() {
@@ -83,12 +86,20 @@ create_dom_xml() {
   <!-- uuid>4a9b3f53-fa2a-47f3-a757-dd87720d9d1d</uuid -->
   <memory unit='MiB'>$GUEST_MEM_MB</memory>
   <currentMemory unit='MiB'>$GUEST_MEM_MB</currentMemory>
+EOF
+
+	if (( $GUEST_HUGEPAGES == 1 )); then
+		cat <<EOF >> dom.xml
   <memoryBacking>
     <hugepages/>
     <!-- hugepages>
       <page size='2' unit='M' nodeset='0'/>
     </hugepages -->
   </memoryBacking>
+EOF
+	fi
+
+	cat << EOF >> dom.xml
   <vcpu placement='static'>$GUEST_VCPUS</vcpu>
   <!-- cputune>
     <shares>4096</shares>
@@ -108,7 +119,14 @@ create_dom_xml() {
     <model fallback='allow'/>
     <topology sockets='1' cores='$GUEST_VCPUS' threads='1'/>
     <numa>
-      <cell id='0' cpus='0-$LASTCPU' memory='$GUEST_MEM_MB' unit='MiB' memAccess='shared'/>
+EOF
+	if (( $GUEST_HUGEPAGES == 1 )); then
+		echo "<cell id='0' cpus='0-$LASTCPU' memory='$GUEST_MEM_MB' unit='MiB' memAccess='shared'/>" >> dom.xml
+	else		
+		echo "<cell id='0' cpus='0-$LASTCPU' memory='$GUEST_MEM_MB' unit='MiB'/>" >> dom.xml
+	fi
+	
+	cat << EOF >> dom.xml
     </numa>
   </cpu>
   <on_poweroff>destroy</on_poweroff>
@@ -241,6 +259,12 @@ if [ "$1" == "provision" ]; then
 elif [ "$1" == "launch" ]; then
 	create_dom_xml
 	create_guest
+elif [ "$1" == "undefine" ]; then
+	virsh undefine ${GUEST_NAME}
+elif [ "$1" == "unprovision" ]; then
+	virsh undefine ${GUEST_NAME} || true
+	rm ${POOL_PATH}/${GUEST_NAME}.root.img
+	rm ${POOL_PATH}/${GUEST_NAME}.configuration.iso
 else
 	show_help
 fi
