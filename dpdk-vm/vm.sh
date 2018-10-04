@@ -33,6 +33,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     passwd: $(openssl passwd -1 -salt SaltSalt ${USER_PASSWD})
+
 write_files:
   - path: /provision.sh
     content: |
@@ -41,11 +42,11 @@ write_files:
       cd /opt/nfv
       wget http://fast.dpdk.org/rel/dpdk-16.07.tar.xz
       tar -xvf dpdk-16.07.tar.xz
-      export RTE_SDK=$(pwd)/dpdk-16.07
+      export RTE_SDK=\$(pwd)/dpdk-16.07
       export RTE_TARGET=x86_64-native-linuxapp-gcc
-      cd $RTE_SDK
-      make config T=x86_64-native-linuxapp-gcc
-      make install T=x86_64-native-linuxapp-gcc DESTDIR=dpdk-install
+      cd \$RTE_SDK
+      make config T=\$RTE_TARGET
+      make install T=\$RTE_TARGET DESTDIR=dpdk-install
 
   - path: /remove_cloud_init.sh
     content: |
@@ -68,6 +69,8 @@ apt_upgrade: true
 packages: 
   - gcc
   - make
+  - libvirt-bin
+  - python
 
 runcmd:
   - bash /provision.sh
