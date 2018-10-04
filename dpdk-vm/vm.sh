@@ -78,6 +78,7 @@ packages:
 runcmd:
   - bash /provision.sh
   - bash /remove_cloud_init.sh
+  - uname -a
   - shutdown
 
 power_state:
