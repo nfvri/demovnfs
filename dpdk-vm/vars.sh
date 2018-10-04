@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+GUEST_NAME="dpdk-vm"
 USER_NAME="nfvsap"
 USER_PASSWD="nfvsap"
 CLOUD_IMG_URL="https://cloud-images.ubuntu.com/releases/16.04/release"
@@ -9,8 +10,7 @@ POOL=default
 POOL_PATH=/var/lib/libvirt/images
 #POOL=nanastop
 #POOL_PATH=/store/images/demovnfs
-GUEST_NAME="ip-pipeline-vm"
-#GUEST_VROOTDISKSIZE=10G
+GUEST_VROOTDISKSIZE=10G
 GUEST_VCPUS=6
 GUEST_MEM_MB=4096
 GUEST_HUGEPAGES=0

@@ -47,6 +47,9 @@ write_files:
       cd \$RTE_SDK
       make config T=\$RTE_TARGET
       make install T=\$RTE_TARGET DESTDIR=dpdk-install
+      mkdir -p /opt/nfv/trex
+      cd /opt/nfv/trex
+      wget --no-cache http://trex-tgn.cisco.com/trex/release/v2.45.tar.gz
 
   - path: /remove_cloud_init.sh
     content: |
