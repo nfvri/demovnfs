@@ -232,7 +232,9 @@ create_volumes() {
 
 	# clone cloud image
 	virsh vol-clone --pool ${POOL} ${CLOUD_IMG_NAME} ${GUEST_NAME}.root.img
-	# virsh vol-resize --pool ${POOL} ${GUEST_NAME}.root.img ${GUEST_VROOTDISKSIZE}
+	if [ -n "${GUEST_VROOTDISKSIZE}" ]; then
+		virsh vol-resize --pool ${POOL} ${GUEST_NAME}.root.img ${GUEST_VROOTDISKSIZE}
+	fi
 
 	# convert image format
 	if [[ "${CONVERT}" == "yes" ]]; then
