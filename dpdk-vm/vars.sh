@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-GUEST_NAME="dpdk-vm"
 USER_NAME="nfvsap"
 USER_PASSWD="nfvsap"
 CLOUD_IMG_URL="https://cloud-images.ubuntu.com/releases/16.04/release"

@@ -7,14 +7,16 @@ set -e
 
 let "LASTCPU=GUEST_VCPUS-1"
 
+GUEST_NAME=$2
+
 show_help() {
 	scriptname=$(basename -- "$0")
 	echo "Usage:"
 	echo "1. Edit vars.sh according to the template"
-	echo "2. Run 'sudo bash $scriptname provision' to provision the VM image"
-	echo "3. Run 'sudo bash $scriptname launch' to launch the instance"
-	echo "4. Run 'sudo bash $scriptname undefine' to undefine the instance"
-	echo "5. Run 'sudo bash $scriptname unprovision' to undefine the instance and remove its volumes"
+	echo "2. Run 'sudo bash $scriptname provision <GUEST_NAME>' to provision the VM image"
+	echo "3. Run 'sudo bash $scriptname launch <GUEST_NAME>' to launch the instance"
+	echo "4. Run 'sudo bash $scriptname undefine <GUEST_NAME>' to undefine the instance"
+	echo "5. Run 'sudo bash $scriptname unprovision <GUEST_NAME>' to undefine the instance and remove its volumes"
 }
 
 create_cloud_config() {
@@ -254,6 +256,11 @@ display_result() {
 cleanup() {
 	rm configuration.iso user-data meta-data
 }
+
+if [ -z "$2" ]; then
+	show_help
+	exit
+fi
 
 if [ "$1" == "provision" ]; then
 	create_cloud_config
