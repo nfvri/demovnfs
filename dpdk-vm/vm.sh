@@ -55,6 +55,9 @@ write_files:
       cd /opt/nfv/trex
       wget --no-cache http://trex-tgn.cisco.com/trex/release/v2.45.tar.gz
       tar zxvf v2.45.tar.gz
+      # install scapy
+      pip install scapy
+      
 
   - path: /remove_cloud_init.sh
     content: |
@@ -79,6 +82,7 @@ packages:
   - make
   - libvirt-bin
   - python
+  - python-pip
 
 runcmd:
   - bash /provision.sh
