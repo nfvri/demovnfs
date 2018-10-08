@@ -29,17 +29,17 @@ and for bridge-type interfaces:
 
 To provision VM image: 
 - edit `vars.sh`
-- `sudo ./vm.sh provision`
+- `sudo ./vm.sh provision <GUEST_NAME>`
 
 To launch VM instance: 
 - edit `vars.sh` as many times as needed
-- `sudo ./vm.sh lauch`
+- `sudo ./vm.sh launch <GUEST_NAME>`
 
 To destroy (undefine) the instance without destroying its disk: 
-- `sudo ./vm.sh undefine`
+- `sudo ./vm.sh undefine <GUEST_NAME>`
 
 To destroy (undefine) the instance AND its disk: 
-- `sudo ./vm.sh unprovision`
+- `sudo ./vm.sh unprovision <GUEST_NAME>`
 
 
 
