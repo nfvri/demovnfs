@@ -1,7 +1,7 @@
 ## Run with Docker 
 
 ```
-docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name transcoder1 nfvsap/transcoder
+docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name cache-sensitive1 nfvsap/cache-sensitive
 ```
 
 ## Usage 

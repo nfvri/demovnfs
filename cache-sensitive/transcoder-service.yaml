@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: transcoder-service
+  name: cache-sensitive-service
   labels:
-    app: transcoder
+    app: cache-sensitive
 spec:
   type: NodePort
   ports:
@@ -20,4 +20,4 @@ spec:
     name: third
     nodePort: 31802
   selector:
-    app: transcoder          
+    app: cache-sensitive          

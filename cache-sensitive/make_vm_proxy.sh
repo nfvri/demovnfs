@@ -18,7 +18,7 @@ KVM_DEF_POOL=default
 KVM_DEF_POOL_PATH=/var/lib/libvirt/images
 
 # vm prefs : specify vm preferences for your guest
-GUEST_NAME="transcoder"
+GUEST_NAME="cache-sensitive"
 GUEST_DOMAIN=intranet.local
 GUEST_VROOTDISKSIZE=10G
 GUEST_VCPUS=8
@@ -75,7 +75,7 @@ write_files:
       git clone https://github.com/anastop/util /home/ubuntu/util
       cd /home/ubuntu/archbench/memory_tests && make
      
-  - path: /etc/init.d/transcoder
+  - path: /etc/init.d/cache-sensitive
     content: |
       #!/usr/bin/env bash
       /home/ubuntu/archbench/memory_tests/randacc 20 2>&1 >/dev/null | /home/ubuntu/simple-em/simple-em
@@ -101,8 +101,8 @@ packages:
 
 runcmd:
   - bash /provision.sh
-  - chmod +x /etc/init.d/transcoder
-  - update-rc.d transcoder defaults
+  - chmod +x /etc/init.d/cache-sensitive
+  - update-rc.d cache-sensitive defaults
 
 power_state:
   mode: reboot
