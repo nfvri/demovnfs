@@ -1,3 +1,9 @@
+## Run with Docker 
+
+```
+docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name streamer1 nfvsap/streamer 
+```
+
 ## Usage 
 
 ```
