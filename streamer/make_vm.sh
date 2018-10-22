@@ -58,7 +58,7 @@ write_files:
       #!/usr/bin/env bash
       wget https://dl.google.com/go/go1.9.3.linux-amd64.tar.gz -P /home/ubuntu
       cd /home/ubuntu && tar zxvf /home/ubuntu/go1.9.3.linux-amd64.tar.gz
-      git clone https://github.com/anastop/simple-em /home/ubuntu/simple-em
+      git clone https://github.com/nfvsap/simple-em /home/ubuntu/simple-em
       cd /home/ubuntu/simple-em && /home/ubuntu/go/bin/go build 
       git clone https://github.com/anastop/archbench /home/ubuntu/archbench
       git clone https://github.com/anastop/util /home/ubuntu/util

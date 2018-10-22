@@ -58,7 +58,7 @@ write_files:
       #!/usr/bin/env bash
       wget https://dl.google.com/go/go1.9.3.linux-amd64.tar.gz -P /home/ubuntu
       cd /home/ubuntu && tar zxvf /home/ubuntu/go1.9.3.linux-amd64.tar.gz
-      git clone https://github.com/anastop/hist-em /home/ubuntu/hist-em
+      git clone https://github.com/nfvsap/hist-em /home/ubuntu/hist-em
       git clone git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git /home/ubuntu/cyclictest
       apt-get install -y build-essential libnuma-dev
       apt install -y python-pip

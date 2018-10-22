@@ -4,7 +4,7 @@ RUN apt-get update
 RUN apt-get install -y  gcc make git golang
 RUN mkdir /go
 ENV GOPATH /go
-RUN go get github.com/anastop/simple-em
+RUN go get github.com/nfvsap/simple-em
 RUN git clone https://github.com/anastop/archbench 
 RUN git clone https://github.com/anastop/util 
 WORKDIR archbench/memory_tests 
