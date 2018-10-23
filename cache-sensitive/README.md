@@ -1,35 +1,26 @@
-## Run with Docker 
+# Run as Libvirt VM 
+
+Provision with virgo: 
+
+```console
+$ sudo virgo provision  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh -g cache-sensitive-vnf
+```
+
+Start: 
+
+```console
+$ sudo virgo start -g cache-sensitive-vnf
+```
+
+# Run as Docker container
 
 ```
 docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name cache-sensitive1 nfvsap/cache-sensitive
 ```
+# After launch
 
-## Usage 
-
-```
-sudo bash make_vm.sh
-```
-
-After provisioning: 
-
-```
-curl http://<IP-addr>:8000/v1/data
+```console
+$ curl http://<IP-addr>:8000/v1/data
 ```
 
-or
-
-```
-curl http://<IP-addr>:8001/v1/data
-```
-
-## Changes compared to baseline
-
-- use 8 cores
-- use `virbr1` instead of `virbr0`
-- do not resize volume to 10G
-
-
-## How to remove cloud-init dependency
-- ssh on the vm
-- run: `cd /home/ubuntu/simple-em && sudo bash remove_cloud_init.sh`
-After that you should be able to boot without .iso device.
+or use the 8001, 8002 ports.

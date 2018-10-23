@@ -1,33 +1,26 @@
-## Run with Docker 
+# Run as Libvirt VM 
 
-```
-docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name streamer1 nfvsap/streamer 
-```
+Provision with virgo: 
 
-## Usage 
-
-```
-sudo bash make_vm.sh
+```console
+$ sudo virgo provision  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh -g streamer-vnf
 ```
 
-After provisioning: 
+Start: 
 
-```
-curl http://<IP-addr>:8000/v1/data
-```
-
-or
-
-```
-curl http://<IP-addr>:8002/v1/data
+```console
+$ sudo virgo start -g streamer-vnf
 ```
 
-## Changes compared to baseline
+# Run as Docker container
 
-- use `virbr1` instead of `virbr0`
-- do not resize volume to 10G
+```
+docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name cache-sensitive1 nfvsap/cache-sensitive
+```
+# After launch
 
-## How to remove cloud-init dependency
-- ssh on the vm
-- run: `cd /home/ubuntu/simple-em && sudo bash remove_cloud_init.sh`
-After that you should be able to boot without .iso device.
+```console
+$ curl http://<IP-addr>:8000/v1/data
+```
+
+or use the 8001, 8002 ports.
