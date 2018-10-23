@@ -1,28 +1,20 @@
-## Usage 
+# Run as Libvirt VM 
 
-```
-sudo bash make_vm.sh
-```
+Provision with virgo: 
 
-After provisioning: 
-
-```
-curl http://<IP-addr>:8000/v1/data
+```console
+$ sudo virgo provision  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh -g cyclictest
 ```
 
-or
+Start: 
 
+```console
+$ sudo virgo start -g cyclictest
 ```
-curl http://<IP-addr>:8002/v1/data
+
+# After launch
+
+```console
+$ curl http://<IP-addr>:9000/v1/data
 ```
 
-## Changes compared to baseline
-
-- use `virbr1` instead of `virbr0`
-- do not resize volume to 10G
-
-
-### How to remove cloud-init dependency
-- ssh on the vm
-- run: `cd /home/ubuntu/go-work/src/hist-em && sudo bash remove_cloud_init.sh`
-After that you should be able to boot without .iso device.

@@ -1,0 +1,14 @@
+{
+  "cloud_img_url": "https://cloud-images.ubuntu.com/releases/16.04/release/",
+  "cloud_img_name": "ubuntu-16.04-server-cloudimg-amd64-disk1.img",
+  "user": "nfvsap",
+  "passwd": "nfvsap",
+  "root_img_gb": 10,
+  "guest_memory_mb": 4096,
+  "guest_num_vcpus": 4,
+  "guest_hugepage_support": false,
+  "guest_hugepage_size": 2,
+  "guest_hugepage_size_unit": "M",
+  "guest_hugepage_node_set": "0",
+  "guest_net_ifs": [{"type": "bridge", "bridge": "virbr0"}]
+}
