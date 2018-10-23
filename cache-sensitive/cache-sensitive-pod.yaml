@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
   - name: cache-sensitive-cont-0
-    image: vnfs/cache-sensitive:latest
+    image: nfvsap/cache-sensitive:latest
     ports:
     - containerPort: 8000
     - containerPort: 8001
