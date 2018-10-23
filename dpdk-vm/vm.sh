@@ -50,6 +50,16 @@ write_files:
       cd \$RTE_SDK
       make config T=\$RTE_TARGET
       make install T=\$RTE_TARGET DESTDIR=dpdk-install
+      # install DPDK 2nd version
+      cd /opt/nfv
+      wget http://fast.dpdk.org/rel/dpdk-17.11.3.tar.xz
+      tar -xvf dpdk-17.11.3.tar.xz
+      mv dpdk-stable-17.11.3 dpdk-17.11.3
+      export RTE_SDK=\$(pwd)/dpdk-17.11.3
+      export RTE_TARGET=x86_64-native-linuxapp-gcc
+      cd \$RTE_SDK
+      make config T=\$RTE_TARGET
+      make install T=\$RTE_TARGET DESTDIR=dpdk-install
       # install T-Rex
       mkdir -p /opt/nfv/trex
       cd /opt/nfv/trex
