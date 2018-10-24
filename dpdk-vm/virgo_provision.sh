@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-apt-get install -y gcc make libvirt-bin python python-pip
+apt-get install -y gcc make libvirt-bin python python-pip libnuma-dev
 mkdir -p /opt/nfv
 cd /opt/nfv
 
