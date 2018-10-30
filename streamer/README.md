@@ -3,13 +3,13 @@
 Provision with virgo: 
 
 ```console
-$ sudo virgo provision  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh -g streamer-vnf
+$ sudo virgo provision streamer-vnf  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh 
 ```
 
 Start: 
 
 ```console
-$ sudo virgo start -g streamer-vnf
+$ sudo virgo start streamer-vnf
 ```
 
 # Run as Docker container
