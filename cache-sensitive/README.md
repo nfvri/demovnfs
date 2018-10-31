@@ -3,13 +3,13 @@
 Provision with virgo: 
 
 ```console
-$ sudo virgo provision  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh -g cache-sensitive-vnf
+$ sudo virgo provision cache-sensitive-vnf  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh 
 ```
 
 Start: 
 
 ```console
-$ sudo virgo start -g cache-sensitive-vnf
+$ sudo virgo start cache-sensitive-vnf
 ```
 
 # Run as Docker container
