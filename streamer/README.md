@@ -15,7 +15,7 @@ $ sudo virgo start streamer-vnf
 # Run as Docker container
 
 ```
-docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name cache-sensitive1 nfvsap/cache-sensitive
+docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name streamer1 nfvsap/streamer
 ```
 # After launch
 
