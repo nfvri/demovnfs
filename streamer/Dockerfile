@@ -10,9 +10,13 @@ RUN git clone https://github.com/anastop/util
 WORKDIR archbench/memory_tests 
 RUN make
 WORKDIR /
-RUN echo "archbench/memory_tests/seqacc 80 &" > run.sh
-RUN echo "archbench/memory_tests/seqacc 80 &" >> run.sh
-RUN echo "archbench/memory_tests/seqacc 80 &" >> run.sh
-RUN echo "archbench/memory_tests/seqacc 80 2>&1 >/dev/null | /go/bin/simple-em" >> run.sh
+RUN echo "archbench/memory_tests/seqacc 150 &" > run.sh
+RUN echo "archbench/memory_tests/seqacc 150 &" >> run.sh
+RUN echo "archbench/memory_tests/seqacc 150 &" >> run.sh
+RUN echo "archbench/memory_tests/seqacc 150 &" >> run.sh
+RUN echo "archbench/memory_tests/seqacc 150 &" >> run.sh
+RUN echo "archbench/memory_tests/seqacc 150 &" >> run.sh
+RUN echo "archbench/memory_tests/seqacc 150 &" >> run.sh
+RUN echo "archbench/memory_tests/seqacc 150 2>&1 >/dev/null | /go/bin/simple-em" >> run.sh
 CMD /bin/bash /run.sh
  
