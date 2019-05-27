@@ -3,7 +3,7 @@
 Provision with virgo: 
 
 ```console
-$ sudo virgo provision streamer-vnf  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh 
+$ sudo virgo provision streamer1  -c virgo.json -p virgo_provision.sh -i virgo_initd.sh 
 ```
 
 
