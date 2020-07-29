@@ -10,6 +10,6 @@ RUN git clone https://github.com/anastop/util
 WORKDIR archbench/memory_tests 
 RUN make
 WORKDIR /
-RUN echo "archbench/memory_tests/randacc $1 2>&1 >/dev/null | /go/bin/simple-em" >> run.sh
+RUN echo "archbench/memory_tests/randacc \$1 2>&1 >/dev/null | /go/bin/simple-em" >> run.sh
 CMD /bin/bash /run.sh 20
  
