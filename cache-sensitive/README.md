@@ -14,9 +14,15 @@ $ sudo virgo start cache-sensitive-vnf
 
 # Run as Docker container
 
+You can start the "cache-sensitive" benchmark as a Docker container, providing the desired working set size (WSS) in the command line as follows: 
+
+``` 
+docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name cache-sensitive1 nfvsap/cache-sensitive /bin/bash /run.sh 15
 ```
-docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name cache-sensitive1 nfvsap/cache-sensitive
-```
+
+In this example, we use a WSS of 15 MB.
+
+
 # After launch
 
 ```console
