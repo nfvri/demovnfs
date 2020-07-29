@@ -26,7 +26,7 @@ In this example, we use a WSS of 15 MB.
 # After launch
 
 ```console
-$ curl http://<IP-addr>:8000/v1/data
+$ curl http://<IP-addr>:8800/v1/data
 ```
 
-or use the 8001, 8002 ports.
+or use the 8801, 8802 ports.
