@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pktgen-dpdk-deployment
+  namespace: dpdk
+  labels:
+    app: pktgen-dpdk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pktgen-dpdk
+  template:
+    metadata:
+      annotations:
+        #k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1
+        k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2
+      labels:
+        app: pktgen-dpdk
+    spec:
+      containers:
+      - name: pktgen-dpdk
+        imagePullPolicy: Always
+        image: ghcr.io/angelouev/public/dpdk-ubuntu-testpmd:v20.08
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do sleep 10; echo 'Sleeping...'; done"]
+        securityContext:
+#          privileged: true
+          capabilities:
+            add: ["IPC_LOCK"]
+        volumeMounts:
+          - mountPath: /dev/hugepages
+            name: hosthp-volume
+            readOnly: False
+#          - mountPath: /dev/vfio
+#            name: hostvfio-volume
+#            readOnly: False
+#          - mountPath: /sys/bus/pci/drivers
+#            name: hostdrivers-volume
+#            readOnly: False
+#          - mountPath: /sys/bus/pci/devices
+#            name: hostdevices-volume
+#            readOnly: False
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "4000m"
+            intel.com/intel_sriov_dpdk_b2b_net1: '1'
+            intel.com/intel_sriov_dpdk_b2b_net2: '1'
+            hugepages-1Gi: 4Gi
+          limits:
+            memory: "2Gi"
+            cpu: "4000m"
+            intel.com/intel_sriov_dpdk_b2b_net1: '1'
+            intel.com/intel_sriov_dpdk_b2b_net2: '1'
+            hugepages-1Gi: 4Gi
+      nodeSelector:
+        kubernetes.io/hostname: clx1
+      volumes:
+        - name: hosthp-volume
+          hostPath:
+            path: /dev/hugepages
+            type: Directory
+#        - name: hostvfio-volume
+#          hostPath:
+#            path: /dev/vfio
+#            type: Directory
+#        - name: hostdrivers-volume
+#          hostPath:
+#            path: /sys/bus/pci/drivers
+#            type: Directory
+#        - name: hostdevices-volume
+#          hostPath:
+#            path: /sys/bus/pci/devices
+#            type: Directory
+

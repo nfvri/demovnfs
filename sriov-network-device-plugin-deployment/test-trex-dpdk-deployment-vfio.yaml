@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trex-dpdk-deployment
+  namespace: dpdk
+  labels:
+    app: trex-dpdk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trex-dpdk
+  template:
+    metadata:
+      annotations:
+        k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-net1
+      labels:
+        app: trex-dpdk
+    spec:
+      containers:
+      - name: trex-dpdk
+        imagePullPolicy: Always
+        image: ghcr.io/nfvsap/public/dpdk-ubuntu-testpmd:v20.08
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do sleep 10; echo 'Sleeping...'; done"]
+        securityContext:
+#          privileged: true
+          capabilities:
+            add: ["IPC_LOCK"]
+        volumeMounts:
+          - mountPath: /dev/hugepages
+            name: hosthp-volume
+            readOnly: False
+#          - mountPath: /dev/vfio
+#            name: hostvfio-volume
+#            readOnly: False
+#          - mountPath: /sys/bus/pci/drivers
+#            name: hostdrivers-volume
+#            readOnly: False
+#          - mountPath: /sys/bus/pci/devices
+#            name: hostdevices-volume
+#            readOnly: False
+        resources:
+          requests:
+            memory: "200Mi"
+            cpu: "2000m"
+            intel.com/intel_sriov_dpdk: '2'
+            hugepages-1Gi: 4Gi
+          limits:
+            memory: "200Mi"
+            cpu: "2000m"
+            intel.com/intel_sriov_dpdk: '2'
+            hugepages-1Gi: 4Gi
+      volumes:
+        - name: hosthp-volume
+          hostPath:
+            path: /dev/hugepages
+            type: Directory
+#        - name: hostvfio-volume
+#          hostPath:
+#            path: /dev/vfio
+#            type: Directory
+#        - name: hostdrivers-volume
+#          hostPath:
+#            path: /sys/bus/pci/drivers
+#            type: Directory
+#        - name: hostdevices-volume
+#          hostPath:
+#            path: /sys/bus/pci/devices
+#            type: Directory
+

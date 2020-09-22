@@ -1,0 +1,32 @@
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: sriov-dpdk-b2b-net1
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: intel.com/intel_sriov_dpdk_b2b_net1
+spec:
+  config: '{
+  "cniVersion": "0.3.1",
+  "name": "sriov-dpdk-b2b-net1",
+  "type": "sriov",
+  "trust": "on",
+  "link_state": "enable"
+}'
+
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: sriov-dpdk-b2b-net2
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: intel.com/intel_sriov_dpdk_b2b_net2
+spec:
+  config: '{
+  "cniVersion": "0.3.1",
+  "name": "sriov-dpdk-b2b-net2",
+  "type": "sriov",
+  "trust": "on",
+  "link_state": "enable"
+}'
+

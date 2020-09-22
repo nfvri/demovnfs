@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sriovdp-config
+  namespace: kube-system
+data:
+  config.json: |
+    {
+        "resourceList": [{
+                "resourceName": "intel_sriov_netdevice",
+                "selectors": {
+                    "vendors": ["8086"],
+                    "devices": ["154c", "10ed"],
+                    "drivers": ["i40evf", "iavf", "ixgbevf"],
+                    "pfNames": ["ens2f1"]
+                }
+            },
+            {
+             "resourceName": "intel_sriov_dpdk",
+             "resourcePrefix": "intel.com",
+             "selectors": {
+                "vendors": ["8086"],
+                "devices": ["154c", "10ed"],
+                "drivers": ["vfio-pci"],
+                "pfNames": ["ens2f0v#0,1,2,3","ens2f1v#0,1,2,3"],
+                "needVhostNet": true
+              }
+            },
+            {
+             "resourceName": "intel_sriov_dpdk_b2b_net1",
+             "resourcePrefix": "intel.com",
+             "selectors": {
+                "vendors": ["8086"],
+                "devices": ["154c", "10ed"],
+                "drivers": ["vfio-pci"],
+                "pfNames": ["ens1f0#2,3"],
+                "needVhostNet": true
+              }
+            },
+            {
+             "resourceName": "intel_sriov_dpdk_b2b_net2",
+             "resourcePrefix": "intel.com",
+             "selectors": {
+                "vendors": ["8086"],
+                "devices": ["154c", "10ed"],
+                "drivers": ["vfio-pci"],
+                "pfNames": ["ens1f1#2,3"],
+                "needVhostNet": true
+              }
+            }
+        ]
+    }
