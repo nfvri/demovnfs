@@ -1,0 +1,105 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dc-agent
+  namespace: kube-system
+imagePullSecrets:
+  - name: nfvsap-private-repo 
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dc-agent-config
+  namespace: kube-system
+data:
+  config.json: |
+    {
+      "libvirt_supported": false,
+      "nats_supported": false,
+      "rest_supported": true,
+      "rest_listen_host_string": "0.0.0.0:8099",
+      "docker_supported": false,
+      "docker_api_version": "1.35",
+      "kube_supported": false,
+      "kube_config_path": "/home/k8s/.kube/config",
+      "controller_url": "IP:4290",
+      "compute_host_id": "HOSTNAME",
+      "collectd_unix_socket_path": "/opt/collectd/var/run/collectd-unixsock",
+      "verbose": false,
+      "remote_logs": false,
+      "json_logs": false,
+      "profile": false,
+      "avail_freqs_file": "available_frequencies",
+      "cputime_collector_secs": 5,
+      "cpufreq_collector_secs": 5,
+      "ipmi_collector_secs": 5,
+      "ovs_collector_secs": 5,
+      "dpdkstat_collector_secs": 5,
+      "dpdk_telemetry_collector_secs": 5,
+      "intel_pmu_collector_secs": 5,
+      "virt_collector_secs": 5,
+      "turbostat_collector_secs": 5,
+      "vfs_collector_secs": 5
+    }
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: dc-agent
+  namespace: kube-system
+  labels:
+    tier: node
+    app: dc-agent
+spec:
+  selector:
+    matchLabels:
+      name: dc-agent
+  template:
+    metadata:
+      labels:
+        name: dc-agent
+        tier: node
+        app: dc-agent
+    spec:
+      hostNetwork: true
+      hostPID: true
+      nodeSelector:
+        beta.kubernetes.io/arch: amd64
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      serviceAccountName: dc-agent
+      imagePullSecrets:
+      - name: nfvsap-private-repo 
+      containers:
+      - name: k8s-dc-agent
+        image: gcr.io/nfvsap/dc-agent:develop
+        imagePullPolicy: Always
+        command: ["/agentcli"]
+        #args:
+        #- --log-dir=sriovdp
+        #- --log-level=10
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: devicesock
+          mountPath: /var/lib/kubelet/
+          readOnly: false
+        - name: config-volume
+          mountPath: /config.json
+          subPath: config.json
+      volumes:
+        - name: devicesock
+          hostPath:
+            path: /var/lib/kubelet/
+        - name: config-volume
+          configMap:
+            name: dc-agent-config
+            items:
+            - key: config.json
+              path: config.json
+
