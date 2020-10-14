@@ -4,13 +4,13 @@ export VERSION ?= v20.08
 # For private repo
 # export REPO = gcr.io/nfvsap
 # For public repo
-export REPO = ghcr.io/angelouev/public
-export REPO_PAT = ZDY5YzQ1NTQyZjUxMmNkYjg2Zjk5NWI2M2M3Y2QwOWYxYWRiMjk5Ywo=
-export USERNAME = angelouev
-# For nfvsap public repo
-#export REPO = ghcr.io/nfvsap/public
-#export REPO_PAT = 4ffa630ead7e5c97bc3604d1410a9b138bcada94
-#export USERNAME = nfvsap
+#export REPO = ghcr.io/angelouev/public
+#export REPO_PAT = ZDY5YzQ1NTQyZjUxMmNkYjg2Zjk5NWI2M2M3Y2QwOWYxYWRiMjk5Ywo=
+#export USERNAME = angelouev
+# For nfvri public repo
+export REPO = ghcr.io/nfvri/public
+export REPO_PAT = MTQ5MGJlZjUwODFiMTFjYTY1ZjUyZWJlNTkzODJlMmFmZGJkMDVhMwo=
+export USERNAME = nfvri
 
 export NAME = dpdk-ubuntu-testpmd
 
