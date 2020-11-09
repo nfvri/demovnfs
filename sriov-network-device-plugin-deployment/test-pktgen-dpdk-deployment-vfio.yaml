@@ -29,9 +29,11 @@ spec:
           capabilities:
             add: ["IPC_LOCK"]
         volumeMounts:
-          - mountPath: /dev/hugepages
-            name: hosthp-volume
-            readOnly: False
+           - mountPath: /hugepages-1Gi
+             name: hugepage-1gi
+#          - mountPath: /dev/hugepages
+#            name: hosthp-volume
+#            readOnly: False
 #          - mountPath: /dev/vfio
 #            name: hostvfio-volume
 #            readOnly: False
@@ -57,10 +59,13 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: clx1
       volumes:
-        - name: hosthp-volume
-          hostPath:
-            path: /dev/hugepages
-            type: Directory
+        - name: hugepage-1gi
+          emptyDir:
+            medium: HugePages-1Gi
+#        - name: hosthp-volume
+#          hostPath:
+#            path: /dev/hugepages
+#            type: Directory
 #        - name: hostvfio-volume
 #          hostPath:
 #            path: /dev/vfio
