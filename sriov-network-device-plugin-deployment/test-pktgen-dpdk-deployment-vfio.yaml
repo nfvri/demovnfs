@@ -21,7 +21,7 @@ spec:
       containers:
       - name: pktgen-dpdk
         imagePullPolicy: Always
-        image: ghcr.io/angelouev/public/dpdk-ubuntu-testpmd:v20.08
+        image: docker.pkg.github.com/nfvri/demovnfs/dpdk-ubuntu-testpmd:v20.08
         command: ["/bin/sh"]
         args: ["-c", "while true; do sleep 10; echo 'Sleeping...'; done"]
         securityContext:

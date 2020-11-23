@@ -1,3 +1,39 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dpdk-deployment-monitor
+  namespace: monitoring
+spec:
+  endpoints:
+  - port: metrics
+    path: /
+    interval: "5s"
+    scrapeTimeout: "5s"
+  namespaceSelector:
+    matchNames:
+      - dpdk
+  selector:
+    matchLabels:
+      app: dpdk
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dpdk-deployment-svc
+  namespace: dpdk
+  labels:
+    app: dpdk
+spec:
+  ports:
+  - name: metrics
+    port: 8000
+    protocol: TCP
+  selector:
+    app: dpdk
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,9 +55,26 @@ spec:
         app: dpdk
     spec:
       containers:
+      - name: telemetry-exporter
+        imagePullPolicy: Always
+        image: docker.pkg.github.com/nfvri/dpdk-telemetry-exporter/dpdk-telemetry-exporter:0.1
+        command: ["dpdkTelemetryExporter"]
+        args: ["-vvv"]
+        volumeMounts:
+           - mountPath: /var/run/dpdk/
+             name: dpdkrun-volume
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        ports:
+          - containerPort: 8000
       - name: dpdk
         imagePullPolicy: Always
-        image: ghcr.io/angelouev/public/dpdk-ubuntu-testpmd:v20.08
+        image: docker.pkg.github.com/nfvri/demovnfs/dpdk-ubuntu-testpmd:v20.08
         command: ["/bin/sh"]
         args: ["-c", "while true; do sleep 10; echo 'Sleeping...'; done"]
         securityContext:
@@ -31,9 +84,8 @@ spec:
         volumeMounts:
            - mountPath: /hugepages-1Gi
              name: hugepage-1gi
-#          - mountPath: /dev/hugepages
-#            name: hosthp-volume
-#            readOnly: False
+           - mountPath: /var/run/dpdk/
+             name: dpdkrun-volume
 #          - mountPath: /dev/vfio
 #            name: hostvfio-volume
 #            readOnly: False
@@ -62,6 +114,8 @@ spec:
         - name: hugepage-1gi
           emptyDir:
             medium: HugePages-1Gi
+        - name: dpdkrun-volume
+          emptyDir: {}
 #        - name: hosthp-volume
 #          hostPath:
 #            path: /dev/hugepages
