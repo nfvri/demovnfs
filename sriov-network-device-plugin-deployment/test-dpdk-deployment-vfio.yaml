@@ -4,6 +4,9 @@ kind: ServiceMonitor
 metadata:
   name: dpdk-deployment-monitor
   namespace: monitoring
+  labels:
+    app: dpdk
+    release: k8s-prom
 spec:
   endpoints:
   - port: metrics
