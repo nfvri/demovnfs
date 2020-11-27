@@ -4,7 +4,7 @@ export VERSION ?= v20.08
 # For private repo
 # export REPO = gcr.io/nfvsap
 # For nfvri public repo
-export REPO = docker.pkg.github.com/nfvri/demovnfs
+export REPO = nfvri
 
 export NAME = dpdk-ubuntu-testpmd
 
@@ -19,7 +19,7 @@ push-dpdk:
 	# For private repo
 	#cat .gcloud_keyfile.json | docker login -u _json_key --password-stdin https://gcr.io
 	# For public repo
-	echo $(REPO_PAT) | base64 -d | docker login docker.pkg.github.com -u $(USERNAME) --password-stdin
+	echo $(REPO_PAT) | base64 -d | docker login -u $(USERNAME) --password-stdin
 	docker push $(REPO)/$(NAME):$(VERSION)
 
 clean-dpdk: 
