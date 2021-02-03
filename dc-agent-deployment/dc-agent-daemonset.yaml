@@ -5,7 +5,7 @@ metadata:
   name: dc-agent
   namespace: kube-system
 imagePullSecrets:
-  - name: nfvsap-private-repo 
+  - name: nfvri-private-repo 
 
 ---
 apiVersion: v1
@@ -14,35 +14,70 @@ metadata:
   name: dc-agent-config
   namespace: kube-system
 data:
+  APISERVER_HOST: "146.124.112.67"
+  APISERVER_HOST_PORT: "8000"
+  DC_AGENT_API_USER_USERNAME: "dc_agent_stuff"
+  DC_AGENT_API_USER_PASS: "dc_agent_p@ss"
   config.json: |
     {
-      "libvirt_supported": false,
-      "nats_supported": false,
-      "rest_supported": true,
-      "rest_listen_host_string": "0.0.0.0:8099",
-      "docker_supported": false,
-      "docker_api_version": "1.35",
-      "kube_supported": false,
-      "kube_config_path": "/home/k8s/.kube/config",
-      "controller_url": "IP:4290",
-      "compute_host_id": "HOSTNAME",
-      "collectd_unix_socket_path": "/opt/collectd/var/run/collectd-unixsock",
-      "verbose": false,
-      "remote_logs": false,
-      "json_logs": false,
-      "profile": false,
-      "avail_freqs_file": "available_frequencies",
-      "cputime_collector_secs": 5,
-      "cpufreq_collector_secs": 5,
-      "ipmi_collector_secs": 5,
-      "ovs_collector_secs": 5,
-      "dpdkstat_collector_secs": 5,
-      "dpdk_telemetry_collector_secs": 5,
-      "intel_pmu_collector_secs": 5,
-      "virt_collector_secs": 5,
-      "turbostat_collector_secs": 5,
-      "vfs_collector_secs": 5
+        "libvirt_supported": true,
+        "rest_listen_host_string": "0.0.0.0:8091",
+        "prometheus_address_string": "http://k8s-prom-kube-prometheus-s-prometheus.monitoring:9090",
+        "docker_supported": true,
+        "docker_api_version": "1.35",
+        "kube_supported": false,
+        "kube_config_path": "/home/k8s/.kube/config",
+        "verbose": false,
+        "remote_logs": false,
+        "json_logs": false,
+        "profile": false, 
+        "avail_freqs_file": "available_frequencies",
+        "prometheus_collector_interval": "1s",
+        "cputime_collector_interval": "1s", 
+        "cpufreq_collector_interval": "1s",
+        "ipmi_collector_interval": "5s",
+        "ebpf_collector_interval": "5s",
+        "ebpf_collector_cleanup_interval": "20s"
     }
+  available_frequencies: |
+    2000000 2000000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dc-agent-svc
+  namespace: kube-system
+  labels:
+    app: dc-agent
+spec:
+  ports:
+  - name: dc-agent-http
+    port: 8091
+    protocol: TCP
+  selector:
+    app: dc-agent
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dc-agent-monitor
+  namespace: monitoring
+  labels:
+    app: dc-agent
+    release: k8s-prom
+spec:
+  endpoints:
+  - port: dc-agent-http
+    interval: "5s"
+    scrapeTimeout: "5s"
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  selector:
+    matchLabels:
+      app: dc-agent
 
 ---
 apiVersion: apps/v1
@@ -68,38 +103,104 @@ spec:
       hostPID: true
       nodeSelector:
         beta.kubernetes.io/arch: amd64
-      tolerations:
-      - key: node-role.kubernetes.io/master
-        operator: Exists
-        effect: NoSchedule
+      #tolerations:
+      #- key: "node-role.kubernetes.io/master"
+      #  operator: Exists
+      #  effect: NoExecute
+      #- key: "node-role.kubernetes.io/control-plane"
+      #  operator: Exists
+      #  effect: NoExecute
       serviceAccountName: dc-agent
       imagePullSecrets:
-      - name: nfvsap-private-repo 
+      - name: nfvri-private-repo 
       containers:
       - name: k8s-dc-agent
-        image: gcr.io/nfvsap/dc-agent:develop
+        image: gcr.io/nfv-ri/dc-agent:develop
         imagePullPolicy: Always
-        command: ["/agentcli"]
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do sleep 10; echo 'Sleeping...'; done"]
+        #command: ["/nfvri-agent/agentcli"]
         #args:
         #- --log-dir=sriovdp
         #- --log-level=10
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "4Gi"
+            cpu: "8000m"
+        env:
+        - name: APISERVER_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: dc-agent-config
+              key: APISERVER_HOST
+        - name: APISERVER_HOST_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: dc-agent-config
+              key: APISERVER_HOST_PORT
+        - name: DC_AGENT_API_USER_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: dc-agent-config
+              key: DC_AGENT_API_USER_USERNAME
+        - name: DC_AGENT_API_USER_PASS
+          valueFrom:
+            configMapKeyRef:
+              name: dc-agent-config
+              key: DC_AGENT_API_USER_PASS
         securityContext:
           privileged: true
         volumeMounts:
-        - name: devicesock
+        - name: kubelet
           mountPath: /var/lib/kubelet/
           readOnly: false
+        - name: run
+          mountPath: /var/run/
+          readOnly: false
+        - name: modules
+          mountPath: /lib/modules
+          readOnly: true
+        - name: proc
+          mountPath: /proc
+          readOnly: false
+        - name: sys
+          mountPath: /sys
+          readOnly: false
         - name: config-volume
-          mountPath: /config.json
+          mountPath: /nfvri-agent/config.json
           subPath: config.json
+        - name: freq-volume
+          mountPath: /nfvri-agent/available_frequencies
+          subPath: available_frequencies
       volumes:
-        - name: devicesock
+        - name: kubelet
           hostPath:
             path: /var/lib/kubelet/
+        - name: run
+          hostPath:
+            path: /var/run/
+        - name: modules
+          hostPath:
+            path: /lib/modules/
+        - name: proc
+          hostPath:
+            path: /proc/
+        - name: sys
+          hostPath:
+            path: /sys/
         - name: config-volume
           configMap:
             name: dc-agent-config
             items:
             - key: config.json
               path: config.json
+        - name: freq-volume
+          configMap:
+            name: dc-agent-config
+            items:
+            - key: available_frequencies
+              path: available_frequencies
 
