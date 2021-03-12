@@ -1,5 +1,5 @@
 #NS = your docker namespace
-export VERSION ?= v20.08
+export VERSION ?= v21.02
 
 # For private repo
 # export REPO = gcr.io/nfvsap
@@ -13,7 +13,7 @@ export NAME = dpdk-ubuntu-testpmd
 default: build
 
 build-dpdk:
-	docker build --build-arg DPDK_VER=$(VERSION) -t $(REPO)/$(NAME):$(VERSION) .
+	docker build -f Dockerfile-v21.02 --build-arg DPDK_VER=$(VERSION) -t $(REPO)/$(NAME):$(VERSION) .
 
 push-dpdk:
 	# For private repo
