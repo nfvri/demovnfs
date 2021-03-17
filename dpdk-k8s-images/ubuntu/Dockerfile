@@ -23,7 +23,7 @@ ENV RTE_TARGET='x86_64-native-linuxapp-gcc'
 ENV RTE_SDK=${DPDK_DIR}
 RUN git clone -b $DPDK_VER -q --depth 1 https://github.com/DPDK/dpdk.git $DPDK_DIR 2>&1
 RUN cd ${DPDK_DIR} && \
-    meson -Dexamples=l2fwd,l3fwd build && \
+    meson -Dexamples=l2fwd,l3fwd,l3fwd-acl build && \
     cd build && \
     ninja && \
     ninja install &&\
