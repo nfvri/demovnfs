@@ -24,8 +24,13 @@ ENV DPDK_DIR='/dpdk'
 ENV RTE_TARGET='x86_64-native-linuxapp-gcc'
 ENV RTE_SDK=${DPDK_DIR}
 RUN git clone -b $DPDK_VER -q --depth 1 https://github.com/DPDK/dpdk.git $DPDK_DIR 2>&1
+# add example l3fwd-acl with no sw prefetching
+RUN cp -r $DPDK_DIR/examples/l3fwd-acl $DPDK_DIR/examples/l3fwd-acl-np && \
+    sed -i "s/PREFETCH_OFFSET\\t3/PREFETCH_OFFSET\\t0/g" /dpdk/examples/l3fwd-acl-np/main.c && \
+    sed -i "s/l3fwd-acl/l3fwd-acl-np/g" /dpdk/examples/l3fwd-acl-np/Makefile
+
 RUN cd ${DPDK_DIR} && \
-    meson -Dexamples=l2fwd,l3fwd,l3fwd-acl build && \
+    meson -Dexamples=l2fwd,l3fwd,l3fwd-acl,l3fwd-acl-np build && \
     cd build && \
     ninja && \
     ninja install &&\
@@ -46,6 +51,12 @@ ENV PKTGEN_DIR='/pktgen-dpdk'
 RUN git clone -q --depth 1 https://github.com/pktgen/Pktgen-DPDK.git $PKTGEN_DIR 2>&1
 RUN cd ${PKTGEN_DIR} && \
     make buildlua
+
+# Add dpdk exporter
+ENV DPDK_EXPORTER_DIR='/dpdk-telemetry-exporter'
+RUN git clone -q --depth 1 https://github.com/nfvri/dpdk-telemetry-exporter.git $DPDK_EXPORTER_DIR 2>&1
+RUN cd ${DPDK_EXPORTER_DIR} && \
+    pip3 install -r requirements.txt
 
 ########## OLD BUILD PATH WITH MAKE ##########
 
