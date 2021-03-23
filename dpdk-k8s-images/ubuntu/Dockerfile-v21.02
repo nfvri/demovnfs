@@ -27,7 +27,8 @@ RUN git clone -b $DPDK_VER -q --depth 1 https://github.com/DPDK/dpdk.git $DPDK_D
 # add example l3fwd-acl with no sw prefetching
 RUN cp -r $DPDK_DIR/examples/l3fwd-acl $DPDK_DIR/examples/l3fwd-acl-np && \
     sed -i "s/PREFETCH_OFFSET\\t3/PREFETCH_OFFSET\\t0/g" /dpdk/examples/l3fwd-acl-np/main.c && \
-    sed -i "s/l3fwd-acl/l3fwd-acl-np/g" /dpdk/examples/l3fwd-acl-np/Makefile
+    sed -i "s/l3fwd-acl/l3fwd-acl-np/g" /dpdk/examples/l3fwd-acl-np/Makefile && \
+    sed -i "s/MAX_ACL_RULE_NUM\\t100000/MAX_ACL_RULE_NUM\\t1000000/g" /dpdk/examples/l3fwd-acl-np/main.c
 
 RUN cd ${DPDK_DIR} && \
     meson -Dexamples=l2fwd,l3fwd,l3fwd-acl,l3fwd-acl-np build && \
