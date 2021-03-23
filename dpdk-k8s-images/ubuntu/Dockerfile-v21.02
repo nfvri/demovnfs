@@ -48,7 +48,9 @@ RUN apt-get update && \
      && apt clean
 
 ENV PKTGEN_DIR='/pktgen-dpdk'
-RUN git clone -q --depth 1 https://github.com/pktgen/Pktgen-DPDK.git $PKTGEN_DIR 2>&1
+# RUN git clone -q --depth 1 https://github.com/pktgen/Pktgen-DPDK.git $PKTGEN_DIR 2>&1
+RUN curl https://codeload.github.com/pktgen/Pktgen-DPDK/tar.gz/refs/tags/pktgen-21.02.0 --output /pktgen-21.02.0.tar.gz && \
+    tar zxvf pktgen-21.02.0.tar.gz && mv /Pktgen-DPDK-pktgen-21.02.0 ${PKTGEN_DIR}
 RUN cd ${PKTGEN_DIR} && \
     make buildlua
 
