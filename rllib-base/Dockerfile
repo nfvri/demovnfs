@@ -13,5 +13,5 @@ RUN mkdir -p /tensorflow \
  && cd /tensorflow && tar -C /usr/local/ -xzf libtensorflow-cpu-linux-x86_64-2.4.0.tar.gz && ldconfig && rm -fr /tensorflow
 
 # Install tensorflow && rllib
-RUN pip3 install -U tensorflow==2.4.1 && pip3 install -U ray==1.1.0 && pip3 install -U 'ray[rllib]'==1.1.0
+RUN pip3 install -U tensorflow==2.4.1 && pip3 install -U ray==1.3.0 && pip3 install -U 'ray[rllib]'==1.3.0
 
