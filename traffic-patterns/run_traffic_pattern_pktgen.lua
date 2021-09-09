@@ -8,7 +8,7 @@ require "Pktgen"
 ------------------------------------------------------------------
 print("**** Execute Range test ********");
 
-pktgen.range.dst_mac("0", "start", "fa:5c:48:d7:1c:9c");
+pktgen.range.dst_mac("0", "start", "76:c6:88:6e:34:0a");
 -- pktgen.range.src_mac("0", "start", "3c:fd:fe:9c:5c:d8");
 
 pktgen.range.dst_ip("0", "start", "16.0.153.153");
@@ -50,8 +50,8 @@ pktgen.set_range("0", "on");
 pktgen.start(0)
 
 file = '/full/path/to/traffic/pattern/file.txt'; -- A txt file in which each line has a traffic step (link rate).
-time_step = 5;		-- (seconds) time interval between traffic steps
-repeat_num = -1;    -- number of runs of traffic pattern. -1 for infinite loop
+time_step = 10;     -- (seconds) time interval between traffic steps
+repeat_num = -1;    -- number of runs of traffic pattern. -1 for infinitive loop
 ------------------------------------------------------------------
 
 -- Take two lists and create one table with a merged value of the tables.
