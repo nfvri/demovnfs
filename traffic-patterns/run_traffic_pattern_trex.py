@@ -8,7 +8,7 @@ import argparse
 
 
 def run_traffic(streams_file, traffic_pattern_file, send_port):
-    time_step = 5  # seconds
+    time_step = 10  # seconds
 
     # create client
     # verbose_level = 'high'
