@@ -122,10 +122,16 @@ if __name__ == '__main__':
     })
 
     new_profile = create_load_profile(profiles)
-    plt.plot(new_profile)
     datetime_str = time.strftime("%Y%m%d-%H%M%S")
-    plt.savefig(args.plot_file if args.plot_file is not None and args.plot_file != ""
+
+    fig = plt.figure()
+    plt.plot(new_profile)
+    fig.suptitle('Traffic Pattern', fontsize=18)
+    plt.xlabel('Traffic Steps', fontsize=14)
+    plt.ylabel('Rate (%)', fontsize=14)
+    fig.savefig(args.plot_file if args.plot_file is not None and args.plot_file != ""
                 else f"./plot_traffic_pattern_{datetime_str}.png")
+
     fp = open(args.traffic_pattern_file if args.traffic_pattern_file is not None and args.traffic_pattern_file != ""
               else f"./traffic_pattern_{datetime_str}.txt", "w")
     for value in new_profile:
