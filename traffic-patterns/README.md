@@ -21,8 +21,7 @@ of the traffic pattern (like `example-traffic-rate-pattern.png`).
 
 To modify some attributes of the pattern you can run:
 ```console
-python3 traffic_rate_creator.py --number_of_steps=100 --low_load=0 --high_load=40
- --plot_file=/path/to/example.png --traffic_pattern_file=/path/to/example.txt
+python3 traffic_rate_creator.py --number_of_steps=100 --low_load=0 --high_load=40 --plot_file=/path/to/example.png --traffic_pattern_file=/path/to/example.txt
 ```
 
 The `number_of_steps` is the number of the total traffic steps that the pattern will have.
@@ -37,9 +36,7 @@ the rise or to end the downtrend you can change the values of start_of_rise, end
 end_of_downtrend respectively. For example, for start_of_rise=10, end_of_rise=50,
 end_of_downtrend=90 and:
 ```console
-python3 traffic_rate_creator.py --number_of_steps=100 --low_load=0 --high_load=40
- --plot_file=./example-traffic-rate-pattern-modified.png --traffic_pattern_file=
- ./example-traffic-rate-pattern-modified.txt
+python3 traffic_rate_creator.py --number_of_steps=100 --low_load=0 --high_load=40 --plot_file=./example-traffic-rate-pattern-modified.png --traffic_pattern_file=./example-traffic-rate-pattern-modified.txt
 ```
 You can see the traffic pattern in the aforementioned files.
 
@@ -62,8 +59,7 @@ export PYTHONPATH=/your/path/to/trex/automation/trex_control_plane/interactive/t
 
 Then run:
 ```console
-python3 run_traffic_pattern_trex.py --streams_file=./udp_1pkt_simple.py
- --traffic_pattern_file=./traffic_pattern.txt --port=0
+python3 run_traffic_pattern_trex.py --streams_file=./udp_1pkt_simple.py --traffic_pattern_file=./traffic_pattern.txt --port=0
 ```
 
 The port argument is the port id to start the traffic.
@@ -82,11 +78,10 @@ of traffic pattern, mac addresses, packet size, port id etc).
 
 Then run pktgen with the script as argument. For example:
 ```console
-./Builddir/app/pktgen -l 20,22,24 -w 0000:3b:02.0 -w 0000:3b:0a.0 -- -m'22.0, 24.1' 
--f /pktgen_configs/run_traffic_pattern_pktgen.lua
+./Builddir/app/pktgen -l 20,22,24 -w 0000:3b:02.0 -w 0000:3b:0a.0 -- -m'22.0, 24.1' -f /pktgen_configs/run_traffic_pattern_pktgen.lua
 ```
 
 Each traffic step in the `traffic_pattern.txt` will be applied for 10 seconds. If you want
 to change the time step you should edit the script. The traffic pattern will be applied
-infinitively until you stop the script. If you want to run traffic pattern for a specified
-number, you should edit the `repeat_num` option in the script.
+infinitively until you stop the script. If you want to run the traffic pattern for a specified
+number of times, you should edit the `repeat_num` option in the script.
