@@ -8,7 +8,7 @@ require "Pktgen"
 ------------------------------------------------------------------
 print("**** Execute Range test ********");
 
-pktgen.range.dst_mac("0", "start", "76:c6:88:6e:34:0a");
+-- pktgen.range.dst_mac("0", "start", "76:c6:88:6e:34:0a");
 -- pktgen.range.src_mac("0", "start", "3c:fd:fe:9c:5c:d8");
 
 pktgen.range.src_ip("0", "start", "16.0.153.153");
@@ -29,14 +29,14 @@ pktgen.set_proto("0", "udp");
 pktgen.range.dst_port("0", "start", 0);
 pktgen.range.dst_port("0", "inc", 1);
 pktgen.range.dst_port("0", "min", 0);
-pktgen.range.dst_port("0", "max", 1000);
+pktgen.range.dst_port("0", "max", 10002);
 
 pktgen.range.src_port("0", "start", 0);
 pktgen.range.src_port("0", "inc", 1);
 pktgen.range.src_port("0", "min", 0);
-pktgen.range.src_port("0", "max", 1000);
+pktgen.range.src_port("0", "max", 10001);
 
-pktgen.set("0", "size", 64);
+pktgen.set("0", "size", 128);
 -- pktgen.range.pkt_size("0", "start", 64);
 -- pktgen.range.pkt_size("0", "inc", 0);
 -- pktgen.range.pkt_size("0", "min", 64);
