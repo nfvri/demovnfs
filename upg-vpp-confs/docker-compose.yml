@@ -1,0 +1,19 @@
+version: '3'
+
+#networks:
+#  nfvri:
+#    driver: bridge
+#    #name: ${NFVRI_NETWORK}
+
+services:
+  upg-vpp:
+    image: upg:release
+    container_name: upg-vpp
+    command: ["/bin/bash","-c","while true; do echo debug; sleep 10;done"] 
+    #ports:
+    #  - 
+    volumes:
+      - ../upg-vpp-confs/:/etc/vpp/
+    #networks:
+    #  - nfvri
+

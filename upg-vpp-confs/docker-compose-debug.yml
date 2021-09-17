@@ -1,0 +1,72 @@
+version: '3'
+
+#networks:
+#    public_net:
+#        name: oai-public-net
+#        ipam:
+#            config:
+#                - subnet: 192.168.61.0/24
+#    access:
+#        name: oai-public-access
+#        ipam:
+#            config:
+#                - subnet: 192.168.62.0/24
+#    sgi_lan:
+#        name: oai-public-sgi-lan
+#        ipam:
+#            config:
+#                - subnet: 192.168.63.0/24
+
+networks:
+    public_net_core:
+        name: oai-public-core
+        ipam:
+            config:
+                - subnet: 192.168.71.0/24
+    public_net_access:
+        name: oai-public-access
+        ipam:
+            config:
+                - subnet: 192.168.72.0/24
+    public_net_sgi_lan:
+        name: oai-public-sgi-lan
+        ipam:
+            config:
+                - subnet: 192.168.73.0/24
+
+services:
+  upg-vpp:
+    image: upg:debug
+    container_name: upg-vpp
+    privileged: true
+    entrypoint: []
+    command: ["/bin/bash","-c","while true; do echo debug; sleep 10;done"] 
+    # command: ["/bin/bash","-c","initialize_dpdk_ifs; vpp -c /etc/vpp/dpdk-debug-startup.conf"]
+    #ports:
+    #  - 
+    cap_add:
+        - IPC_LOCK # AF_PACKET vdev (and 4K pages) uses mmap
+    devices:
+      - "/dev/vfio/324:/dev/vfio/324"
+      - "/dev/vfio/328:/dev/vfio/328"
+      - "/dev/vfio/vfio:/dev/vfio/vfio"
+    ulimits:
+      memlock: -1
+    volumes:
+    - /dev/hugepages:/dev/hugepages
+    - ../upg-vpp-confs/:/etc/vpp/:ro
+    networks:
+      public_net_core:
+        ipv4_address: 192.168.71.134
+      public_net_access:
+        ipv4_address: 192.168.72.134
+      public_net_sgi_lan:
+        ipv4_address: 192.168.73.134
+#    networks:
+#        public_net:
+#          ipv4_address: 192.168.61.197
+#        access:
+#          ipv4_address: 192.168.62.197
+#        sgi_lan:
+#          ipv4_address: 192.168.63.197
+
