@@ -1,13 +1,13 @@
-FROM debian:bullseye
+FROM golang:1.17.1-bullseye
 
 RUN apt-get update \
- && apt-get -y install git golang make gcc bzr libvirt-dev linux-headers-amd64 libbpfcc libbpfcc-dev bpfcc-tools python3 swig python3-numpy protobuf-compiler curl gnupg
+ && apt-get -y install git make gcc bzr libvirt-dev linux-headers-amd64 libbpfcc libbpfcc-dev bpfcc-tools python3 swig python3-numpy protobuf-compiler curl gnupg
 
 # Install bazel
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg \
  && mv bazel.gpg /etc/apt/trusted.gpg.d/ \
  && echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list \
- && apt -y update && apt -y install bazel
+ && apt-get -y update && apt-get -y install bazel
 
 # Install tensorflow C libs
 RUN mkdir -p /tensorflow \
