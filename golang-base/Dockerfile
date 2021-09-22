@@ -1,5 +1,7 @@
 FROM golang:1.17.1-bullseye
 
+ENV TF_VER "2.4.3"
+
 RUN apt-get update \
  && apt-get -y install git make gcc bzr libvirt-dev linux-headers-amd64 libbpfcc libbpfcc-dev bpfcc-tools python3 swig python3-numpy protobuf-compiler curl gnupg
 
@@ -11,8 +13,8 @@ RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel
 
 # Install tensorflow C libs
 RUN mkdir -p /tensorflow \
- && curl -fsLo /tensorflow/libtensorflow-cpu-linux-x86_64-2.4.0.tar.gz  https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.4.0.tar.gz \
- && cd /tensorflow && tar -C /usr/local/ -xzf libtensorflow-cpu-linux-x86_64-2.4.0.tar.gz && ldconfig
+ && curl -fsLo /tensorflow/libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz  https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz \
+ && cd /tensorflow && tar -C /usr/local/ -xzf libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz && ldconfig
 
 # Replicate paths from golang image
 ENV GOPATH /go
