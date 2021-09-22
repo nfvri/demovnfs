@@ -14,7 +14,7 @@
     "": "Use the sim block to enable simulation using either Source module or via il_trafficgen",
     "sim": {
         "": "At this point we can simulate either N3/N6 or N3/N9 traffic, so choose n6 or n9 below",
-        "core": "n6",
+        "core": "n9",
         "start_ue_ip": "16.0.0.1",
         "start_enb_ip": "11.1.1.129",
         "start_aupf_ip": "13.1.1.199",
@@ -47,13 +47,13 @@
     "": "Gateway interfaces",
     "access": {
         "ifname": "ens1f0",
-	"pci": "0000:3b:02.0"
+	"pci": "0000:3b:02.1"
     },
 
     "": "UE IP Natting. Update the line below to `\"ip_masquerade\": \"<ip> [or <ip>]\"` to enable",
     "core": {
         "ifname": "ens1f1",
-	"pci": "0000:3b:0a.0",
+	"pci": "0000:3b:0a.1",
         "": "ip_masquerade: 18.0.0.1 or 18.0.0.2 or 18.0.0.3"
     },
 
@@ -73,8 +73,8 @@
     "enable_p4rt": false,
     "" : "conn_timeout: 1000",
     "" : "read_timeout: 25",
-    "" : "notify_sockaddr: /tmp/notifycp",
-    "" : "endmarker_sockaddr: /tmp/pfcpport",
+    "notify_sockaddr": "/tmp/notifycp2",
+    "endmarker_sockaddr": "/tmp/pfcpport2",
 
     "qci_qos_config": [
         {
@@ -98,7 +98,7 @@
         "ue_ip_pool": "10.250.0.0/16",
         "" : "nb_dst_ip: CPHostname",
         "" : "hostname: upf",
-        "prom_port": "8080",
+        "prom_port": "8082",
         "" : "dnn:internet"
     },
 
