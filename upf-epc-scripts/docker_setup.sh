@@ -182,7 +182,8 @@ docker run --name bess -td --restart unless-stopped \
 	--network host \
         $PRIVS \
         $DEVICES1 \
-        omecproject/upf-epc-bess:master-latest -grpc-url=0.0.0.0:$bessd_port
+	ghcr.io/omec-project/upf-epc/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port
+
 
 docker logs bess
 
@@ -207,7 +208,8 @@ sleep 20
 docker run --name web-bess -d --restart unless-stopped \
         --net container:bess \
         --entrypoint bessctl \
-        omecproject/upf-epc-bess:master-latest http 0.0.0.0 $gui_port
+	ghcr.io/omec-project/upf-epc/upf-epc-bess:0.3.0-dev http 0.0.0.0 $gui_port
+
 
 docker run --name web-bess2 -d --restart unless-stopped \
         --net container:bess2 \
@@ -218,8 +220,9 @@ docker run --name web-bess2 -d --restart unless-stopped \
 docker run --name pfcpiface-bess -td --restart on-failure \
 	--network host \
         -v "$PWD/conf/upf.json":/conf/upf.json \
-        omecproject/upf-epc-pfcpiface:master-latest \
+	ghcr.io/omec-project/upf-epc/upf-epc-pfcpiface:0.3.0-dev \
         -config /conf/upf.json
+
 
 docker run --name pfcpiface-bess2 -td --restart on-failure \
 	--network host \
@@ -242,7 +245,8 @@ docker run --name routectl-bess -td --restart unless-stopped \
         -v "$PWD/conf/route_control.py":/route_control.py \
         --pid container:bess \
         --entrypoint /route_control.py \
-        omecproject/upf-epc-bess:master-latest -i "${ifaces[@]}"
+	ghcr.io/omec-project/upf-epc/upf-epc-bess:0.3.0-dev -i "${ifaces[@]}"
+
 
 docker run --name routectl-bess2 -td --restart unless-stopped \
 	--network host \
