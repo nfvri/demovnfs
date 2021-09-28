@@ -10,7 +10,7 @@ import conf.sim as sim
 
 pkt_size = 1500
 flows = 100
-workers=[10,12]
+workers=[14,16]
 
 # flow create 0 ingress pattern eth / ipv4 / udp / gtpu / ipv4 / end actions rss types ipv4 l3-src-only end key_len 0 queues end / end
 #n39_pkts = [sim.gen_gtpu_packet(pkt_size, "22:53:7a:15:58:50", "9e:b2:d3:34:ab:27", "11.1.1.129", "198.18.0.1", "16.0.0.1", "9.9.9.9", 0x30000000),]
@@ -20,7 +20,7 @@ workers=[10,12]
 #n9_pkts = [sim.gen_gtpu_packet(pkt_size, "22:53:7a:15:58:50", "c2:9c:55:d4:8a:f6", "13.1.1.199", "198.19.0.1", "9.9.9.9", "16.0.0.1", 0x90000000),]
 
 #flow create 1 ingress pattern eth / ipv4 / end actions rss types ipv4 l3-dst-only end key_len 0 queues end / end
-n6_pkts = [sim.gen_inet_packet(pkt_size, "22:53:7a:15:58:50", "c2:9c:55:d4:8a:f6", "6.6.6.6", "16.0.0.1"),]
+n6_pkts = [sim.gen_inet_packet(pkt_size, "22:53:7a:15:58:50", "d2:9c:55:d4:8a:f6", "6.6.6.6", "16.0.0.1"),]
 
 for wid in range(len(workers)):
     bess.add_worker(wid=wid, core=int(workers[wid % len(workers)]))
