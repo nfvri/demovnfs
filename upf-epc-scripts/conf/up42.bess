@@ -133,8 +133,6 @@ for idx, iface in enumerate(interfaces):
 
     # initialize port with the configured driver
     p.workers = [i for i in range(len(workers))]
-    print("!!!!!!")
-    print(parser.interfaces[iface])
     p.init_port(idx, parser.mode, parser.interfaces[iface]["pci"])
 
     # setup port module with auxiliary modules
@@ -238,7 +236,8 @@ executeFAR:farNotifyCPAction -> pfcpDetails::GenericEncap(fields=[ {'size': 8, '
 pktParse:0 -> badPkts::Sink()
 qerLookup:qerGreenGate -> farLookup
 qerLookup:qerYellowGate -> farLookup
-qerLookup:qerRedGate -> qerMeterRed::Sink()
+qerLookup:qerRedGate -> farLookup
+#qerLookup:qerRedGate -> qerMeterRed::Sink()
 qerLookup:qerStatusDropGate -> qerStatusDrop::Sink()
 qerLookup:qerUnmeteredGate -> farLookup
 pdrLookup:pdrFailGate -> pdrLookupFail::Sink()
