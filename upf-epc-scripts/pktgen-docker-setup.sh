@@ -4,7 +4,7 @@
 ## Validated for clx1
 #######
 
-docker rm -f pktgen pktgen2 pktgen3
+docker rm -f pktgen pktgen2 pktgen3 pktgen4
 
 ## Setup routes through pfcp
 #docker exec bess-pfcpiface pfcpiface -config /conf/upf.json -simulate create
