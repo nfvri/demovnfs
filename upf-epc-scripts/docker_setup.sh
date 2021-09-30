@@ -221,20 +221,20 @@ docker run --name web-normal-bess -d --restart unless-stopped \
 # Run pfcpiface-bess depending on mode type
 docker run --name pfcpiface-premium-bess -td --restart on-failure \
 	--network host \
-        -v "$PWD/conf/premium_upf.json":/conf/premium_upf.json \
+        -v "$PWD/conf/upf_premium.json":/conf/upf_premium.json \
 	ghcr.io/omec-project/upf-epc/upf-epc-pfcpiface:0.3.0-dev \
-        -config /conf/premium_upf.json
+        -config /conf/upf_premium.json
 
 
 docker run --name pfcpiface-normal-bess -td --restart on-failure \
 	--network host \
-        -v "$PWD/conf/normal_upf.json":/conf/normal_upf.json \
+        -v "$PWD/conf/upf_normal.json":/conf/upf_normal.json \
         upf-epc-8806-pfcpiface:0.3.0-dev \
-        -config /conf/normal_upf.json -bess localhost:$bessd_port_normal -http 0.0.0.0:$metrics_port_normal
+        -config /conf/upf_normal.json -bess localhost:$bessd_port_normal -http 0.0.0.0:$metrics_port_normal
 
 # To add rules:
-# docker exec pfcpiface-premium-bess pfcpiface -config /conf/premium_upf.json -simulate create
-# docker exec pfcpiface-normal-bess pfcpiface -config /conf/normal_upf.json -bess localhost:$bessd_port_normal -simulate create
+# docker exec pfcpiface-premium-bess pfcpiface -config /conf/upf_premium.json -simulate create
+# docker exec pfcpiface-normal-bess pfcpiface -config /conf/upf_normal.json -bess localhost:$bessd_port_normal -simulate create
 
 # Don't run any other container if mode is "sim"
 if [ "$mode" == 'sim' ]; then
@@ -254,5 +254,5 @@ docker run --name routectl-normal-bess -td --restart unless-stopped \
 	--network host \
         -v "$PWD/conf/route_control_normal.py":/route_control_normal.py \
         --pid container:normal-bess \
-        --entrypoint /route_control_premium.py \
+        --entrypoint /route_control_normal.py \
         upf-epc-8806-bess:0.3.0-dev --port $bessd_port_normal -i "${ifaces[@]}"
