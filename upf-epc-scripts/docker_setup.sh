@@ -9,13 +9,13 @@
 set -e
 set -x
 # TCP port of bess/web monitor
-gui_port=8000
-bessd_port=10514
-metrics_port=8080
+gui_port_premium=8000
+bessd_port_premium=10514
+metrics_port_premium=8080
 
-gui_port2=8001
-bessd_port2=10515
-metrics_port2=8082
+gui_port_normal=8001
+bessd_port_normal=10515
+metrics_port_normal=8082
 
 # Driver options. Choose any one of the three
 #
@@ -41,8 +41,8 @@ ipaddrs=(198.18.0.1/30 198.19.0.1/30)
 # MAC addresses of gateway interface(s)
 #
 # In the order of (s1u sgi)
-macaddrs=(9e:b2:d3:34:ab:27 c2:9c:55:d4:8a:f6)
-macaddrs2=(be:b2:d3:34:ab:27 d2:9c:55:d4:8a:f6)
+macaddrs_premium=(9e:b2:d3:34:ab:27 c2:9c:55:d4:8a:f6)
+macaddrs_normal=(be:b2:d3:34:ab:27 d2:9c:55:d4:8a:f6)
 
 # Static IP addresses of the neighbors of gateway interface(s)
 #
@@ -105,8 +105,8 @@ function move_ifaces() {
                 #sudo ip netns exec pause ip link set "${ifaces[$i]}" promisc off
                 #sudo ip netns exec pause ip link set "${ifaces[$i]}" xdp off
 		sudo ip link set "${ifaces[$i]}" up
-		sudo ip link set dev "${ifaces[$i]}" vf 0 mac "${macaddrs[$i]}"
-		sudo ip link set dev "${ifaces[$i]}" vf 1 mac "${macaddrs2[$i]}"
+		sudo ip link set dev "${ifaces[$i]}" vf 0 mac "${macaddrs_premium[$i]}"
+		sudo ip link set dev "${ifaces[$i]}" vf 1 mac "${macaddrs_normal[$i]}"
 		sudo ip link set "${ifaces[$i]}" promisc on
 		sudo ip link set "${ifaces[$i]}" xdp off
                 #if [ "$mode" == 'af_xdp' ]; then
@@ -121,8 +121,12 @@ function move_ifaces() {
 }
 
 # Stop previous instances of bess* before restarting
-docker stop pause bess bess2 routectl-bess routectl-bess2 web-bess web-bess2 pfcpiface-bess pfcpiface-bess2 || true
-docker rm -f pause bess bess2 routectl-bess routectl-bess2 web-bess web-bess2 pfcpiface-bess pfcpiface-bess2 || true
+docker stop pause premium-bess normal-bess routectl-bess routectl-bess2 web-bess web-bess2 pfcpiface-bess pfcpiface-bess2 || true
+docker rm -f pause premium-bess normal-bess routectl-bess routectl-bess2 web-bess web-bess2 pfcpiface-bess pfcpiface-bess2 || true
+docker stop pause premium-bess normal-bess routectl-premium-bess routectl-normal-bess web-premium-bess \
+	web-normal-bess pfcpiface-premium-bess pfcpiface-normal-bess || true
+docker rm -f pause premium-bess normal-bess routectl-premium-bess routectl-normal-bess web-premium-bess \
+	web-normal-bess pfcpiface-premium-bess pfcpiface-normal-bess || true
 sudo rm -rf /var/run/netns/pause
 
 # Build
@@ -136,19 +140,19 @@ elif [ "$mode" == 'af_xdp' ]; then
         PRIVS='--privileged'
 
 elif [ "$mode" == 'af_packet' ]; then
-	DEVICES1=${DEVICES1:-'--device=/dev/vfio/154 --device=/dev/vfio/162 --device=/dev/vfio/vfio'}
-	DEVICES2=${DEVICES2:-'--device=/dev/vfio/155 --device=/dev/vfio/163 --device=/dev/vfio/vfio'}
+	DEVICES_PREMIUM=${DEVICES_PREMIUM:-'--device=/dev/vfio/154 --device=/dev/vfio/162 --device=/dev/vfio/vfio'}
+	DEVICES_NORMAL=${DEVICES_NORMAL:-'--device=/dev/vfio/155 --device=/dev/vfio/163 --device=/dev/vfio/vfio'}
         PRIVS='--cap-add IPC_LOCK'
 fi
 
 # Run pause
 #docker run --name pause -td --restart unless-stopped \
-#        -p $bessd_port:$bessd_port \
-#	-p $bessd_port2:$bessd_port2 \
-#        -p $gui_port:$gui_port \
-#	-p $gui_port2:$gui_port2 \
-#        -p $metrics_port:$metrics_port \
-#	-p $metrics_port2:$metrics_port2 \
+#        -p $bessd_port_premium:$bessd_port_premium \
+#	-p $bessd_port_normal:$bessd_port_normal \
+#        -p $gui_port_premium:$gui_port_premium \
+#	-p $gui_port_normal:$gui_port_normal \
+#        -p $metrics_port_premium:$metrics_port_premium \
+#	-p $metrics_port_normal:$metrics_port_normal \
 #        --hostname $(hostname) \
 #        k8s.gcr.io/pause
 
@@ -175,64 +179,64 @@ if [ "$mode" != 'sim' ]; then
 fi
 
 # Run bessd
-docker run --name bess -td --restart unless-stopped \
+docker run --name premium-bess -td --restart unless-stopped \
         --cpuset-cpus=2,50,4,52,6,54,8,56,10,58,12,60,14,62 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	--network host \
         $PRIVS \
-        $DEVICES1 \
-	ghcr.io/omec-project/upf-epc/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port
+        $DEVICES_PREMIUM \
+	ghcr.io/omec-project/upf-epc/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_premium
 
 
-docker logs bess
+docker logs premium-bess
 
-docker run --name bess2 -td --restart unless-stopped \
+docker run --name normal-bess -td --restart unless-stopped \
         --cpuset-cpus=16,64,18,66,20,68,22,70,24,72,26,74,28,76 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
         --network host \
         $PRIVS \
-        $DEVICES2 \
-        upf-epc-8806-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port2
+        $DEVICES_NORMAL \
+        upf-epc-8806-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_normal
 
-docker logs bess2
+docker logs normal-bess
 
 # Sleep for a couple of secs before setting up the pipeline
 sleep 40
-docker exec bess ./bessctl run up4
-docker exec bess2 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port2 -- run up42
+docker exec premium-bess ./bessctl run up4_premium
+docker exec normal-bess ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_normal -- run up4_normal
 sleep 20
 
 # Run web-bess
-docker run --name web-bess -d --restart unless-stopped \
-        --net container:bess \
+docker run --name web-premium-bess -d --restart unless-stopped \
+        --net container:premium-bess \
         --entrypoint bessctl \
-	ghcr.io/omec-project/upf-epc/upf-epc-bess:0.3.0-dev http 0.0.0.0 $gui_port
+	ghcr.io/omec-project/upf-epc/upf-epc-bess:0.3.0-dev http 0.0.0.0 $gui_port_premium
 
 
-docker run --name web-bess2 -d --restart unless-stopped \
-        --net container:bess2 \
+docker run --name web-normal-bess -d --restart unless-stopped \
+        --net container:normal-bess \
 	--entrypoint "" \
-        upf-epc-8806-bess:0.3.0-dev bessctl daemon disconnect -- daemon connect localhost:$bessd_port2 -- http 0.0.0.0 $gui_port2
+        upf-epc-8806-bess:0.3.0-dev bessctl daemon disconnect -- daemon connect localhost:$bessd_port_normal -- http 0.0.0.0 $gui_port_normal
 
 # Run pfcpiface-bess depending on mode type
-docker run --name pfcpiface-bess -td --restart on-failure \
+docker run --name pfcpiface-premium-bess -td --restart on-failure \
 	--network host \
-        -v "$PWD/conf/upf.json":/conf/upf.json \
+        -v "$PWD/conf/premium_upf.json":/conf/premium_upf.json \
 	ghcr.io/omec-project/upf-epc/upf-epc-pfcpiface:0.3.0-dev \
-        -config /conf/upf.json
+        -config /conf/premium_upf.json
 
 
-docker run --name pfcpiface-bess2 -td --restart on-failure \
+docker run --name pfcpiface-normal-bess -td --restart on-failure \
 	--network host \
-        -v "$PWD/conf/upf2.json":/conf/upf2.json \
+        -v "$PWD/conf/normal_upf.json":/conf/normal_upf.json \
         upf-epc-8806-pfcpiface:0.3.0-dev \
-        -config /conf/upf2.json -bess localhost:$bessd_port2 -http 0.0.0.0:$metrics_port2
+        -config /conf/normal_upf.json -bess localhost:$bessd_port_normal -http 0.0.0.0:$metrics_port_normal
 
 # To add rules:
-# docker exec pfcpiface-bess pfcpiface -config /conf/upf.json -simulate create
-# docker exec pfcpiface-bess2 pfcpiface -config /conf/upf2.json -bess localhost:$bessd_port2 -simulate create
+# docker exec pfcpiface-premium-bess pfcpiface -config /conf/premium_upf.json -simulate create
+# docker exec pfcpiface-normal-bess pfcpiface -config /conf/normal_upf.json -bess localhost:$bessd_port_normal -simulate create
 
 # Don't run any other container if mode is "sim"
 if [ "$mode" == 'sim' ]; then
@@ -240,17 +244,17 @@ if [ "$mode" == 'sim' ]; then
 fi
 
 # Run routectl-bess
-docker run --name routectl-bess -td --restart unless-stopped \
+docker run --name routectl-premium-bess -td --restart unless-stopped \
 	--network host \
-        -v "$PWD/conf/route_control.py":/route_control.py \
-        --pid container:bess \
-        --entrypoint /route_control.py \
+        -v "$PWD/conf/route_control_premium.py":/route_control_premium.py \
+        --pid container:premium-bess \
+        --entrypoint /route_control_premium.py \
 	ghcr.io/omec-project/upf-epc/upf-epc-bess:0.3.0-dev -i "${ifaces[@]}"
 
 
-docker run --name routectl-bess2 -td --restart unless-stopped \
+docker run --name routectl-normal-bess -td --restart unless-stopped \
 	--network host \
-        -v "$PWD/conf/route_control2.py":/route_control2.py \
-        --pid container:bess2 \
-        --entrypoint /route_control2.py \
-        upf-epc-8806-bess:0.3.0-dev --port $bessd_port2 -i "${ifaces[@]}"
+        -v "$PWD/conf/route_control_normal.py":/route_control_normal.py \
+        --pid container:normal-bess \
+        --entrypoint /route_control_premium.py \
+        upf-epc-8806-bess:0.3.0-dev --port $bessd_port_normal -i "${ifaces[@]}"
