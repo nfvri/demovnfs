@@ -110,7 +110,7 @@ class Port:
         s = Sink(name="{}bad_route".format(name))
         self.rtr.connect(next_mod=s, ogate=MAX_GATES-1)
 
-    def init_port(self, idx, conf_mode):
+    def init_port(self, idx, conf_mode, pci_address=None):
 
         name = self.name
         num_q = len(self.workers)
@@ -161,6 +161,8 @@ class Port:
         if conf_mode == 'dpdk':
             kwargs = None
             pci = alias_by_interface(name)
+            if pci is None and pci_address is not None:
+                pci = pci_address
             if pci is not None:
                 kwargs = {"pci": pci, "num_out_q": num_q, "num_inc_q": num_q, "hwcksum": self.hwcksum, "flow_profiles": self.flow_profiles}
                 try:
@@ -183,6 +185,10 @@ class Port:
                 kwargs = {"port_id": fidx, "num_out_q": num_q, "num_inc_q": num_q, "hwcksum": self.hwcksum, "flow_profiles": self.flow_profiles}
                 self.init_fastpath(**kwargs)
 
+            # Finall set conf mode
+            self.mode = conf_mode
+            return
+        
             # Initialize kernel slowpath port and RX/TX modules
             try:
                 peer = peer_by_interface(name)
@@ -192,6 +198,7 @@ class Port:
                 spo = PortOut(name="{}SlowPO".format(name), port=slow.name)
                 qspo = Queue(name="{}QSlowPO".format(name))
 
+
                 # host_ip_filter: tcpdump -i foo 'dst host 198.19.0.1 or 198.18.0.1' -d
                 # Should always be set to lowest priority
                 HostGate = MAX_GATES - 1
@@ -200,7 +207,6 @@ class Port:
                                 + " or ".join(str(x) for x in ips), "gate": HostGate}
 
                 self.bpf.add(filters=[host_ip_filter])
-
                 # Direct control traffic from DPDK to kernel
                 self.bpf.connect(next_mod=qspo, ogate=HostGate)
                 qspo.connect(next_mod=spo)
@@ -262,7 +268,7 @@ class Port:
             t = Timestamp(name="{}_timestamp".format(self.name))
             inc.connect(next_mod=t)
 
-            m = Measure(name="{}_measure".format(self.name))
+            m = Measure(name="{}_measure".format(self.name), latency_ns_resolution=1, latency_ns_max=100000)
             m.connect(next_mod=out)
 
             out = m

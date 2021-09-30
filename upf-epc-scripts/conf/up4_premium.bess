@@ -34,7 +34,7 @@ qerFailGate = 4
 qerStatusDropGate = 5
 qerUnmeteredGate = 6
 interfaces = ["access", "core"]
-parser = Parser('conf/upf.json')
+parser = Parser('conf/upf_premium.json')
 parser.parse(interfaces)
 
 # Catch core & access MAC/IPv4 addresses
@@ -133,7 +133,7 @@ for idx, iface in enumerate(interfaces):
 
     # initialize port with the configured driver
     p.workers = [i for i in range(len(workers))]
-    p.init_port(idx, parser.mode)
+    p.init_port(idx, parser.mode, parser.interfaces[iface]["pci"])
 
     # setup port module with auxiliary modules
     if parser.mode == 'sim':
@@ -229,14 +229,15 @@ farLookup:GTPUEncap \
 
 notify = UnixSocketPort(name='notifyCP', path=parser.notify_sockaddr)
 pfcpPort = UnixSocketPort(name='pfcpPort', path=parser.endmarker_sockaddr)
-pfcpPI::PortInc(port='pfcpPort') -> ports[parser.access_ifname].rtr
+pfcpPI::PortInc(port='pfcpPort') -> pfcpPI_timestamp::Timestamp() -> ports[parser.access_ifname].rtr
 executeFAR:farNotifyCPAction -> pfcpDetails::GenericEncap(fields=[ {'size': 8, 'attribute': 'fseid'}]) \
                              -> farNotifyCP::PortOut(port='notifyCP')
 # Drop unknown packets
 pktParse:0 -> badPkts::Sink()
 qerLookup:qerGreenGate -> farLookup
 qerLookup:qerYellowGate -> farLookup
-qerLookup:qerRedGate -> qerMeterRed::Sink()
+#qerLookup:qerRedGate -> qerMeterRed::Sink()
+qerLookup:qerRedGate -> farLookup
 qerLookup:qerStatusDropGate -> qerStatusDrop::Sink()
 qerLookup:qerUnmeteredGate -> farLookup
 pdrLookup:pdrFailGate -> pdrLookupFail::Sink()
