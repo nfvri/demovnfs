@@ -1,9 +1,5 @@
 """
-docker run --name pktgen -td --restart unless-stopped \
-           --cpuset-cpus=2-5 --ulimit memlock=-1 --cap-add IPC_LOCK \
-           -v /dev/hugepages:/dev/hugepages -v "$PWD/conf":/opt/bess/bessctl/conf \
-           --device=/dev/vfio/vfio --device=/dev/vfio/176 \
-           upf-epc-bess:"$(<VERSION)" -grpc-url=0.0.0.0:10514
+    Static access traffic (n3 receive) for normal upf
 """
 
 import conf.sim as sim
