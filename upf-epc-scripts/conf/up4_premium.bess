@@ -34,7 +34,7 @@ qerFailGate = 4
 qerStatusDropGate = 5
 qerUnmeteredGate = 6
 interfaces = ["access", "core"]
-parser = Parser('conf/upf2.json')
+parser = Parser('conf/upf.json')
 parser.parse(interfaces)
 
 # Catch core & access MAC/IPv4 addresses
@@ -229,15 +229,15 @@ farLookup:GTPUEncap \
 
 notify = UnixSocketPort(name='notifyCP', path=parser.notify_sockaddr)
 pfcpPort = UnixSocketPort(name='pfcpPort', path=parser.endmarker_sockaddr)
-pfcpPI::PortInc(port='pfcpPort') -> ports[parser.access_ifname].rtr
+pfcpPI::PortInc(port='pfcpPort') -> pfcpPI_timestamp::Timestamp() -> ports[parser.access_ifname].rtr
 executeFAR:farNotifyCPAction -> pfcpDetails::GenericEncap(fields=[ {'size': 8, 'attribute': 'fseid'}]) \
                              -> farNotifyCP::PortOut(port='notifyCP')
 # Drop unknown packets
 pktParse:0 -> badPkts::Sink()
 qerLookup:qerGreenGate -> farLookup
 qerLookup:qerYellowGate -> farLookup
-qerLookup:qerRedGate -> farLookup
 #qerLookup:qerRedGate -> qerMeterRed::Sink()
+qerLookup:qerRedGate -> farLookup
 qerLookup:qerStatusDropGate -> qerStatusDrop::Sink()
 qerLookup:qerUnmeteredGate -> farLookup
 pdrLookup:pdrFailGate -> pdrLookupFail::Sink()
@@ -390,6 +390,6 @@ accessFastBPF.add(filters=[uplink_filter])
 # ====================================================
 # Finally send SIGHUP to route_control daemon on reload
 # TODO: behavior is unspecified if route_control.py pid is not found
-route_control_pid = getpythonpid('route_control2.py')
+route_control_pid = getpythonpid('route_control.py')
 if route_control_pid:
     os.kill(route_control_pid, signal.SIGHUP)

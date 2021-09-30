@@ -268,7 +268,7 @@ class Port:
             t = Timestamp(name="{}_timestamp".format(self.name))
             inc.connect(next_mod=t)
 
-            m = Measure(name="{}_measure".format(self.name))
+            m = Measure(name="{}_measure".format(self.name), latency_ns_resolution=1, latency_ns_max=100000)
             m.connect(next_mod=out)
 
             out = m
