@@ -121,8 +121,6 @@ function move_ifaces() {
 }
 
 # Stop previous instances of bess* before restarting
-docker stop pause premium-bess normal-bess routectl-bess routectl-bess2 web-bess web-bess2 pfcpiface-bess pfcpiface-bess2 || true
-docker rm -f pause premium-bess normal-bess routectl-bess routectl-bess2 web-bess web-bess2 pfcpiface-bess pfcpiface-bess2 || true
 docker stop pause premium-bess normal-bess routectl-premium-bess routectl-normal-bess web-premium-bess \
 	web-normal-bess pfcpiface-premium-bess pfcpiface-normal-bess || true
 docker rm -f pause premium-bess normal-bess routectl-premium-bess routectl-normal-bess web-premium-bess \
