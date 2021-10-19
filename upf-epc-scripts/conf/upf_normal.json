@@ -58,7 +58,7 @@
     },
 
     "": "Number of worker threads. Default: 1",
-    "workers": 10,
+    "workers": 4,
 
     "": "Whether to enable Network Token Functions",
     "enable_ntf": false,

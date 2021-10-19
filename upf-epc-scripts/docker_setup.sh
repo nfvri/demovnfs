@@ -177,8 +177,9 @@ if [ "$mode" != 'sim' ]; then
 fi
 
 # Run bessd
+# --cpuset-cpus=2,50,4,52,6,54,8,56,10,58,12,60,14,62
 docker run --name premium-bess -td --restart unless-stopped \
-        --cpuset-cpus=2,50,4,52,6,54,8,56,10,58,12,60,14,62 \
+        --cpuset-cpus=6,54,2,50,16,64,20,68 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	--network host \
@@ -189,8 +190,9 @@ docker run --name premium-bess -td --restart unless-stopped \
 
 docker logs premium-bess
 
+# --cpuset-cpus=16,64,18,66,20,68,22,70,24,72,26,74,28,76
 docker run --name normal-bess -td --restart unless-stopped \
-        --cpuset-cpus=16,64,18,66,20,68,22,70,24,72,26,74,28,76 \
+        --cpuset-cpus=4,52,8,56,12,60,10,58 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
         --network host \
