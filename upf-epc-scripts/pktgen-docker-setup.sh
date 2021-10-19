@@ -32,14 +32,11 @@ docker run --name pktgen-normal-core -td --restart unless-stopped \
         omecproject/upf-epc-bess:master-latest -grpc-url=0.0.0.0:10514
 
 ## Wait and start pktgen proper
-sleep 20
+sleep 80
 docker exec pktgen-premium-access ./bessctl run pktgen-premium-access &
-sleep 20
-docker exec pktgen-normal-access ./bessctl run pktgen-normal-access-static &
-sleep 20
+docker exec pktgen-normal-access ./bessctl run pktgen-normal-access &
 docker exec pktgen-premium-core ./bessctl run pktgen-premium-core &
-sleep 20
-docker exec pktgen-normal-core ./bessctl run pktgen-normal-core-static &
+docker exec pktgen-normal-core ./bessctl run pktgen-normal-core &
 
 
 
