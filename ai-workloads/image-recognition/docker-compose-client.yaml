@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  tf-serving-client:
+    image: nfvri/rllib-base:1.3.0
+    container_name: tf-serving-client
+    volumes:
+      - ./scripts:/scripts
+    command: ["bash", "-c", "while true; do sleep 10; done"]
+    entrypoint: []
+

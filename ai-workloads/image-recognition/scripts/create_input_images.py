@@ -39,13 +39,10 @@ def prepare_inputs(image):
 
 
 
-model = tf.keras.models.load_model('ai-workloads/image-recognition/mobile_net_cats')
-
 batch = setup_input_images(batch_size=32)
 
 for index in range(batch.shape[0]):
     image = batch[index]
     print(prepare_inputs(image))
 
-predictions = model.predict(batch)
 
