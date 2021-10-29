@@ -8,4 +8,5 @@ services:
       - ./scripts:/scripts
     command: ["bash", "-c", "while true; do sleep 10; done"]
     entrypoint: []
+    network_mode: host
 
