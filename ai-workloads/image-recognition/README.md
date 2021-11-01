@@ -1,6 +1,12 @@
 # Draft version
 
-Exec into the container:
+Run the tf serving container:
+``` docker-compose -f docker-compose.yaml up -d ```
+
+Run the tf serving client container:
+``` docker-compose -f docker-compose-client.yaml up -d ```
+
+Exec into the client container:
 ``` docker exec -it tf-serving-client /bin/bash ```
 
 and install some rrequirements:
