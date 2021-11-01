@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  openvino:
+    image: openvino/model_server:latest
+    container_name: openvino
+    ports:
+      - 8088:8000
+      - 9000:9000
+    volumes:
+      - ./resnet50-binary:/resnet50-binary
+    command: ["--model_name", "resnet", "--model_path", "/resnet50-binary", "--layout", "NHWC", "--batch_size", "2", "--plugin_config", "{\"CPU_THROUGHPUT_STREAMS\": \"1\"}", "--port", "9000", "--rest_port", "8000"]
+
