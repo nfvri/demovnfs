@@ -10,4 +10,4 @@ services:
       - ./mobile_net_cats:/models/mobile_net_cats
     environment:
       - MODEL_NAME=mobile_net_cats
-
+    command: ["--tensorflow_intra_op_parallelism=4", "--tensorflow_inter_op_parallelism=4"]
