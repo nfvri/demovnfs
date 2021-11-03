@@ -16,7 +16,7 @@ $ sudo virgo start streamer-vnf
 # Run as Docker container
 
 ```
-docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name streamer1 nfvsap/streamer
+docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name streamer1 nfvri/streamer:20.04
 ```
 # After launch
 
