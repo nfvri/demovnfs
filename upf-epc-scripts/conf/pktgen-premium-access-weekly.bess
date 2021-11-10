@@ -21,7 +21,7 @@ flows = 100
 workers=[2,4]
 traffic_pattern_file = "./conf/patterns/example-small-traffic-rate-pattern.txt"
 time_step = 10 #secs
-max_load = 6000000000
+max_load = 5000000000
 
 # flow create 0 ingress pattern eth / ipv4 / udp / gtpu / ipv4 / end actions rss types ipv4 l3-src-only end key_len 0 queues end / end
 n36_pkts = [sim.gen_gtpu_packet(pkt_size, "22:53:7a:15:58:50", "9e:b2:d3:34:ab:27", "11.1.1.129", "198.18.0.1", "16.0.0.1", "6.6.6.6", 0x30000000),]
@@ -54,10 +54,10 @@ src36.attach_task(parent='36_limit')
 
 while 1:
     for day in range(0,7):
-        if day > 4:
-            max_daily_load = max_load
-        else:
+        if day > 1:
             max_daily_load = max_load / 2
+        else:
+            max_daily_load = max_load 
 
         for line in lines:
             load = (line * max_daily_load) / max_file_load

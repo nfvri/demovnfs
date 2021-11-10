@@ -54,10 +54,10 @@ src6.attach_task(parent='6_limit')
 
 while 1:
     for day in range(0,7):
-        if day > 4:
-            max_daily_load = max_load
-        else:
+        if day > 1:
             max_daily_load = max_load / 2
+        else:
+            max_daily_load = max_load
 
         for line in lines:
             load = (line * max_daily_load) / max_file_load

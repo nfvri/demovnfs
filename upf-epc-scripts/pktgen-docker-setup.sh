@@ -33,10 +33,10 @@ docker run --name pktgen-normal-core -td --restart unless-stopped \
 
 ## Wait and start pktgen proper
 sleep 80
-docker exec pktgen-premium-access ./bessctl run pktgen-premium-access &
-docker exec pktgen-normal-access ./bessctl run pktgen-normal-access &
-docker exec pktgen-premium-core ./bessctl run pktgen-premium-core &
-docker exec pktgen-normal-core ./bessctl run pktgen-normal-core &
+docker exec pktgen-premium-access ./bessctl run pktgen-premium-access-weekly &
+docker exec pktgen-normal-access ./bessctl run pktgen-normal-access-weekly &
+docker exec pktgen-premium-core ./bessctl run pktgen-premium-core-weekly &
+docker exec pktgen-normal-core ./bessctl run pktgen-normal-core-weekly &
 
 
 
