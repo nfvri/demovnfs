@@ -11,3 +11,13 @@ services:
       - ./resnet50-binary:/resnet50-binary
     command: ["--model_name", "resnet", "--model_path", "/resnet50-binary", "--layout", "NHWC", "--batch_size", "2", "--plugin_config", "{\"CPU_THROUGHPUT_STREAMS\": \"1\"}", "--port", "9000", "--rest_port", "8000"]
 
+  open2vino:
+    image: openvino/model_server:latest
+    container_name: open2vino
+    ports:
+      - 8089:8000
+      - 9001:9000
+    volumes:
+      - ./resnet50-binary:/resnet50-binary
+    command: ["--model_name", "resnet", "--model_path", "/resnet50-binary", "--layout", "NHWC", "--batch_size", "2", "--plugin_config", "{\"CPU_THROUGHPUT_STREAMS\": \"1\"}", "--port", "9000", "--rest_port", "8000"]
+

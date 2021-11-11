@@ -23,7 +23,8 @@ pip install -r requirements.txt
 
 And run the make_requests.py script with the desired arguments:
 ```
-python3 ./make_requests.py --rest_url http://clx2:8088 --model_name resnet --input_name 0 --output_name 1463 --images input_images.txt --batchsize 2 --threads 2
+python3 ./make_requests.py --rest_url http://clx2:8088 --model_name resnet --input_name 0 --output_name 1463 --images input_images.txt --batchsize 2 --threads 10
+python3 ./make_requests.py --rest_url http://clx2:8089 --model_name resnet --input_name 0 --output_name 1463 --images input_images.txt --batchsize 2 --threads 10
 ```
 
 

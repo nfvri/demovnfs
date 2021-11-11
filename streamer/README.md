@@ -18,6 +18,11 @@ $ sudo virgo start streamer-vnf
 ```
 docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name streamer1 nfvri/streamer:20.04
 ```
+
+```
+docker run --rm --detach -p 8800:8000 -p 8801:8001 -p 8802:8002 --name streamer1 nfvri/streamer:20.04 "archbench/memory_tests/seqacc" "150" "2>&1" ">/dev/null" "|" "/go/bin/simple-em"
+```
+
 # After launch
 
 ```console
