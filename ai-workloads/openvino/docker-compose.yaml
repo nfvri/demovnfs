@@ -1,9 +1,9 @@
 version: '3'
 
 services:
-  openvino:
+  openvino1:
     image: openvino/model_server:latest
-    container_name: openvino
+    container_name: openvino1
     ports:
       - 8088:8000
       - 9000:9000
@@ -11,9 +11,9 @@ services:
       - ./resnet50-binary:/resnet50-binary
     command: ["--model_name", "resnet", "--model_path", "/resnet50-binary", "--layout", "NHWC", "--batch_size", "2", "--plugin_config", "{\"CPU_THROUGHPUT_STREAMS\": \"1\"}", "--port", "9000", "--rest_port", "8000"]
 
-  open2vino:
+  openvino2:
     image: openvino/model_server:latest
-    container_name: open2vino
+    container_name: openvino2
     ports:
       - 8089:8000
       - 9001:9000
