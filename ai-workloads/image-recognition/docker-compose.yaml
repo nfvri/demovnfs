@@ -6,8 +6,12 @@ services:
     container_name: tf-serving
     ports:
       - 8501:8501
+      - 8500:8500
     volumes:
-      - ./mobile_net_cats:/models/mobile_net_cats
+#      - ./mobile_net_cats:/models/mobile_net_cats
+      - ./imagenet_resnet_v2_50:/models/imagenet_resnet_v2_50
+      - ./monitoring_config:/monitoring_config
     environment:
-      - MODEL_NAME=mobile_net_cats
-    command: ["--tensorflow_intra_op_parallelism=4", "--tensorflow_inter_op_parallelism=4"]
+            #      - MODEL_NAME=mobile_net_cats
+      - MODEL_NAME=imagenet_resnet_v2_50
+    command: ["--tensorflow_intra_op_parallelism=512", "--tensorflow_inter_op_parallelism=512",  "--monitoring_config_file=/monitoring_config/prometheus.txt"]
