@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  nginx-rtmp-vts:
+    image: vtimofei/nginx-rtmp-vts
+    container_name: nginx-rtmp-vts
+    ports:
+    - 80:80
+    - 1935:1935
+  rtmp-exporter:
+    image: vtimofei/nginx_rtmp_prometheus:v0.2.1-buster
+    container_name: rtmp-exporter
+    ports:
+    - 9728:9728
+    command:
+    - "--nginxrtmp.scrape-uri"
+    - "http://nginx-rtmp:80/stats"
