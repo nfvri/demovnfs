@@ -181,7 +181,7 @@ fi
 # Run bessd
 # --cpuset-cpus=2,50,4,52,6,54,8,56,10,58,12,60,14,62
 docker run --name premium-bess -td --restart unless-stopped \
-        --cpuset-cpus=32,96,33,97,34,98,35,99 \
+        --cpuset-cpus=32-45,96-109 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	--network host \
@@ -194,7 +194,7 @@ docker logs premium-bess
 
 # --cpuset-cpus=16,64,18,66,20,68,22,70,24,72,26,74,28,76
 docker run --name normal-bess -td --restart unless-stopped \
-        --cpuset-cpus=36,100,37,101,38,102,39,103 \
+        --cpuset-cpus=48-61,112-125 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
         --network host \
