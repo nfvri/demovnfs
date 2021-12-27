@@ -36,28 +36,28 @@ ifaces=("ens801f0" "ens801f1")
 # Static IP addresses of gateway interface(s) in cidr format
 #
 # In the order of (s1u sgi)
-ipaddrs=(198.18.0.1/30 198.19.0.1/30)
+ipaddrs=(198.19.0.1/30 198.18.0.1/30)
 
 # MAC addresses of gateway interface(s)
 #
 # In the order of (s1u sgi)
-macaddrs_premium=(9e:b2:d3:34:ab:27 c2:9c:55:d4:8a:f6)
-macaddrs_normal=(be:b2:d3:34:ab:27 d2:9c:55:d4:8a:f6)
+macaddrs_premium=(9e:b2:d3:34:ab:28 c2:9c:55:d4:8a:f8)
+macaddrs_normal=(be:b2:d3:34:ab:28 d2:9c:55:d4:8a:f8)
 
 # Static IP addresses of the neighbors of gateway interface(s)
 #
 # In the order of (n-s1u n-sgi)
-nhipaddrs=(198.18.0.2 198.19.0.2)
+nhipaddrs=(198.19.0.2 198.18.0.2)
 
 # Static MAC addresses of the neighbors of gateway interface(s)
 #
 # In the order of (n-s1u n-sgi)
-nhmacaddrs=(22:53:7a:15:58:50 22:53:7a:15:58:50)
+nhmacaddrs=(22:53:7a:15:58:51 22:53:7a:15:58:51)
 
 # IPv4 route table entries in cidr format per port
 #
 # In the order of ("{r-s1u}" "{r-sgi}")
-routes=("11.1.1.128/25" "0.0.0.0/0")
+routes=("0.0.0.0/0" "11.1.1.128/25")
 
 num_ifaces=${#ifaces[@]}
 num_ipaddrs=${#ipaddrs[@]}
@@ -108,7 +108,9 @@ function move_ifaces() {
 		sudo ip link set dev "${ifaces[$i]}" vf 0 mac "${macaddrs_premium[$i]}"
 		sudo ip link set dev "${ifaces[$i]}" vf 1 mac "${macaddrs_normal[$i]}"
 		sudo ip link set "${ifaces[$i]}" promisc on
-		sudo ip link set "${ifaces[$i]}" xdp off
+		#sudo ip link set "${ifaces[$i]}" xdp off
+		sudo ip link set "${ifaces[$i]}" vf 0 state enable trust on spoof off promisc on
+		sudo ip link set "${ifaces[$i]}" vf 1 state enable trust on spoof off promisc on
                 #if [ "$mode" == 'af_xdp' ]; then
                 #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple off
                 #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple on
