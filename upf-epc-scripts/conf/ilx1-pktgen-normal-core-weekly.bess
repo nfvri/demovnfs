@@ -21,7 +21,7 @@ flows = 100
 workers=[33,35]
 traffic_pattern_file = "./conf/patterns/example-small-traffic-rate-pattern.txt"
 time_step = 10 #secs
-max_load = 6000000000
+max_load = 12000000000
 
 #flow create 1 ingress pattern eth / ipv4 / end actions rss types ipv4 l3-dst-only end key_len 0 queues end / end
 n6_pkts = [sim.gen_inet_packet(pkt_size, "22:53:7a:15:58:51", "be:b2:d3:34:ab:28", "6.6.6.6", "16.0.0.1"),]
