@@ -87,7 +87,7 @@ class TfServingRequests():
         schedule.every(self.timeout).seconds.do(self.perform_requests)
         while True:
             schedule.run_pending()
-            time.sleep(1)
+            time.sleep(self.timeout)
 
         self.p.close()
 

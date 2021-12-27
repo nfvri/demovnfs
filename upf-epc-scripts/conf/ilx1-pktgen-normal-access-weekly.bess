@@ -24,7 +24,7 @@ time_step = 10 #secs
 max_load = 1500000000
 
 # flow create 0 ingress pattern eth / ipv4 / udp / gtpu / ipv4 / end actions rss types ipv4 l3-src-only end key_len 0 queues end / end
-n36_pkts = [sim.gen_gtpu_packet(pkt_size, "22:53:7a:15:58:51", "be:b2:d3:34:ab:28", "11.1.1.129", "198.18.0.1", "16.0.0.1", "6.6.6.6", 0x30000000),]
+n36_pkts = [sim.gen_gtpu_packet(pkt_size, "22:53:7a:15:58:51", "d2:9c:55:d4:8a:f8", "11.1.1.129", "198.18.0.1", "16.0.0.1", "6.6.6.6", 0x30000000),]
 
 for wid in range(len(workers)):
     bess.add_worker(wid=wid, core=int(workers[wid]))

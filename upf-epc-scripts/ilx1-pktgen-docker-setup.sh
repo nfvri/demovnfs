@@ -11,7 +11,7 @@ docker run --name ilx1-pktgen-premium-access -td --restart unless-stopped \
         --cpuset-cpus=21,23 --ulimit memlock=-1 --cap-add IPC_LOCK \
         -v /dev/hugepages:/dev/hugepages -v "$PWD/conf":/opt/bess/bessctl/conf  \
         --device=/dev/vfio/vfio --device=/dev/vfio/161 \
-        omecproject/upf-epc-bess:master-latest -grpc-url=0.0.0.0:10514
+        ilx1-upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:10514
 
 docker run --name ilx1-pktgen-normal-access -td --restart unless-stopped \
         --cpuset-cpus=25,27 --ulimit memlock=-1 --cap-add IPC_LOCK \
@@ -23,7 +23,7 @@ docker run --name ilx1-pktgen-premium-core -td --restart unless-stopped \
         --cpuset-cpus=29,31 --ulimit memlock=-1 --cap-add IPC_LOCK \
         -v /dev/hugepages:/dev/hugepages -v "$PWD/conf":/opt/bess/bessctl/conf  \
         --device=/dev/vfio/vfio --device=/dev/vfio/169 \
-        omecproject/upf-epc-bess:master-latest -grpc-url=0.0.0.0:10514
+        ilx1-upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:10514
 
 docker run --name ilx1-pktgen-normal-core -td --restart unless-stopped \
         --cpuset-cpus=33,35 --ulimit memlock=-1 --cap-add IPC_LOCK \
