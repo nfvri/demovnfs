@@ -2,7 +2,7 @@ version: '3'
 
 services:
   nginx-rtmp-vts:
-    image: vtimofei/nginx-rtmp-vts
+    image: vtimofei/nginx-rtmp-vts:v0.1.0
     container_name: nginx-rtmp-vts
     ports:
     - 80:80

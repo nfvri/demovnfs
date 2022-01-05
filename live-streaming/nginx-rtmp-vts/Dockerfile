@@ -9,6 +9,10 @@ RUN make -C /code install
 
 FROM debian:bullseye-slim
 COPY --from=builder /usr/local/nginx/ /usr/local/nginx/
+RUN apt-get update
+RUN apt-get upgrade
+RUN apt-get install -y libssl-dev
+
 COPY ./nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /opt/data/hls
 
