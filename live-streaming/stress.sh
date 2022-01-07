@@ -78,7 +78,7 @@ while getopts 'hks:c:u:d:t:f:i:n:' flag; do
 done
 
 function _docker_build_image() {
-  docker build -t "${image_name}" -f download/Dockerfile
+  docker build -t "${image_name}" -f download/Dockerfile download
 }
 
 function _docker_remove_image() {
