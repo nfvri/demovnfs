@@ -110,7 +110,7 @@ _docker_build_image
   -t "${template_name}" \
   -f "${file}" &
 
-docker run --remove --name "${container_name}" "${image_name}" -- \
+docker run --rm --name "${container_name}" "${image_name}" -- \
   -s "${streamers}" \
   -c "${clients}" \
   -d "${download_url}" \
