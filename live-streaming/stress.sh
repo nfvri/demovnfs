@@ -91,6 +91,7 @@ function _docker_stop_container() {
 
 _term() { 
   echo "Caught SIGTERM signal!" 
+  _docker_stop_container
   for job in $(jobs -p)
   do
     kill -9 "${job}" 2>/dev/null
