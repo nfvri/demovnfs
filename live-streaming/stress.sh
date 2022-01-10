@@ -10,6 +10,7 @@ file='video.mp4'
 image_name='hls'
 container_name='hls'
 keep='false'
+wait='10'
 
 print_usage() {
   app_name=$(basename "${0}") || "${0}"
@@ -27,11 +28,12 @@ print_usage() {
   printf "\t-f\tspecify file to stream (default: %s)\n" "${file}"
   printf "\t-i\tspecify image name (default: %s)\n" "${image_name}"
   printf "\t-n\tspecify container name (default: %s)\n" "${container_name}"
+  printf "\t-w\twait seconds to start downloading (default: %s)\n" "${wait}"
   printf "\t-k\tkeep image (default: %s)\n" "${keep}"
   exit 0
 }
 
-while getopts 'hks:c:u:d:t:f:i:n:' flag; do
+while getopts 'hks:c:u:d:t:f:i:n:w:' flag; do
   case "${flag}" in
     s)
       streamers="${OPTARG}"
@@ -65,6 +67,8 @@ while getopts 'hks:c:u:d:t:f:i:n:' flag; do
       image_name="${OPTARG}" ;;
     n)
       container_name="${OPTARG}" ;;
+    w)
+      wait="${OPTARG}" ;;
     k)
       keep='true' ;;
     h)
@@ -109,6 +113,8 @@ _docker_build_image
   -u "${upload_url}" \
   -t "${template_name}" \
   -f "${file}" &
+
+sleep "${wait}"
 
 docker run --rm --name "${container_name}" "${image_name}" \
   -s "${streamers}" \
