@@ -4,6 +4,7 @@ streamers='1'
 clients='1'
 download_url='http://localhost:80/live/'
 template_name='video-%s'
+sleep_window='0'
 
 print_usage() {
   app_name=$(basename "${0}") || "${0}"
@@ -17,10 +18,11 @@ print_usage() {
   printf "\t-c\tspecify number of clients per stream (default: %s)\n" "${clients}"
   printf "\t-d\tspecify download url (default: %s)\n" "${download_url}"
   printf "\t-t\tspecify stream template name (default: %s)\n" "${template_name}"
+  printf "\t-r\tspecify random sleep window in ms (default: %s)\n" "${sleep_window}"
   exit 0
 }
 
-while getopts 'hs:c:d:t:f:' flag; do
+while getopts 'hs:c:d:t:f:r:' flag; do
   case "${flag}" in
     s)
       streamers="${OPTARG}"
@@ -46,6 +48,8 @@ while getopts 'hs:c:d:t:f:' flag; do
       download_url="${OPTARG}" ;;
     t)
       template_name="${OPTARG}" ;;
+    r)
+      sleep_window="${OPTARG}" ;;
     h)
       print_usage ;;
     :)
@@ -66,13 +70,19 @@ _term() {
 
 trap _term SIGTERM
 
+_stream() {
+  sleep_ms=$(1 + "${RANDOM}" "${sleep_window}")
+  sleep $(echo "${sleep_ms}/1000" | bc -l)
+  hlsdl -b -o - "${1}" >/dev/null
+}
+
 for stream in $(seq 1 "${streamers}")
 do
   url=$(printf "%s${template_name}.m3u8" "${download_url}" "${stream}")
-	for _ in $(seq 1 "${clients}")
-	do
-		hlsdl -b -o - "${url}" >/dev/null &
-	done
+  for _ in $(seq 1 "${clients}")
+  do
+    _stream "${url}"
+  done
 done
 
 for job in $(jobs -p)

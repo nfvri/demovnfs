@@ -11,6 +11,7 @@ image_name='hls'
 container_name='hls'
 keep='false'
 wait='10'
+sleep_window='0'
 
 print_usage() {
   app_name=$(basename "${0}") || "${0}"
@@ -29,11 +30,12 @@ print_usage() {
   printf "\t-i\tspecify image name (default: %s)\n" "${image_name}"
   printf "\t-n\tspecify container name (default: %s)\n" "${container_name}"
   printf "\t-w\twait seconds to start downloading (default: %s)\n" "${wait}"
+  printf "\t-r\tspecify clients random sleep window in ms (default: %s)\n" "${sleep_window}"
   printf "\t-k\tkeep image (default: %s)\n" "${keep}"
   exit 0
 }
 
-while getopts 'hks:c:u:d:t:f:i:n:w:' flag; do
+while getopts 'hks:c:u:d:t:f:i:n:w:r:' flag; do
   case "${flag}" in
     s)
       streamers="${OPTARG}"
@@ -67,6 +69,8 @@ while getopts 'hks:c:u:d:t:f:i:n:w:' flag; do
       image_name="${OPTARG}" ;;
     n)
       container_name="${OPTARG}" ;;
+    r)
+      sleep_window="${OPTARG}" ;;
     w)
       wait="${OPTARG}" ;;
     k)
@@ -120,6 +124,7 @@ docker run --rm --name "${container_name}" "${image_name}" \
   -s "${streamers}" \
   -c "${clients}" \
   -d "${download_url}" \
+  -r "${sleep_window}" \
   -t "${template_name}" &
 
 
