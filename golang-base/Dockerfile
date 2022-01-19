@@ -3,7 +3,7 @@ FROM golang:1.17.1-bullseye
 ENV TF_VER "2.4.3"
 
 RUN apt-get update \
- && apt-get -y install git make gcc bzr libvirt-dev linux-headers-amd64 libbpfcc libbpfcc-dev bpfcc-tools python3 swig python3-numpy protobuf-compiler curl gnupg
+ && apt-get -y install git make gcc bzr libvirt-dev linux-headers-amd64 libbpfcc libbpfcc-dev bpfcc-tools python3 swig python3-numpy protobuf-compiler curl gnupg ipmitool
 
 # Install bazel
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg \
