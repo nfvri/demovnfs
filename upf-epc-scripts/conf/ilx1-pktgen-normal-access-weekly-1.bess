@@ -1,5 +1,5 @@
 """
-   Core traffic (n6 receive) for the premium upf
+    Access traffic (n3 receive) for premium upf
 """
 
 import conf.sim as sim
@@ -18,13 +18,13 @@ def lines_from(file):
 
 pkt_size = 1500
 flows = 100
-workers=[33,35]
-traffic_pattern_file = "./conf/patterns/example-small-traffic-rate-pattern.txt"
+workers=[15,47,11,43]
+traffic_pattern_file = "./conf/patterns/example-medium-traffic-rate-pattern.txt"
 time_step = 10 #secs
-max_load = 12000000000
+max_load = 1500000000
 
-#flow create 1 ingress pattern eth / ipv4 / end actions rss types ipv4 l3-dst-only end key_len 0 queues end / end
-n6_pkts = [sim.gen_inet_packet(pkt_size, "22:53:7a:15:58:51", "be:b2:d3:34:ab:28", "6.6.6.6", "16.0.0.1"),]
+# flow create 0 ingress pattern eth / ipv4 / udp / gtpu / ipv4 / end actions rss types ipv4 l3-src-only end key_len 0 queues end / end
+n36_pkts = [sim.gen_gtpu_packet(pkt_size, "22:53:7a:15:58:51", "d2:9c:55:d4:8a:f8", "11.1.1.129", "198.18.0.1", "16.0.0.1", "6.6.6.6", 0x30000000),]
 
 for wid in range(len(workers)):
     bess.add_worker(wid=wid, core=int(workers[wid]))
@@ -34,9 +34,9 @@ kwargs = {'num_inc_q': num_q,
           'num_out_q': num_q}
 p = PMDPort(port_id=0, **kwargs)
 
-n6seq_kwargs = sim.gen_inet_sequpdate_args(flows, "16.0.0.1")
+n3seq_kwargs = sim.gen_gtpu_sequpdate_args(flows, "16.0.0.1", 62, 0x30000000)
 
-src6::Source(pkt_size=pkt_size) -> Rewrite(templates=n6_pkts) -> n6update::SequentialUpdate(**n6seq_kwargs) -> L4Checksum() -> IPChecksum() -> QueueOut(port=p.name, qid=1)
+src36::Source(pkt_size=pkt_size) -> Rewrite(templates=n36_pkts) -> n36update::SequentialUpdate(**n3seq_kwargs) -> L4Checksum() -> IPChecksum() -> QueueOut(port=p.name, qid=1)
 
 if not os.path.exists(traffic_pattern_file):
     print(f"Traffic pattern file {traffic_pattern_file} does not exist!")
@@ -49,8 +49,8 @@ if len(lines) < 1:
     exit(1)
 
 max_file_load = max(lines)
-bess.add_tc('6_limit', wid=1, policy='rate_limit', resource='bit', limit={'bit': int(lines[0])})
-src6.attach_task(parent='6_limit')
+bess.add_tc('36_limit', wid=1, policy='rate_limit', resource='bit', limit={'bit': int(lines[0])})
+src36.attach_task(parent='36_limit')
 
 while 1:
     for day in range(0,7):
@@ -62,8 +62,8 @@ while 1:
         for line in lines:
             load = (line * max_daily_load) / max_file_load
             print(f"Setting current load (bits): {int(load)}")
-    
-            bess.update_tc_params('6_limit', resource='bit', limit={'bit': int(load)})
+
+            bess.update_tc_params('36_limit', resource='bit', limit={'bit': int(load)})
             bess.resume_all()
             time.sleep(time_step)
 
