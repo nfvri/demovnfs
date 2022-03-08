@@ -390,6 +390,6 @@ accessFastBPF.add(filters=[uplink_filter])
 # ====================================================
 # Finally send SIGHUP to route_control daemon on reload
 # TODO: behavior is unspecified if route_control.py pid is not found
-route_control_pid = getpythonpid('route_control2.py')
+route_control_pid = getpythonpid('route_control_normal.py')
 if route_control_pid:
     os.kill(route_control_pid, signal.SIGHUP)
