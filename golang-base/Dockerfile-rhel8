@@ -14,12 +14,12 @@ LABEL name="golang" \
 COPY licenses /licenses
 
 ### Add necessary Red Hat UBI repos here
-RUN REPOLIST=ubi-8,ubi-8-optional \
+RUN REPOLIST=ubi-8-baseos,ubi-8-appstream \
 ### Add your package needs here
-    INSTALL_PKGS="git make gcc bzr libvirt-dev linux-headers-amd64 libbpfcc libbpfcc-dev bpfcc-tools python3 swig python3-numpy protobuf-compiler curl gnupg ipmitool" && \
-    yum -y update-minimal --disablerepo "*" --enablerepo ubi-8 --disableplugin=subscription-manager --setopt=tsflags=nodocs \
+    INSTALL_PKGS="git make gcc  bzr libvirt-devel kernel-headers libbpf libbpf-devel bpftool python3 swig python3-numpy protobuf-compiler curl gnupg ipmitool" && \
+    yum -y update-minimal --disableplugin=subscription-manager --setopt=tsflags=nodocs \
       --security --sec-severity=Important --sec-severity=Critical && \
-    yum -y install --disablerepo "*" --enablerepo ${REPOLIST} --disableplugin=subscription-manager --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    yum -y install --disableplugin=subscription-manager --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     yum clean all
 
 # Get golang
