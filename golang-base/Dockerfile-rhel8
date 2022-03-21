@@ -1,0 +1,48 @@
+FROM registry.access.redhat.com/ubi8/ubi:latest
+
+ENV TF_VER "2.4.3"
+
+### Required OpenShift Labels 
+LABEL name="golang" \
+      maintainer="angelouev@intracom-telecom.com" \
+      vendor="Intracom Telecom" \
+      version="rhel8-1.17.1" \
+      release="1" \
+      summary="A builder image for golang-based, AI apps." \
+      description="A builder image for golang-based, AI apps." 
+
+COPY licenses /licenses
+
+### Add necessary Red Hat UBI repos here
+RUN REPOLIST=ubi-8,ubi-8-optional \
+### Add your package needs here
+    INSTALL_PKGS="git make gcc bzr libvirt-dev linux-headers-amd64 libbpfcc libbpfcc-dev bpfcc-tools python3 swig python3-numpy protobuf-compiler curl gnupg ipmitool" && \
+    yum -y update-minimal --disablerepo "*" --enablerepo ubi-8 --disableplugin=subscription-manager --setopt=tsflags=nodocs \
+      --security --sec-severity=Important --sec-severity=Critical && \
+    yum -y install --disablerepo "*" --enablerepo ${REPOLIST} --disableplugin=subscription-manager --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    yum clean all
+
+# Get golang
+ENV GOLANG_VERSION 1.17.1
+ENV GOLANG_DOWNLOAD_URL https://golang.org/dl/go$GOLANG_VERSION.linux-amd64.tar.gz
+ENV GOLANG_DOWNLOAD_SHA256 be333ef18b3016e9d7cb7b1ff1fdb0cac800ca0be4cf2290fe613b3d069dfe0d
+ 
+RUN curl -fsSL "$GOLANG_DOWNLOAD_URL" -o golang.tar.gz \
+    && echo "$GOLANG_DOWNLOAD_SHA256  golang.tar.gz" | sha256sum -c - \
+    && tar -C /usr/local -xzf golang.tar.gz \
+    && rm golang.tar.gz
+
+# Install bazel
+RUN dnf config-manager --add-repo https://copr.fedorainfracloud.org/coprs/vbatts/bazel/repo/epel-8/vbatts-bazel-epel-8.repo \
+ && yum -y install bazel 
+
+# Install tensorflow C libs
+RUN mkdir -p /tensorflow \
+ && curl -fsLo /tensorflow/libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz  https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz \
+ && cd /tensorflow && tar -C /usr/local/ -xzf libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz && ldconfig
+
+# Replicate paths from golang image
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:$PATH
+RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
+WORKDIR $GOPATH
