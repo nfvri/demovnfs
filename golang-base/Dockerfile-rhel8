@@ -93,7 +93,7 @@ RUN curl -fsLo libffi-${LIBFFI_VER}.tar.gz https://github.com/libffi/libffi/rele
 	tar xvf libffi-${LIBFFI_VER}.tar.gz && \
 	cd libffi-${LIBFFI_VER} && \
 	./configure --disable-docs && \
-	make && \
+	make -j${CCPUS} && \
 	make install && \
 	cd .. && \
 	rm libffi-${LIBFFI_VER}.tar.gz && \
