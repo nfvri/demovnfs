@@ -1,5 +1,5 @@
 #NS = your docker namespace
-export VERSION ?= bullseye-1.17.1
+export VERSION ?= bullseye-1.18.3
 
 # For private repo
 # export REPO = gcr.io/nfvsap

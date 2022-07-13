@@ -11,7 +11,7 @@ ENV CCPUS 8
 LABEL name="golang" \
       maintainer="angelouev@intracom-telecom.com" \
       vendor="Intracom Telecom" \
-      version="rhel8-1.17.1" \
+      version="rhel8-1.18.3" \
       release="1" \
       summary="A builder image for golang-based, AI apps." \
       description="A builder image for golang-based, AI apps."
@@ -47,7 +47,7 @@ RUN git clone --depth 1 https://github.com/iovisor/bcc.git && \
 	rm -rf /bcc
 
 # Get Go
-ENV GOLANG_VERSION 1.17.8
+ENV GOLANG_VERSION 1.18.3
 ENV GOLANG_DOWNLOAD_URL https://golang.org/dl/go$GOLANG_VERSION.linux-amd64.tar.gz
 ENV GOLANG_DOWNLOAD_SHA256 980e65a863377e69fd9b67df9d8395fd8e93858e7a24c9f55803421e453f4f99
 
