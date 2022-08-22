@@ -325,6 +325,8 @@ def parse_new_route(msg):
                 gateway_mac = 0
             else:
                 gateway_mac = mac2hex(_mac)
+                ## Comment above line if calico or other routectl processes mess up your routes and add the mac explicitly, e.g.: 
+                #gateway_mac = mac2hex('22:53:7a:15:58:50')
         if 'RTA_OIF' in att:
             # Fetch interface name
             # ('RTA_OIF', iface)
