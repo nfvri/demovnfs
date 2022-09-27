@@ -37,7 +37,7 @@ RUN REPOLIST=ubi-8-baseos-rpms,ubi-8-appstream-rpms,codeready-builder-for-rhel-8
 	dnf clean all
 
 # Compile and install bcc
-RUN git clone --depth 1 https://github.com/iovisor/bcc.git && \
+RUN git clone --depth 1 --branch v0.24.0 https://github.com/iovisor/bcc.git && \
 	mkdir ./bcc/build && \
 	cd ./bcc/build && \
 	cmake3 .. && \
