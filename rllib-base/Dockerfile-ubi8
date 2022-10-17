@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest
 ENV TF_VER "2.4.4"
 LABEL name="rllib-base-ubi8" \
-      maintainer="vtimofei@intracom-telecom.com" \
+      maintainer="danchrist@intracom-telecom.com" \
       vendor="Intracom Telecom" \
       version="1.3.0" \
       release="1" \
@@ -11,7 +11,7 @@ LABEL name="rllib-base-ubi8" \
 COPY licenses /licenses
 
 ### Add necessary Red Hat UBI repos here
-RUN REPOLIST=ubi-8-baseos,ubi-8-appstream \
+RUN REPOLIST=ubi-8-baseos-rpms,ubi-8-appstream-rpms \
 ### Add your package needs here
         INSTALL_PKGS="python38 python38-devel python38-Cython curl openssh-clients openssh-server git cmake zlib-devel make gcc" && \
         dnf -y update-minimal --disableplugin=subscription-manager --setopt=tsflags=nodocs \
