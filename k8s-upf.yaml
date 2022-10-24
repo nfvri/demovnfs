@@ -95,13 +95,13 @@ data:
     "": "Gateway interfaces",
     "access": {
         "ifname": "ens1f0",
-        "pci": "0000:3b:02.1"
+        "pci": "0000:3b:02.7"
     },
 
     "": "UE IP Natting. Update the line below to `\"ip_masquerade\": \"<ip> [or <ip>]\"` to enable",
     "core": {
         "ifname": "ens1f1",
-        "pci": "0000:3b:0a.1",
+        "pci": "0000:3b:0a.4",
         "": "ip_masquerade: 18.0.0.1 or 18.0.0.2 or 18.0.0.3"
     },
 
@@ -697,13 +697,9 @@ data:
     set -e
     set -x
     # TCP port of bess/web monitor
-    gui_port_premium=8000
-    bessd_port_premium=10514
-    metrics_port_premium=8080
-
-    gui_port_normal=8001
-    bessd_port_normal=10515
-    metrics_port_normal=8082
+    gui_port=8000
+    bessd_port=10514
+    metrics_port=8080
 
     # Driver options. Choose any one of the three
     #
@@ -711,16 +707,15 @@ data:
     # "af_xdp" uses AF_XDP sockets via DPDK's vdev for pkt I/O. This version is non-zc version. ZC version still needs to be evaluated.
     # "af_packet" uses AF_PACKET sockets via DPDK's vdev for pkt I/O.
     # "sim" uses Source() modules to simulate traffic generation
-    mode="dpdk"
+    #mode="dpdk"
     #mode="af_xdp"
-    #mode="af_packet"
+    mode="af_packet"
     #mode="sim"
 
     # Gateway interface(s)
     #
     # In the order of ("s1u" "sgi")
     ifaces=("ens1f0" "ens1f1")
-    #ifaces=("access" "core")
 
     # Static IP addresses of gateway interface(s) in cidr format
     #
@@ -730,8 +725,7 @@ data:
     # MAC addresses of gateway interface(s)
     #
     # In the order of (s1u sgi)
-    macaddrs_premium=(9e:b2:d3:34:ab:27 c2:9c:55:d4:8a:f6)
-    macaddrs_normal=(be:b2:d3:34:ab:27 d2:9c:55:d4:8a:f6)
+    macaddrs=(9e:b2:d3:34:cc:28 c2:9c:55:d4:8a:1f)
 
     # Static IP addresses of the neighbors of gateway interface(s)
     #
@@ -754,11 +748,9 @@ data:
     # Set up static route and neighbor table entries of the SPGW
     function setup_trafficgen_routes() {
             for ((i = 0; i < num_ipaddrs; i++)); do
-                    ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}"
                     ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}" || true
                     routelist=${routes[$i]}
                     for route in $routelist; do
-                            ip route add "$route" via "${nhipaddrs[$i]}" metric 100
                             ip route add "$route" via "${nhipaddrs[$i]}" metric 100 || true
                     done
             done
@@ -767,7 +759,6 @@ data:
     # Assign IP address(es) of gateway interface(s) within the network namespace
     function setup_addrs() {
             for ((i = 0; i < num_ipaddrs; i++)); do
-                    ip addr add "${ipaddrs[$i]}" dev "${ifaces[$i % $num_ifaces]}"
                     ip addr add "${ipaddrs[$i]}" dev "${ifaces[$i % $num_ifaces]}" || true
             done
     }
@@ -779,10 +770,10 @@ data:
     # ARP/ICMP responses are captured and relayed out of the dpdk ports.
     function setup_mirror_links() {
         for ((i = 0; i < num_ifaces; i++)); do
-                ip link add "${ifaces[$i]}" type veth peer name "${ifaces[$i]}"-vdev
-                ip link set "${ifaces[$i]}" up
-                ip link set "${ifaces[$i]}-vdev" up
-                ip link set dev "${ifaces[$i]}" address "${macaddrs_normal[$i]}"
+                ip link add "${ifaces[$i]}" type veth peer name "${ifaces[$i]}"-vdev || true
+                ip link set "${ifaces[$i]}" up || true
+                ip link set "${ifaces[$i]}-vdev" up || true
+                ip link set dev "${ifaces[$i]}" address "${macaddrs[$i]}"
         done
         setup_addrs
     }
@@ -790,12 +781,10 @@ data:
     # Set up interfaces in the network namespace. For non-"dpdk" mode(s)
     function move_ifaces() {
             for ((i = 0; i < num_ifaces; i++)); do
-                    ip link set "${ifaces[$i]}" netns pause up
                     ip link set "${ifaces[$i]}" promisc off
                     ip link set "${ifaces[$i]}" xdp off
                     ip link set "${ifaces[$i]}" up
-                    ip link set dev "${ifaces[$i]}" vf 0 mac "${macaddrs_premium[$i]}"
-                    ip link set dev "${ifaces[$i]}" vf 1 mac "${macaddrs_normal[$i]}"
+                    ip link set "${ifaces[$i]}" address "${macaddrs[$i]}"
                     ip link set "${ifaces[$i]}" promisc on
                     ip link set "${ifaces[$i]}" xdp off
                     #if [ "$mode" == 'af_xdp' ]; then
@@ -812,6 +801,7 @@ data:
     case $mode in
     "dpdk" | "sim") setup_mirror_links ;;
     "af_xdp" | "af_packet")
+            setup_mirror_links
             move_ifaces
             # Make sure that kernel does not send back icmp dest unreachable msg(s)
             #sudo ip netns exec pause iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
@@ -847,31 +837,31 @@ spec:
     spec:
       shareProcessNamespace: true
       nodeSelector:
-        kubernetes.io/hostname: clx2
-      initContainers:
-      # Currently CNI doesn't allow metric we're doing it here instead of net-attach-def
-      - name: init-routes
-        image: nfvri/upf-epc-8806-bess:0.3.0-dev
-        env:
-        - name: ENB_SUBNET
-          value: '11.1.1.128/25'
-        - name: S1U_GATEWAY
-          value: '198.18.0.1'
-        - name: SGI_GATEWAY
-          value: '198.19.0.1'
-        command: ["sh", "-xec"]
-        args:
-        - /conf/routes_setup.sh
-        # - ip route add $ENB_SUBNET via $S1U_GATEWAY;
-        #   ip route add default via $SGI_GATEWAY metric 110;
-        securityContext:
-          privileged: true
-          capabilities:
-            add:
-              - NET_ADMIN
-        volumeMounts:
-        - name: routes-setup
-          mountPath: /conf
+        kubernetes.io/hostname: "clx2"
+        #  initContainers:
+      # #  inCurrently CNI doesn't allow metric we're doing it here instead of net-attach-def
+      # - #  inname: init-routes
+        #  inimage: nfvri/upf-epc-8806-bess:0.3.0-dev
+        #  inenv:
+        #  in- name: ENB_SUBNET
+        #  in  value: '11.1.1.128/25'
+        #  in- name: S1U_GATEWAY
+        #  in  value: '198.18.0.1'
+        #  in- name: SGI_GATEWAY
+        #  in  value: '198.19.0.1'
+        #  incommand: ["sh", "-xec"]
+        #  inargs:
+        #  in- /conf/routes_setup.sh
+        #  in# - ip route add $ENB_SUBNET via $S1U_GATEWAY;
+        #  in#   ip route add default via $SGI_GATEWAY metric 110;
+        #  insecurityContext:
+        #  in  privileged: true
+        #  in  capabilities:
+        #  in    add:
+        #  in      - NET_ADMIN
+        #  involumeMounts:
+        #  in- name: routes-setup
+        #  in  mountPath: /conf
       # Reqd. if working with AF_PACKET so that kernel does not reply to GTP-U packets
       #- name: iptables
       #  image: omecproject/upf-epc-bess:master-latest
@@ -887,10 +877,9 @@ spec:
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
         command: ["/conf/route_control_normal.py"]
         args:
-        - --port 10514
-        - -i
-        - ens1f0
-        - ens1f1
+        - "-i"
+        - "ens1f0"
+        - "ens1f1"
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -905,70 +894,86 @@ spec:
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
         stdin: true
         tty: true
-        args:
-        - -grpc-url=0.0.0.0:10514
+        command: ["bash", "-xec", "/init-conf/routes_setup.sh && bessd -f -grpc-url=0.0.0.0:10514"]
+        # args:
+        #- -grpc-url=0.0.0.0:10514
         env:
         - name: CONF_FILE
           value: /conf/upf.json
+        readinessProbe:
+          tcpSocket:
+            port: 10514
+          initialDelaySeconds: 30
+          periodSeconds: 20
         livenessProbe:
           tcpSocket:
             port: 10514
           initialDelaySeconds: 30
           periodSeconds: 20
-        lifecycle:
-          postStart:
-            exec:
-              command: ["sh", "-c", "until ss | grep -q 10514; do sleep 5; echo waiting for bessd; done; ./bessctl run up4;"]
+          #lifecycle:
+          #postStart:
+          #  exec:
+          #   command: ["sh", "-c", "until ss | grep -q 10514; do sleep 5; echo waiting for bessd; done; ./bessctl run up4;"]
         securityContext:
+          privileged: true
           capabilities:
             add:
             - IPC_LOCK # AF_PACKET vdev (and 4K pages) uses mmap
         resources:
           requests:
-            cpu: '2'
-            memory: 256Mi
-            hugepages-1Gi: 2Gi
+            cpu: "4000m"
+            memory: "2Gi"
+            hugepages-1Gi: 4Gi
             intel.com/intel_sriov_dpdk_b2b_net1: '1'
             intel.com/intel_sriov_dpdk_b2b_net2: '1'
           limits:
-            hugepages-1Gi: 2Gi
-            cpu: '2'
-            memory: 256Mi
+            cpu: "4000m"
+            memory: "2Gi"
+            hugepages-1Gi: 4Gi
             intel.com/intel_sriov_dpdk_b2b_net1: '1'
             intel.com/intel_sriov_dpdk_b2b_net2: '1'
         volumeMounts:
+        - name: routes-setup
+          mountPath: /init-conf
         - name: upf-conf
           mountPath: /conf
         - name: hugepages
           mountPath: /dev/hugepages
+          readOnly: False
+        - name: dev-vfio-161
+          mountPath: /dev/vfio/161
+          readOnly: False
+        - name: dev-vfio-168
+          mountPath: /dev/vfio/168
+          readOnly: False
+        - name: dev-vfio-vfio
+          mountPath: /dev/vfio/vfio
+          readOnly: False
       - name: web
         image: upf-epc-8806-bess:0.3.0-dev
-        command: ["bessctl"]
-        args:
-        - daemon disconnect -- daemon connect localhost:10514 -- http 0.0.0.0 8001
+        command: ["bash", "-c", "bessctl daemon disconnect -- daemon connect localhost:10514 -- http 0.0.0.0 8001"]
+        ports:
+        - name: http-web
+          containerPort: 8001
+          protocol: TCP
         resources:
           limits:
             cpu: 256m
             memory: 128Mi
       - name: pfcpiface
         image: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
-        command: ["pfcpiface"]
-        args:
-        - -config
-        - /conf/upf.json
-        - -bess localhost:10514 
-        - -http 0.0.0.0:8082
+        command: ["sh", "-c", "while ! $(nc -vz localhost 10514); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /config/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create"]
         volumeMounts:
         - name: upf-conf
-          mountPath: /conf
+          mountPath: /config
         ports:
         - name: http
-          containerPort: 8080
+          containerPort: 8082
           protocol: TCP
         resources:
           limits:
             cpu: 256m
-            memory: 128Mi
+            memory: 200Mi
       volumes:
       - name: upf-conf
         configMap:
@@ -981,5 +986,12 @@ spec:
         configMap:
           name: routes-setup
           defaultMode: 0777
-        
-
+      - name: dev-vfio-161
+        hostPath:
+          path: /dev/vfio/161
+      - name: dev-vfio-168
+        hostPath:
+          path: /dev/vfio/168
+      - name: dev-vfio-vfio
+        hostPath:
+          path: /dev/vfio/vfio
