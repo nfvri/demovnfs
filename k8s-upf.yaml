@@ -159,7 +159,6 @@ data:
             # Default route goes to Sink
             self.rtr.add(prefix='0.0.0.0', prefix_len=0, gate=MAX_GATES-1)
             s = Sink(name="{}bad_route".format(name))
-            print("before # self.rtr.connect(next_mod=s, ogate=MAX_GATES-1)
             self.rtr.connect(next_mod=s, ogate=MAX_GATES-1)
 
         def init_port(self, idx, conf_mode, pci_address=None):
@@ -817,13 +816,13 @@ data:
 
         "": "Gateway interfaces",
         "access": {
-            "ifname": "ens1f0",
+            "ifname": "net0",
         "pci": "$PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET1"
         },
 
         "": "UE IP Natting. Update the line below to `\"ip_masquerade\": \"<ip> [or <ip>]\"` to enable",
         "core": {
-            "ifname": "ens1f1",
+            "ifname": "net1",
         "pci": "$PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET2",
             "": "ip_masquerade: 18.0.0.1 or 18.0.0.2 or 18.0.0.3"
         },
@@ -1429,130 +1428,130 @@ data:
 
     envsubst < /conf/upf.json > /opt/bess/bessctl/conf/upf.json
 
-
     cp /conf/up4_premium.bess /opt/bess/bessctl/conf/up4_premium.bess
     cp /conf/ports.py /opt/bess/bessctl/conf/ports.py
 
-    # # TCP port of bess/web monitor
-    # gui_port=8000
-    # bessd_port=10514
-    # metrics_port=8080
+    # TCP port of bess/web monitor
+    gui_port=8000
+    bessd_port=10514
+    metrics_port=8080
 
-    # # Driver options. Choose any one of the three
-    # #
-    # # "dpdk" set as default
-    # # "af_xdp" uses AF_XDP sockets via DPDK's vdev for pkt I/O. This version is non-zc version. ZC version still needs to be evaluated.
-    # # "af_packet" uses AF_PACKET sockets via DPDK's vdev for pkt I/O.
-    # # "sim" uses Source() modules to simulate traffic generation
-    # #mode="dpdk"
-    # #mode="af_xdp"
-    # mode="af_packet"
-    # #mode="sim"
+    # Driver options. Choose any one of the three
+    #
+    # "dpdk" set as default
+    # "af_xdp" uses AF_XDP sockets via DPDK's vdev for pkt I/O. This version is non-zc version. ZC version still needs to be evaluated.
+    # "af_packet" uses AF_PACKET sockets via DPDK's vdev for pkt I/O.
+    # "sim" uses Source() modules to simulate traffic generation
+    #mode="dpdk"
+    #mode="af_xdp"
+    mode="af_packet"
+    #mode="sim"
 
-    # # Gateway interface(s)
-    # #
-    # # In the order of ("s1u" "sgi")
-    # ifaces=("ens1f0" "ens1f1")
+    # Gateway interface(s)
+    #
+    # In the order of ("s1u" "sgi")
+    ifaces=("net0" "net1")
 
-    # # Static IP addresses of gateway interface(s) in cidr format
-    # #
-    # # In the order of (s1u sgi)
-    # ipaddrs=(198.18.0.1/30 198.19.0.1/30)
+    # Static IP addresses of gateway interface(s) in cidr format
+    #
+    # In the order of (s1u sgi)
+    ipaddrs=(198.18.0.1/30 198.19.0.1/30)
 
-    # # MAC addresses of gateway interface(s)
-    # #
-    # # In the order of (s1u sgi)
-    # macaddrs=(9e:b2:d3:34:cc:28 c2:9c:55:d4:8a:1f)
+    # MAC addresses of gateway interface(s)
+    #
+    # In the order of (s1u sgi)
+    macaddrs=(9e:b2:d3:34:cc:28 c2:9c:55:d4:8a:1f)
 
-    # # Static IP addresses of the neighbors of gateway interface(s)
-    # #
-    # # In the order of (n-s1u n-sgi)
-    # nhipaddrs=(198.18.0.2 198.19.0.2)
+    # Static IP addresses of the neighbors of gateway interface(s)
+    #
+    # In the order of (n-s1u n-sgi)
+    nhipaddrs=(198.18.0.2 198.19.0.2)
 
-    # # Static MAC addresses of the neighbors of gateway interface(s)
-    # # 
-    # # In the order of (n-s1u n-sgi)
-    # nhmacaddrs=(22:53:7a:15:58:50 22:53:7a:15:58:50)
+    # Static MAC addresses of the neighbors of gateway interface(s)
+    # 
+    # In the order of (n-s1u n-sgi)
+    nhmacaddrs=(22:53:7a:15:58:50 22:53:7a:15:58:50)
 
-    # # IPv4 route table entries in cidr format per port
-    # #
-    # # In the order of ("{r-s1u}" "{r-sgi}")
-    # routes=("11.1.1.128/25" "0.0.0.0/0")
+    # IPv4 route table entries in cidr format per port
+    #
+    # In the order of ("{r-s1u}" "{r-sgi}")
+    routes=("11.1.1.128/25" "0.0.0.0/0")
 
-    # num_ifaces=${#ifaces[@]}
-    # num_ipaddrs=${#ipaddrs[@]}
+    num_ifaces=${#ifaces[@]}
+    num_ipaddrs=${#ipaddrs[@]}
 
-    # # Set up static route and neighbor table entries of the SPGW
-    # function setup_trafficgen_routes() {
-    #         for ((i = 0; i < num_ipaddrs; i++)); do
-    #                 ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}" || true
-    #                 routelist=${routes[$i]}
-    #                 for route in $routelist; do
-    #                         ip route add "$route" via "${nhipaddrs[$i]}" metric 100 || true
-    #                 done
-    #         done
-    # }
+    # Set up static route and neighbor table entries of the SPGW
+    function setup_trafficgen_routes() {
+            for ((i = 0; i < num_ipaddrs; i++)); do
+                    ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}" || true
+                    routelist=${routes[$i]}
+                    for route in $routelist; do
+                            let k=$i+100
+                            ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
+                    done
+            done
+    }
 
-    # # Assign IP address(es) of gateway interface(s) within the network namespace
-    # function setup_addrs() {
-    #         for ((i = 0; i < num_ipaddrs; i++)); do
-    #                 ip addr add "${ipaddrs[$i]}" dev "${ifaces[$i % $num_ifaces]}" || true
-    #         done
-    # }
+    # Assign IP address(es) of gateway interface(s) within the network namespace
+    function setup_addrs() {
+            for ((i = 0; i < num_ipaddrs; i++)); do
+                    ip addr add "${ipaddrs[$i]}" dev "${ifaces[$i % $num_ifaces]}" || true
+            done
+    }
 
-    # # Set up mirror links to communicate with the kernel
-    # #
-    # # These vdev interfaces are used for ARP + ICMP updates.
-    # # ARP/ICMP requests are sent via the vdev interface to the kernel.
-    # # ARP/ICMP responses are captured and relayed out of the dpdk ports.
-    # function setup_mirror_links() {
-    #     for ((i = 0; i < num_ifaces; i++)); do
-    #             # ip link add "${ifaces[$i]}" type veth peer name "${ifaces[$i]}"-vdev || true
-    #             ip link add link "${ifaces[$i]}" type macvlan || true
-    #             ip link set "${ifaces[$i]}" up || true
-    #             # ip link set "${ifaces[$i]}-vdev" up || true
-    #             ip link set dev "${ifaces[$i]}" address "${macaddrs[$i]}"
-    #     done
-    #     setup_addrs
-    # }
+    # Set up mirror links to communicate with the kernel
+    #
+    # These vdev interfaces are used for ARP + ICMP updates.
+    # ARP/ICMP requests are sent via the vdev interface to the kernel.
+    # ARP/ICMP responses are captured and relayed out of the dpdk ports.
+    function setup_mirror_links() {
+        for ((i = 0; i < num_ifaces; i++)); do
+                ip link add "${ifaces[$i]}"-vdev type veth peer name "${ifaces[$i]}" || true
+                #ip link add link "${ifaces[$i]}" type macvlan || true
+                ip link set "${ifaces[$i]}" up || true
+                ip link set "${ifaces[$i]}-vdev" up || true
+                ip link set dev "${ifaces[$i]}" address "${macaddrs[$i]}"
+        done
+        setup_addrs
+    }
 
-    # # Set up interfaces in the network namespace. For non-"dpdk" mode(s)
-    # function move_ifaces() {
-    #         for ((i = 0; i < num_ifaces; i++)); do
-    #                 ip link set "${ifaces[$i]}" promisc off
-    #                 ip link set "${ifaces[$i]}" xdp off
-    #                 ip link set "${ifaces[$i]}" up
-    #                 ip link set "${ifaces[$i]}" address "${macaddrs[$i]}"
-    #                 ip link set "${ifaces[$i]}" promisc on
-    #                 ip link set "${ifaces[$i]}" xdp off
-    #                 #if [ "$mode" == 'af_xdp' ]; then
-    #                 #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple off
-    #                 #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple on
-    #                 #        sudo ip netns exec pause ethtool -N "${ifaces[$i]}" flow-type udp4 action 0
-    #                 #        sudo ip netns exec pause ethtool -N "${ifaces[$i]}" flow-type tcp4 action 0
-    #                 #        sudo ip netns exec pause ethtool -u "${ifaces[$i]}"
-    #                 #fi
-    #         done
-    #         setup_addrs
-    # }
+    # Set up interfaces in the network namespace. For non-"dpdk" mode(s)
+    function move_ifaces() {
+            for ((i = 0; i < num_ifaces; i++)); do
+                    ip link set "${ifaces[$i]}" promisc off
+                    ip link set "${ifaces[$i]}" xdp off
+                    ip link set "${ifaces[$i]}" up
+                    ip link set "${ifaces[$i]}" address "${macaddrs[$i]}"
+                    ip link set "${ifaces[$i]}" promisc on
+                    ip link set "${ifaces[$i]}" xdp off
+                    #if [ "$mode" == 'af_xdp' ]; then
+                    #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple off
+                    #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple on
+                    #        sudo ip netns exec pause ethtool -N "${ifaces[$i]}" flow-type udp4 action 0
+                    #        sudo ip netns exec pause ethtool -N "${ifaces[$i]}" flow-type tcp4 action 0
+                    #        sudo ip netns exec pause ethtool -u "${ifaces[$i]}"
+                    #fi
+            done
+            setup_addrs
+    }
     
-    # case $mode in
-    # "dpdk" | "sim") setup_mirror_links ;;
-    # "af_xdp" | "af_packet")
-    #         setup_mirror_links
-    #         move_ifaces
-    #         # Make sure that kernel does not send back icmp dest unreachable msg(s)
-    #         #sudo ip netns exec pause iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
-    #         iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
-    #         ;;
-    # *) ;;
+    case $mode in
+    "dpdk" | "sim") setup_mirror_links ;;
+    "af_xdp" | "af_packet")
+            setup_mirror_links
+            #move_ifaces
+            # Make sure that kernel does not send back icmp dest unreachable msg(s)
+            #sudo ip netns exec pause iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
+            iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
+            ;;
+    *) ;;
 
-    # esac
+    esac
 
-    # # Setup trafficgen routes
-    # if [ "$mode" != 'sim' ]; then
-    #         setup_trafficgen_routes
-    # fi
+    # Setup trafficgen routes
+    if [ "$mode" != 'sim' ]; then
+            setup_trafficgen_routes
+    fi
 
 ---
 apiVersion: apps/v1
@@ -1571,7 +1570,7 @@ spec:
       labels:
         app: upf
       annotations:
-        k8s.v1.cni.cncf.io/networks: default/access-net,default/core-net
+        k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2
     spec:
       shareProcessNamespace: true
       nodeSelector:
@@ -1616,8 +1615,8 @@ spec:
         command: ["/conf/route_control_premium.py"]
         args:
         - "-i"
-        - "ens1f0"
-        - "ens1f1"
+        - "net0"
+        - "net1"
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -1679,15 +1678,6 @@ spec:
         - name: hugepages
           mountPath: /dev/hugepages
           readOnly: False
-        - name: dev-vfio-161
-          mountPath: /dev/vfio/161
-          readOnly: False
-        - name: dev-vfio-168
-          mountPath: /dev/vfio/168
-          readOnly: False
-        - name: dev-vfio-vfio
-          mountPath: /dev/vfio/vfio
-          readOnly: False
       - name: web
         image: upf-epc-8806-bess:0.3.0-dev
         command: ["bash", "-c", "bessctl daemon disconnect -- daemon connect localhost:10514 -- http 0.0.0.0 8001"]
@@ -1725,12 +1715,3 @@ spec:
         configMap:
           name: routes-setup
           defaultMode: 0777
-      - name: dev-vfio-161
-        hostPath:
-          path: /dev/vfio/161
-      - name: dev-vfio-168
-        hostPath:
-          path: /dev/vfio/168
-      - name: dev-vfio-vfio
-        hostPath:
-          path: /dev/vfio/vfio
