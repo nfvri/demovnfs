@@ -477,7 +477,7 @@ data:
     else:
         nonworkers = cores
 
-    set_process_affinity_all(nonworkers)
+    # set_process_affinity_all(nonworkers)
     for wid in range(parser.workers):
         bess.add_worker(wid=wid, core=int(workers[wid % len(workers)]))
 
@@ -1484,11 +1484,14 @@ data:
     function setup_trafficgen_routes() {
             for ((i = 0; i < num_ipaddrs; i++)); do
                     ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}" || true
-                    routelist=${routes[$i]}
-                    for route in $routelist; do
-                            let k=$i+100
-                            ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
-                    done
+                    let let k=$i+100
+                    ip route add ${routes[$i]} via "${nhipaddrs[$i]}" metric $k || true
+                    # ip route add ${routes[$i]} via "${nhipaddrs[$i]}" dev "${ifaces[$i]}" metric 100 || true
+                    # routelist=${routes[$i]}
+                    # for route in $routelist; do
+                    #         let k=$i+100
+                    #         ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
+                    # done
             done
     }
 
@@ -1575,48 +1578,12 @@ spec:
       shareProcessNamespace: true
       nodeSelector:
         kubernetes.io/hostname: "clx2"
-        #  initContainers:
-      # #  inCurrently CNI doesn't allow metric we're doing it here instead of net-attach-def
-      # - #  inname: init-routes
-        #  inimage: nfvri/upf-epc-8806-bess:0.3.0-dev
-        #  inenv:
-        #  in- name: ENB_SUBNET
-        #  in  value: '11.1.1.128/25'
-        #  in- name: S1U_GATEWAY
-        #  in  value: '198.18.0.1'
-        #  in- name: SGI_GATEWAY
-        #  in  value: '198.19.0.1'
-        #  incommand: ["sh", "-xec"]
-        #  inargs:
-        #  in- /conf/routes_setup.sh
-        #  in# - ip route add $ENB_SUBNET via $S1U_GATEWAY;
-        #  in#   ip route add default via $SGI_GATEWAY metric 110;
-        #  insecurityContext:
-        #  in  privileged: true
-        #  in  capabilities:
-        #  in    add:
-        #  in      - NET_ADMIN
-        #  involumeMounts:
-        #  in- name: routes-setup
-        #  in  mountPath: /conf
-      # Reqd. if working with AF_PACKET so that kernel does not reply to GTP-U packets
-      #- name: iptables
-      #  image: omecproject/upf-epc-bess:master-latest
-      #  command: [ "sh", "-xec"]
-      #  args:
-      #  - iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP;
-      #  securityContext:
-      #    capabilities:
-      #      add:
-      #        - NET_ADMIN
+
       containers:
       - name: routectl
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
-        command: ["/conf/route_control_premium.py"]
-        args:
-        - "-i"
-        - "net0"
-        - "net1"
+        command: ["bash", "-c", "sleep 120 && python /conf/route_control_premium.py -i net0 net1"]
+
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -1691,7 +1658,7 @@ spec:
             memory: 128Mi
       - name: pfcpiface
         image: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
-        command: ["sh", "-c", "while ! $(nc -vz localhost 10514); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /config/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create"]
+        command: ["sh", "-c", "while ! $(nc -vz localhost 10514); do echo 'Waiting...'; sleep 10; done; sleep 120 && pfcpiface -config /config/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create"]
         volumeMounts:
         - name: upf-conf
           mountPath: /config
