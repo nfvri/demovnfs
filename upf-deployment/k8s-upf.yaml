@@ -66,7 +66,7 @@ spec:
       containers:
       - name: routectl
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
-        command: ["bash", "-c", "until ss | grep -q 10514; do sleep 5; echo 'Waiting for bessd'; done; python /conf/route_control_premium.py -i net0 net1"]
+        command: ["bash", "-c", "until ss -a | grep -q 3456; do sleep 5; echo 'Waiting for bessd'; done; python /conf/route_control_premium.py -i net0 net1"]
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -82,7 +82,7 @@ spec:
         stdin: true
         tty: true
         # command: ["bash", "-xec", "/init-conf/routes_setup.sh && bessd -f -grpc-url=0.0.0.0:10514"]
-        command: ["bash", "-xec", "/init-conf/routes_setup.sh  && bessd -f -grpc-url=0.0.0.0:10514 & until ss | grep -q 10514; do sleep 15; echo 'Waiting for bessd'; done; ./bessctl run up4_premium;"]
+        command: ["bash", "-xec", "/init-conf/routes_setup.sh  && bessd -f -grpc-url=0.0.0.0:10514 & until ss -a| grep -q 10514; do sleep 15; echo 'Waiting for bessd'; done; ./bessctl run up4_premium; nc -l -p 3456 &"]
         # args:
         #- -grpc-url=0.0.0.0:10514
         env:
@@ -141,7 +141,7 @@ spec:
             memory: 128Mi
       - name: pfcpiface
         image: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
-        command: ["sh", "-c", "while ! $(nc -vz localhost 10514); do echo 'Waiting...'; sleep 10; done; sleep 40 && pfcpiface -config /config/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create"]
+        command: ["sh", "-c", "while ! $(nc -vz localhost 3456); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /config/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create"]
         volumeMounts:
         - name: upf-conf
           mountPath: /config
