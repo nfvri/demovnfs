@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: routes-setup
-data: 
+data:
   routes_setup.sh: | 
     #!/usr/bin/env bash
     # SPDX-License-Identifier: Apache-2.0

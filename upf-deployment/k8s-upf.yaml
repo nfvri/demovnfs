@@ -1,46 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2019 Intel Corporation
-# Copyright 2020 Open Networking Foundation
-# ---
-# apiVersion: "k8s.cni.cncf.io/v1"
-# kind: NetworkAttachmentDefinition
-# metadata:
-#   name: access-net
-#   annotations:
-#     k8s.v1.cni.cncf.io/resourceName: intel.com/sriov_vfio_access_net
-# spec:
-#   config: '{
-#     "cniVersion": "0.3.1",
-#     "type": "vfioveth",
-#     "name": "access-net",
-#     "ipam": {
-#         "type": "host-local",
-#         "subnet": "198.18.0.0/24",
-#         "rangeStart": "198.18.0.2",
-#         "rangeEnd": "198.18.0.250",
-#         "gateway": "198.18.0.1"
-#     }}'
-# ---
-# apiVersion: "k8s.cni.cncf.io/v1"
-# kind: NetworkAttachmentDefinition
-# metadata:
-#   name: core-net
-#   annotations:
-#     k8s.v1.cni.cncf.io/resourceName: intel.com/sriov_vfio_core_net
-# spec:
-#   config: '{
-#     "cniVersion": "0.3.1",
-#     "type": "vfioveth",
-#     "name": "core-net",
-#     "ipam": {
-#         "type": "host-local",
-#         "subnet": "198.19.0.0/24",
-#         "rangeStart": "198.19.0.2",
-#         "rangeEnd": "198.19.0.250",
-#         "gateway": "198.19.0.1"
-#     }}'
-# ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -62,11 +19,10 @@ spec:
       shareProcessNamespace: true
       nodeSelector:
         kubernetes.io/hostname: "clx2"
-
       containers:
       - name: routectl
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
-        command: ["bash", "-c", "until ss -a | grep -q 3456; do sleep 5; echo 'Waiting for bessd'; done; python /conf/route_control_premium.py -i net0 net1"]
+        command: ["bash", "-c", "until ss -a | grep -q 3456;  do sleep 5; echo 'Waiting for bessd'; done; python /conf/route_control_premium.py -i net0 net1"]
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -77,14 +33,14 @@ spec:
         volumeMounts:
         - name: upf-conf
           mountPath: /conf
+        - name: hugepages
+          mountPath: /dev/hugepages
+          readOnly: False
       - name: bessd
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
         stdin: true
         tty: true
-        # command: ["bash", "-xec", "/init-conf/routes_setup.sh && bessd -f -grpc-url=0.0.0.0:10514"]
-        command: ["bash", "-xec", "/init-conf/routes_setup.sh  && bessd -f -grpc-url=0.0.0.0:10514 & until ss -a| grep -q 10514; do sleep 15; echo 'Waiting for bessd'; done; ./bessctl run up4_premium; nc -l -p 3456 &"]
-        # args:
-        #- -grpc-url=0.0.0.0:10514
+        command: ["bash", "-xec", "/init-conf/routes_setup.sh && bessd -grpc-url=0.0.0.0:10514; until ss -a | grep -q 10514; do sleep 5; echo waiting for bessd; done;  ./bessctl run up4_premium; ./bessctl http 0.0.0.0 3456"]
         env:
         - name: CONF_FILE
           value: /opt/bess/bessctl/conf/upf.json
@@ -98,10 +54,6 @@ spec:
             port: 10514
           initialDelaySeconds: 30
           periodSeconds: 20
-          #lifecycle:
-          #postStart:
-          #  exec:
-          #    command: ["sh", "-c", "until ss | grep -q 10514; do sleep 5; echo waiting for bessd; done; ./bessctl run up4_premium;"]
         securityContext:
           privileged: true
           capabilities:
@@ -130,7 +82,7 @@ spec:
           readOnly: False
       - name: web
         image: upf-epc-8806-bess:0.3.0-dev
-        command: ["bash", "-c", "bessctl daemon disconnect -- daemon connect localhost:10514 -- http 0.0.0.0 8001"]
+        command: ["bash", "-c", "bessctl  http 0.0.0.0 8001"]
         ports:
         - name: http-web
           containerPort: 8001
@@ -151,7 +103,7 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 1000m
+            cpu: 256m
             memory: 200Mi
       volumes:
       - name: upf-conf

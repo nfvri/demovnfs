@@ -168,11 +168,14 @@ data:
             if conf_mode == 'dpdk':
                 kwargs = None
                 pci = alias_by_interface(name)
+                print(f"To pci einai {pci}")
                 if pci is None and pci_address is not None:
                     pci = pci_address
+                    print(f"To pci prwto if einai {pci}")
                 if pci is not None:
                     kwargs = {"pci": pci, "num_out_q": num_q, "num_inc_q": num_q, "hwcksum": self.hwcksum, "flow_profiles": self.flow_profiles}
                     try:
+                        print(f"Paw sthn fastpath {kwargs}")
                         self.init_fastpath(**kwargs)
                     except:
                         kwargs = None
@@ -735,7 +738,7 @@ data:
         "max_sessions": 50000,
 
         "": "Set the log level to one of \"panic\", \"fatal\", \"error\", \"warning\", \"info\", \"debug\", \"trace\"",
-        "log_level": "info",
+        "log_level": "trace",
 
         "": "Use the sim block to enable simulation using either Source module or via il_trafficgen",
         "sim": {
