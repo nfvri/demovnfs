@@ -18,8 +18,10 @@ data:
     apt-get update
     apt-get install gettext-base -y
 
-    envsubst < /conf/upf.json > /opt/bess/bessctl/conf/upf.json
-
+    # envsubst < /conf/upf.json > /opt/bess/bessctl/conf/upf.json
+    envsubst < /conf/upf.json > /pre-install/upf.json
+    
+    cp /pre-install/upf.json /opt/bess/bessctl/conf/upf.json
     cp /conf/up4_premium.bess /opt/bess/bessctl/conf/up4_premium.bess
     cp /conf/ports.py /opt/bess/bessctl/conf/ports.py
 

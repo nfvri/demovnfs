@@ -77,9 +77,10 @@ spec:
           mountPath: /init-conf
         - name: upf-conf
           mountPath: /conf
+        - name: pre-install
+          mountPath: /pre-install
         - name: hugepages
           mountPath: /dev/hugepages
-          readOnly: False
       - name: web
         image: upf-epc-8806-bess:0.3.0-dev
         command: ["bash", "-c", "bessctl  http 0.0.0.0 8001"]
@@ -93,10 +94,12 @@ spec:
             memory: 128Mi
       - name: pfcpiface
         image: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
-        command: ["sh", "-c", "while ! $(nc -vz localhost 3456); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /config/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create"]
+        command: ["sh", "-c", "while ! $(nc -vz localhost 3456); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /pre-install/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create"]
         volumeMounts:
         - name: upf-conf
-          mountPath: /config
+          mountPath: /conf
+        - name: pre-install
+          mountPath: /pre-install
         ports:
         - name: http
           containerPort: 8082
@@ -117,3 +120,5 @@ spec:
         configMap:
           name: routes-setup
           defaultMode: 0777
+      - name: pre-install 
+        emptyDir: {}
