@@ -1,0 +1,1366 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: upf-conf
+data:
+  ports.py: |
+    #!/usr/bin/env python
+    # SPDX-License-Identifier: Apache-2.0
+    # Copyright(c) 2019 Intel Corporation
+
+    from conf.parser import *
+    import conf
+    import inspect
+    import sys
+
+
+    def setup_globals():
+        caller_frame = inspect.stack()[1][0]
+        caller_globals = caller_frame.f_globals
+        globals().update(caller_globals)
+
+
+    # ====================================================
+    #       Port Helpers
+    # ====================================================
+    dpdk_ports = {}
+
+
+    def scan_dpdk_ports():
+        idx = 0
+        while True:
+            try:
+                intf = PMDPort(name="Port {}".format(idx), port_id=idx)
+                if intf:
+                    # Need to declare mac so that we don't lose key during destroy_port
+                    mac = intf.mac_addr
+                    dpdk_ports[mac] = idx
+                    bess.destroy_port(intf.name)
+            except bess.Error as e:
+                if e.code == errno.ENODEV:
+                    break
+                else:
+                    raise
+            idx += 1
+            # RTE_MAX_ETHPORTS is 32 and we need 2 for vdevs
+            if idx == 30:
+                break
+        return True if dpdk_ports else False
+
+
+    class Port:
+        def __init__(self, name, hwcksum, ext_addrs):
+            self.name = name
+            self.flow_profiles = []
+            self.workers = None
+            self.num_q = 1
+            self.fpi = None
+            self.fpo = None
+            self.bpf = None
+            self.rtr = None
+            self.bpfgate = 0
+            self.routes_table = None
+            self.nat = None
+            self.ext_addrs = ext_addrs
+            self.mode = None
+            self.hwcksum = hwcksum
+
+        def bpf_gate(self):
+            if self.bpfgate < MAX_GATES - 2:
+                self.bpfgate += 1
+                return self.bpfgate
+            else:
+                raise Exception('Port {}: Out of BPF gates to allocate'.format(self.name))
+
+        def detect_mode(self):
+            mode = None
+            try:
+                peer_by_interface(self.name)
+                mode = 'dpdk'
+            except:
+                mode = 'linux'
+            return mode
+
+        def configure_flow_profiles(self, iface):
+            if iface == "access":
+                self.flow_profiles = [3]
+            if iface == "core":
+                self.flow_profiles = [6, 9]
+
+        def init_fastpath(self, **kwargs):
+            # Initialize PMDPort and RX/TX modules
+            name = self.name
+            fast = PMDPort(name="{}Fast".format(name), **kwargs)
+            self.fpi = Merge(name="{}PortMerge".format(name))
+            self.fpo = WorkerSplit(name="{}QSplit".format(name))
+            print("befor")
+            for qid in range(self.num_q):
+                fpi = QueueInc(name="{}Q{}FastPI".format(name, qid), port=fast.name, qid=qid)
+                fpi.connect(next_mod=self.fpi)
+                # Attach fastpath to worker's root TC
+                fpi.attach_task(wid=qid)
+
+                fpo = QueueOut(name="{}Q{}FastPO".format(name, qid), port=fast.name, qid=qid)
+                self.fpo.connect(next_mod=fpo, ogate=qid)
+
+            print("before init # Initialize BPF to classify incoming traffic to go to kernel and/or pipeline")
+            # Initialize BPF to classify incoming traffic to go to kernel and/or pipeline
+            self.bpf = BPF(name="{}FastBPF".format(name))
+            self.bpf.clear()
+            print("before # Initialize route module")
+            # Initialize route module
+            self.rtr = IPLookup(name="{}Routes".format(name))
+            
+            print("before # # Default route goes to Sink")
+            # Default route goes to Sink
+            self.rtr.add(prefix='0.0.0.0', prefix_len=0, gate=MAX_GATES-1)
+            s = Sink(name="{}bad_route".format(name))
+            self.rtr.connect(next_mod=s, ogate=MAX_GATES-1)
+
+        def init_port(self, idx, conf_mode, pci_address=None):
+
+            name = self.name
+            num_q = len(self.workers)
+            self.num_q = num_q
+            print('Setting up port {} on worker ids {}'.format(name, self.workers))
+
+            # Detect the mode of this interface - DPDK/AF_XDP/AF_PACKET
+            if conf_mode is None:
+                conf_mode = self.detect_mode()
+
+            if conf_mode not in ['af_xdp', 'linux', 'dpdk', 'af_packet', 'sim']:
+                raise Exception('Invalid mode: {} selected.'.format(conf_mode))
+
+            if conf_mode in ['af_xdp', 'linux']:
+                try:
+                    # Initialize kernel fastpath.
+                    # AF_XDP requires that num_rx_qs == num_tx_qs
+                    kwargs = {"vdev" : "net_af_xdp{},iface={},start_queue=0,queue_count={}"
+                            .format(idx, name, num_q), "num_out_q": num_q, "num_inc_q": num_q}
+                    self.init_fastpath(**kwargs)
+                except:
+                    if conf_mode == 'linux':
+                        print('Failed to create AF_XDP socket for {}. Retrying with AF_PACKET socket...'.format(name))
+                        conf_mode = 'af_packet'
+                    else:
+                        print('Failed to create AF_XDP socket for {}. Exiting...'.format(name))
+                        sys.exit()
+
+            if conf_mode == 'af_packet':
+                try:
+                    # Initialize kernel fastpath
+                    kwargs = {"vdev" : "net_af_packet{},iface={},qpairs={}"
+                            .format(idx, name, num_q), "num_out_q": num_q, "num_inc_q": num_q}
+                    self.init_fastpath(**kwargs)
+                except:
+                    print('Failed to create AF_PACKET socket for {}. Exiting...'.format(name))
+                    sys.exit()
+
+            if conf_mode == 'sim':
+                self.fpi = Source(name="{}_source".format(name))
+                self.fpo = Sink(name="{}_out".format(name))
+                self.bpf = BPF(name="{}FastBPF".format(name))
+                self.bpf.clear()
+
+                # Attach fastpath to worker's root TC
+                self.fpi.attach_task(wid=0)
+
+            if conf_mode == 'dpdk':
+                kwargs = None
+                pci = alias_by_interface(name)
+                print(f"To pci einai {pci}")
+                if pci is None and pci_address is not None:
+                    pci = pci_address
+                    print(f"To pci prwto if einai {pci}")
+                if pci is not None:
+                    kwargs = {"pci": pci, "num_out_q": num_q, "num_inc_q": num_q, "hwcksum": self.hwcksum, "flow_profiles": self.flow_profiles}
+                    try:
+                        print(f"Paw sthn fastpath {kwargs}")
+                        self.init_fastpath(**kwargs)
+                    except:
+                        kwargs = None
+                        print('Unable to initialize {} fastpath using alias {},\
+                            falling back to scan'.format(name, pci))
+                if kwargs is None:
+                    # Fallback to scanning ports
+                    # if port list is empty, scan for dpdk_ports first
+                    if not dpdk_ports and scan_dpdk_ports() == False:
+                        print('Registered dpdk ports do not exist.')
+                        sys.exit()
+                    # Initialize DPDK fastpath
+                    fidx = dpdk_ports.get(mac_by_interface(name))
+                    if fidx is None:
+                        raise Exception(
+                            'Registered port for {} not detected!'.format(name))
+                    kwargs = {"port_id": fidx, "num_out_q": num_q, "num_inc_q": num_q, "hwcksum": self.hwcksum, "flow_profiles": self.flow_profiles}
+                    self.init_fastpath(**kwargs)
+
+                # Finall set conf mode
+                self.mode = conf_mode
+                return
+            
+                # Initialize kernel slowpath port and RX/TX modules
+                try:
+                    peer = peer_by_interface(name)
+                    vdev = "net_af_packet{},iface={}".format(idx, peer)
+                    slow = PMDPort(name="{}Slow".format(name), vdev=vdev)
+                    spi = PortInc(name="{}SlowPI".format(name), port=slow.name)
+                    spo = PortOut(name="{}SlowPO".format(name), port=slow.name)
+                    qspo = Queue(name="{}QSlowPO".format(name))
+
+
+                    # host_ip_filter: tcpdump -i foo 'dst host 198.19.0.1 or 198.18.0.1' -d
+                    # Should always be set to lowest priority
+                    HostGate = MAX_GATES - 1
+                    ips = ips_by_interface(name)
+                    host_ip_filter = {"priority": -HostGate, "filter": "dst host "
+                                    + " or ".join(str(x) for x in ips), "gate": HostGate}
+
+                    self.bpf.add(filters=[host_ip_filter])
+                    # Direct control traffic from DPDK to kernel
+                    self.bpf.connect(next_mod=qspo, ogate=HostGate)
+                    qspo.connect(next_mod=spo)
+
+                    # Direct control traffic from kernel to DPDK
+                    spi.connect(next_mod=self.fpo)
+
+                    tc = 'slow{}'.format(0)
+                    try:
+                        bess.add_tc(tc, policy='round_robin', wid=0)
+                    except Exception as e:
+                        if e.errmsg == "Name '{}' already exists".format(tc):
+                            pass
+                        else:
+                            raise e
+                    # Limit scheduling slow path RX/TX to 1000 times/second each
+                    for mod in spi, qspo:
+                        bess.add_tc(mod.name,
+                                parent=tc,
+                                policy='rate_limit',
+                                resource='count',
+                                limit={'count': 1000})
+                        mod.attach_task(mod.name)
+                except Exception as e:
+                    print('Mirror veth interface: {} misconfigured: {}'.format(name, e))
+
+            # Finall set conf mode
+            self.mode = conf_mode
+
+        def setup_port(self, conf_frag_mtu, conf_defrag_flows, conf_measure, type_of_packets = "", **seq_kwargs):
+            out = self.fpo
+            inc = self.fpi
+            gate = 0
+
+            # enable frag module (if enabled) to control port MTU size
+            if conf_frag_mtu is not None:
+                frag = IPFrag(name="{}IP4Frag".format(self.name), mtu=conf_frag_mtu)
+                s = Sink(name="{}IP4FragFail".format(self.name))
+                frag.connect(next_mod=s)
+                frag.connect(next_mod=out, ogate=1)
+                out = frag
+
+            # create rewrite module if mode == 'sim'
+            if self.mode == 'sim':
+                rewrite = Rewrite(name="{}_rewrite".format(self.name), templates=type_of_packets)
+                update = SequentialUpdate(name="{}_update".format(self.name), **seq_kwargs)
+                udpcsum = L4Checksum()
+                ipcsum = IPChecksum()
+
+                self.fpi.connect(next_mod=rewrite)
+                rewrite.connect(next_mod=update)
+                update.connect(next_mod=udpcsum)
+                udpcsum.connect(next_mod=ipcsum)
+
+                inc = ipcsum
+
+            # enable telemetrics (if enabled) (how many bytes seen in and out of port)
+            if conf_measure:
+                t = Timestamp(name="{}_timestamp".format(self.name))
+                inc.connect(next_mod=t)
+
+                m = Measure(name="{}_measure".format(self.name), latency_ns_resolution=1, latency_ns_max=100000)
+                m.connect(next_mod=out)
+
+                out = m
+                inc = t
+
+            if conf_defrag_flows is not None:
+                defrag = IPDefrag(name="{}IP4Defrag".format(self.name), num_flows=conf_defrag_flows, numa=-1)
+                s = Sink(name="{}DefragFail".format(self.name))
+                defrag.connect(next_mod=s)
+                inc.connect(next_mod=defrag)
+                inc = defrag
+                gate = 1
+
+            # Connect inc to bpf
+            inc.connect(next_mod=self.bpf, ogate=gate)
+
+            # Attach nat module (if enabled)
+            if self.ext_addrs is not None:
+                # Tokenize the string
+                addrs = self.ext_addrs.split(' or ')
+                # Make a list of ext_addr
+                nat_list = list()
+                for addr in addrs:
+                    nat_dict = dict()
+                    nat_dict['ext_addr'] = addr
+                    nat_list.append(nat_dict)
+
+                # Create the NAT module
+                self.nat = NAT(name="{}NAT".format(self.name), ext_addrs=nat_list)
+                self.nat.connect(next_mod=out, ogate=1)
+                out = self.nat
+
+            # Set src mac address on Ethernet header for egress pkts
+            update = Update(name="{}SrcEther".format(self.name), fields=[
+                {'offset': 6, 'size': 6, 'value': mac2hex(mac_by_interface(self.name))}
+                ])
+
+            # Attach Update module to the 'outlist' of modules
+            update.connect(out)
+
+            # Direct fast path traffic to Merge module
+            merge = Merge(name="{}Merge".format(self.name))
+
+            # Attach it to merge
+            merge.connect(update)
+
+            if self.mode == 'sim':
+                self.rtr = merge
+
+
+  up4_premium.bess: |
+    # vim: syntax=py
+    # -*- mode: python -*-
+    # SPDX-License-Identifier: Apache-2.0
+    # Copyright(c) 2019 Intel Corporation
+
+    from conf.parser import *
+    import conf.ports as port
+    import conf.sim as sim
+
+    port.setup_globals()
+
+
+    # ====================================================
+    #	Read json config file (START HERE)
+    # ====================================================
+
+    Access = 1
+    Core = 2
+    noGTPUDecap = 0
+    GTPUDecap = 1
+    noGTPUEncap = 0
+    GTPUEncap = 1
+    farForwardDAction = 0
+    farForwardUAction = 1
+    farDropAction = 2
+    farBufferAction = 3
+    farNotifyCPAction = 4
+    pdrFailGate = 2
+    farFailGate = 2
+    qerGreenGate = 1
+    qerYellowGate = 2
+    qerRedGate = 3
+    qerFailGate = 4
+    qerStatusDropGate = 5
+    qerUnmeteredGate = 6
+    interfaces = ["access", "core"]
+    parser = Parser('conf/upf_premium.json')
+    parser.parse(interfaces)
+
+    # Catch core & access MAC/IPv4 addresses
+    macstr_d = None
+    macstr_u = None
+    access_ip = ips_by_interface(parser.access_ifname)
+    core_ip = ips_by_interface(parser.core_ifname)
+    if parser.mode == 'sim':
+        macstr_d = '00:00:00:00:00:02'
+        macstr_u = '00:00:00:00:00:01'
+        n36_pkts = [sim.gen_gtpu_packet(parser.sim_pkt_size, macstr_d, macstr_u,
+                                        parser.sim_start_enb_ip, access_ip[0],
+                                        parser.sim_start_ue_ip, parser.sim_n6_app_ip,
+                                        parser.sim_start_n3_teid)]
+
+        n39_pkts = [sim.gen_gtpu_packet(parser.sim_pkt_size, macstr_d, macstr_u,
+                                        parser.sim_start_enb_ip, access_ip[0],
+                                        parser.sim_start_ue_ip, parser.sim_n9_app_ip,
+                                        parser.sim_start_n3_teid)]
+
+        n63_pkts = [sim.gen_inet_packet(parser.sim_pkt_size, macstr_u, macstr_d,
+                                        parser.sim_n6_app_ip, parser.sim_start_ue_ip)]
+
+        n93_pkts = [sim.gen_gtpu_packet(parser.sim_pkt_size, macstr_d, macstr_u,
+                                        parser.sim_start_aupf_ip, core_ip[0],
+                                        parser.sim_n9_app_ip, parser.sim_start_ue_ip,
+                                        parser.sim_start_n9_teid)]
+        if parser.enable_ntf:
+            # Every 30th packet will be a STUN packet.  With 5000 flows, this
+            # results in about 1000 flows with network tokens, and every 3rd packet
+            # is a STUN packet with a token.  This is not a good representation of
+            # a real world test, but it is enough to verify that NTF can match
+            # tokens and pass traffic through with mode="sim".
+            n36_pkts = n36_pkts * 29
+            n36_pkts.append(
+            sim.gen_ue_ntf_packet(parser.sim_pkt_size, macstr_d, macstr_u,
+                                    parser.sim_start_enb_ip, access_ip[0],
+                                    parser.sim_start_ue_ip, parser.sim_n6_app_ip,
+                                    parser.sim_start_n3_teid))
+
+        n3_seq = sim.gen_gtpu_sequpdate_args(parser.sim_total_flows, parser.sim_start_ue_ip, 62, parser.sim_start_n3_teid)
+        n6_seq = sim.gen_inet_sequpdate_args(parser.sim_total_flows, parser.sim_start_ue_ip)
+        n9_seq = sim.gen_gtpu_sequpdate_args(parser.sim_total_flows, parser.sim_start_ue_ip, 66, parser.sim_start_n9_teid)
+
+        if parser.sim_core == "n6":
+            packet_generator = {'access': n36_pkts, 'core': n63_pkts}
+            seq_kwargs = {'access': n3_seq, 'core': n6_seq}
+        else:
+            packet_generator = {'access': n39_pkts, 'core': n93_pkts}
+            seq_kwargs = {'access': n3_seq, 'core': n9_seq}
+
+    else:
+        macstr_d = mac_by_interface(parser.core_ifname)
+        macstr_u = mac_by_interface(parser.access_ifname)
+
+
+    # ====================================================
+    #       Core Setup
+    # ====================================================
+
+
+    # Initialize workers
+    cores = get_process_affinity()
+    workers = cores[:parser.workers]
+    if len(cores) > parser.workers:
+        nonworkers = cores[parser.workers:]
+    else:
+        nonworkers = cores
+
+    # set_process_affinity_all(nonworkers)
+    for wid in range(parser.workers):
+        bess.add_worker(wid=wid, core=int(workers[wid % len(workers)]))
+
+
+    # ====================================================
+    #       Port Setup
+    # ====================================================
+
+    ports = {}
+
+    for idx, iface in enumerate(interfaces):
+        # check if source natting for a given port is required
+        try:
+            ext_addrs = parser.interfaces[iface]["ip_masquerade"]
+        except KeyError:
+            ext_addrs = None
+        except TypeError:
+            ext_addrs = None
+
+        p = port.Port(parser.interfaces[iface]["ifname"], parser.hwcksum, ext_addrs)
+        if p.name in ports:
+            continue
+
+        if parser.ddp:
+            p.configure_flow_profiles(iface)
+
+        # initialize port with the configured driver
+        p.workers = [i for i in range(len(workers))]
+        p.init_port(idx, parser.mode, parser.interfaces[iface]["pci"])
+
+        # setup port module with auxiliary modules
+        if parser.mode == 'sim':
+            p.setup_port(parser.ip_frag_with_eth_mtu, parser.max_ip_defrag_flows, parser.measure, packet_generator[iface], **seq_kwargs[iface])
+        else:
+            p.setup_port(parser.ip_frag_with_eth_mtu, parser.max_ip_defrag_flows, parser.measure)
+
+        # Finally add entry to ports list
+        ports[p.name] = p
+
+
+    # ====================================================
+    #       Network Token Functions Setup
+    # ====================================================
+
+    ntf = None
+    if parser.enable_ntf:
+        try:
+            ntf = NTF()
+            # TODO: Populate these tables by talking to the NTE
+            ntf.table_create(dpid=1, max_entries=5)
+            ntf.entry_create(dpid=1, entry_id=1, dscp=1, token={
+            'app_id': 0xB00F,
+            'encryption_key': '{"alg":"A128CBC-HS256","k":"Qr_XwDGctna3SlR88rEJYt6Zm100SASYeJWSJihDnsA","key_ops":["encrypt","decrypt"],"kty":"oct"}'
+            })
+        except NameError:
+            pass
+
+    # ====================================================
+    # 	Shared Pipeline (DL + UL)
+    # ====================================================
+
+    ######################################################
+    # The following atrributes are created by GtpuParser:
+    #   - dst_ip
+    #   - src_ip
+    #   - dst_port
+    #   - src_port
+    #   - teid (fseid)
+    #   - tunnel_ip4_dst
+    #   - proto_id
+
+    linkMerge::Merge() \
+        -> pktParse::GtpuParser():1 \
+        -> pdrLookup::WildcardMatch(fields=[{'attr_name':'src_iface', 'num_bytes':1}, \
+                                            {'attr_name':'tunnel_ipv4_dst', 'num_bytes':4}, \
+                                            {'attr_name':'teid', 'num_bytes':4}, \
+                                            {'attr_name':'src_ip', 'num_bytes':4}, \
+                                            {'attr_name':'dst_ip', 'num_bytes':4}, \
+                                            {'attr_name':'src_port', 'num_bytes':2}, \
+                                            {'attr_name':'dst_port', 'num_bytes':2}, \
+                                            {'attr_name':'ip_proto', 'num_bytes':1}], \
+                                    values=[{'attr_name':'pdr_id', 'num_bytes':4}, \
+                                            {'attr_name':'fseid', 'num_bytes':8}, \
+                                            {'attr_name':'ctr_id', 'num_bytes':4}, \
+                                            {'attr_name':'qer_id', 'num_bytes':4}, \
+                                            {'attr_name':'far_id', 'num_bytes':4}]):noGTPUDecap \
+        -> preQoSCounter::Counter(name_id='ctr_id', check_exist=True, total=parser.max_sessions)
+
+    # Insert NTF module, if enabled
+    _in = preQoSCounter
+    if ntf:
+      _in -> ntf
+      _in = ntf
+
+    _in -> qerLookup::Qos(fields=[ {'attr_name':'src_iface', 'num_bytes':1}, \
+                                {'attr_name':'qer_id', 'num_bytes':4}, \
+                                {'attr_name':'fseid', 'num_bytes':8}], \
+                                values=[{'attr_name':'qfi', 'num_bytes':1}])
+
+    farLookup::ExactMatch(fields=[{'attr_name':'far_id', 'num_bytes':4}, \
+                                        {'attr_name':'fseid', 'num_bytes':8}], \
+                                values=[{'attr_name':'action', 'num_bytes':1}, \
+                                        {'attr_name':'tunnel_out_type', 'num_bytes':1}, \
+                                        {'attr_name':'tunnel_out_src_ip4addr', 'num_bytes':4}, \
+                                        {'attr_name':'tunnel_out_dst_ip4addr', 'num_bytes':4}, \
+                                        {'attr_name':'tunnel_out_teid', 'num_bytes':4}, \
+                                        {'attr_name':'tunnel_out_udp_port', 'num_bytes':2}]):noGTPUEncap \
+        -> farMerge::Merge() \
+        -> executeFAR::Split(size=1, attribute='action')
+
+    # Add logical pipeline when gtpudecap is needed
+    pdrLookup:GTPUDecap \
+        -> gtpuDecap::GtpuDecap() \
+        -> preQoSCounter
+
+    # Add logical pipeline when gtpuencap is needed
+    farLookup:GTPUEncap \
+        -> gtpuEncap::GtpuEncap(add_psc=parser.gtppsc):1 \
+        -> outerUDPCsum::L4Checksum() \
+        -> outerIPCsum::IPChecksum() \
+        -> farMerge
+
+    notify = UnixSocketPort(name='notifyCP', path=parser.notify_sockaddr)
+    pfcpPort = UnixSocketPort(name='pfcpPort', path=parser.endmarker_sockaddr)
+    pfcpPI::PortInc(port='pfcpPort') -> pfcpPI_timestamp::Timestamp() -> ports[parser.access_ifname].rtr
+    executeFAR:farNotifyCPAction -> pfcpDetails::GenericEncap(fields=[ {'size': 8, 'attribute': 'fseid'}]) \
+                                -> farNotifyCP::PortOut(port='notifyCP')
+    # Drop unknown packets
+    pktParse:0 -> badPkts::Sink()
+    qerLookup:qerGreenGate -> farLookup
+    qerLookup:qerYellowGate -> farLookup
+    #qerLookup:qerRedGate -> qerMeterRed::Sink()
+    qerLookup:qerRedGate -> farLookup
+    qerLookup:qerStatusDropGate -> qerStatusDrop::Sink()
+    qerLookup:qerUnmeteredGate -> farLookup
+    pdrLookup:pdrFailGate -> pdrLookupFail::Sink()
+    farLookup:farFailGate -> farLookupFail::Sink()
+    qerLookup:qerFailGate -> qerLookupFail::Sink()
+    executeFAR:farDropAction -> farDrop::Sink()
+    executeFAR:farBufferAction -> farBuffer::Sink()
+    gtpuEncap:0 -> gtpuEncapFail::Sink()
+
+    # Set default gates for relevant modules
+    pdrLookup.set_default_gate(gate=pdrFailGate)
+    farLookup.set_default_gate(gate=farFailGate)
+    qerLookup.set_default_gate(gate=qerFailGate)
+
+
+    # ====================================================
+    #       Downlink Pipeline
+    # ====================================================
+
+    # Pick fast-path gate for DL pipeline
+    coreFastBPF = ports[parser.core_ifname].bpf
+    UEGate = 0
+    if ports[parser.core_ifname].ext_addrs is not None:
+        UEGate = ports[parser.core_ifname].bpf_gate()
+        ports[parser.core_ifname].bpf -> Sink()
+
+
+    # 1. Build initial DL pipeline here
+    coreFastBPF:UEGate \
+        -> coreRxIPCksum::IPChecksum(verify=True, hw=parser.hwcksum) \
+        -> coreRxUDPCksum::L4Checksum(verify=True, hw=parser.hwcksum)
+
+    # Record last module to chain up optional modules
+    _in = coreRxUDPCksum
+    gate = 0
+
+    # Append nat module (if enabled)
+    if ports[parser.core_ifname].nat is not None:
+        _in:gate -> 1:ports[parser.core_ifname].nat
+        _in = ports[parser.core_ifname].nat
+        gate = 0
+
+    # 2. Build the remaining first half of the DL pipeline before entering the shared pipeline
+    #ports[parser.core_ifname].rewrite \
+    _in:gate \
+        -> SetMetadata(attrs=[{'name':'src_iface', 'size':1, 'value_int':Core}]) \
+        -> linkMerge # Start of the shared pipeline
+
+
+    # 3. Complete the last part of the DL pipeline
+    executeFAR:farForwardDAction \
+        -> postDLQoSCounter::Counter(name_id='ctr_id', check_exist=True, total=parser.max_sessions) \
+        -> ports[parser.access_ifname].rtr
+
+    # Drop unknown packets
+    coreRxIPCksum:1 -> coreRxIPCksumFail::Sink()
+    coreRxUDPCksum:1 -> coreRxUDPCksumFail::Sink()
+
+    # Add Core filter rules, i.e.:
+    # setting filter to detect ue_filter traffic
+    # the filter can either be based on the NAT IP addr(s),
+    # or ue IP addr subnet
+    if ports[parser.core_ifname].nat is not None:
+        ue_filter = {"priority": -UEGate,
+                    "filter": "ip dst {}".format(ports[parser.core_ifname].ext_addrs), "gate": UEGate}
+        coreFastBPF.add(filters=[ue_filter])
+
+    # Add Core filter rules, i.e.:
+    # setting filter to detect gtpu traffic
+    # and dst host x.x.x.x                         # check S/PGWU IP
+    # and udp dst port 2152                         # check GTPU port
+    check_ip = "ip"
+    check_spgwu_ip = " and dst host " + \
+        " or ".join(str(x) for x in core_ip)
+    check_gtpu_port = " and udp dst port 2152"
+    GTPUGate = 0 #ports[parser.core_ifname].bpf_gate()
+    downlink_filter = {"priority": -GTPUGate, "filter": check_ip +
+                check_spgwu_ip + check_gtpu_port, "gate": GTPUGate}
+    coreFastBPF.add(filters=[downlink_filter])
+
+
+    # ====================================================
+    #       Uplink Pipeline
+    # ====================================================
+
+
+    # Pick fast-path and echo gates for UL pipeline
+    accessFastBPF = ports[parser.access_ifname].bpf
+    GTPUEchoGate = ports[parser.access_ifname].bpf_gate()
+    GTPUGate = 0
+
+
+    # 1. Build initial UL pipeline here
+    accessFastBPF:GTPUGate \
+        -> accessRxIPCksum::IPChecksum(verify=True, hw=parser.hwcksum) \
+        -> accessRxUDPCksum::L4Checksum(verify=True, hw=parser.hwcksum)
+
+    # Record last module to chain up option modules
+    _in = accessRxUDPCksum
+    gate = 0
+
+    # 2. Build the remaining first half of the UL pipeline before entering the shard pipeline
+    #ports[parser.access_ifname].rewrite \
+    _in:gate \
+        -> SetMetadata(attrs=[{'name':'src_iface', 'size':1, 'value_int':Access}]) \
+        -> linkMerge # Start of the shared pipeline
+
+    # 3. Complete the last part of the UL pipeline
+    executeFAR:farForwardUAction \
+        -> postULQoSCounter::Counter(name_id='ctr_id', check_exist=True, total=parser.max_sessions) \
+        -> ports[parser.core_ifname].rtr
+
+    # 4. GTP Echo response pipeline
+    accessFastBPF:GTPUEchoGate \
+        -> gtpuEcho::GtpuEcho(s1u_sgw_ip=ip2long(access_ip[0])):1 \
+        -> ethSwap::MACSwap() \
+        -> echoOuterUDPCsum::L4Checksum() \
+        -> echoOuterIPCsum::IPChecksum() \
+        -> ports[parser.access_ifname].rtr
+
+    # Drop unknown packets
+    gtpuEcho:0 -> badGtpuEchoPkt::Sink()
+    accessRxIPCksum:1 -> accessRxIPCksumFail::Sink()
+    accessRxUDPCksum:1 -> accessRxUDPCksumFail::Sink()
+
+    # Add Access filter rules, i.e.:
+    # setting filter to detect gtpu traffic
+    # and dst host 11.1.1.1                         # check S/PGWU IP
+    # and udp dst port 2152                         # check GTPU port
+    check_ip = "ip"
+    check_spgwu_ip = " and dst host " + \
+        " or ".join(str(x) for x in access_ip)
+    check_gtpu_port = " and udp dst port 2152"
+    check_gtpu_msg_echo = " and udp[9] = 0x1"
+
+    # Echo filter
+    uplink_echo_filter = {"priority": -GTPUEchoGate, "filter": check_ip +
+                        check_spgwu_ip + check_gtpu_port +
+                        check_gtpu_msg_echo, "gate": GTPUEchoGate}
+    accessFastBPF.add(filters=[uplink_echo_filter])
+
+    # PDU rule
+    uplink_filter = {"priority": -GTPUGate, "filter": check_ip +
+                check_spgwu_ip + check_gtpu_port, "gate": GTPUGate}
+    accessFastBPF.add(filters=[uplink_filter])
+
+
+    # ====================================================
+    #       Route Control
+    # ====================================================
+    # Finally send SIGHUP to route_control daemon on reload
+    # TODO: behavior is unspecified if route_control.py pid is not found
+    route_control_pid = getpythonpid('route_control.py')
+    if route_control_pid:
+        os.kill(route_control_pid, signal.SIGHUP)
+
+  upf.json: |
+    {
+        "": "Vdev or sim support. Enable `\"mode\": \"af_xdp\"` to enable AF_XDP mode, or `\"mode\": \"af_packet\"` to enable AF_PACKET mode, or `\"mode\": \"sim\"` to generate synthetic traffic from BESS's Source module",
+        "": "mode: af_xdp",
+        "": "mode: af_packet",
+        "": "mode: sim",
+        "mode": "dpdk",
+
+        "": "max UE sessions",
+        "max_sessions": 50000,
+
+        "": "Set the log level to one of \"panic\", \"fatal\", \"error\", \"warning\", \"info\", \"debug\", \"trace\"",
+        "log_level": "trace",
+
+        "": "Use the sim block to enable simulation using either Source module or via il_trafficgen",
+        "sim": {
+            "": "At this point we can simulate either N3/N6 or N3/N9 traffic, so choose n6 or n9 below",
+            "core": "n6",
+            "start_ue_ip": "16.0.0.1",
+            "start_enb_ip": "11.1.1.129",
+            "start_aupf_ip": "13.1.1.199",
+            "n6_app_ip": "6.6.6.6",
+            "n9_app_ip": "9.9.9.9",
+            "start_n3_teid": "0x30000000",
+            "start_n9_teid": "0x90000000",
+            "pkt_size": 128,
+            "total_flows": 100
+        },
+
+        "": "max IP frag table entries (for IPv4 reassembly). Update the line below to `\"max_ip_defrag_flows\": 1000` to enable",
+        "": "max_ip_defrag_flows: 1000",
+
+        "": "Update the line below to `\"ip_frag_with_eth_mtu\": 1518` to enable",
+        "": "ip_frag_with_eth_mtu: 1518",
+
+        "": "Enable hardware offload of checksum. Might disable vector PMD",
+        "hwcksum": false,
+
+        "": "Enable PDU Session Container extension",
+        "gtppsc": false,
+
+        "": "Enable Intel Dynamic Device Personalization (DDP)",
+        "ddp": false,
+
+        "": "Telemetrics-See this link for details: https://github.com/NetSys/bess/blob/master/bessctl/module_tests/timestamp.py",
+        "measure": true,
+
+        "": "Gateway interfaces",
+        "access": {
+            "ifname": "net0",
+        "pci": "$PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET1"
+        },
+
+        "": "UE IP Natting. Update the line below to `\"ip_masquerade\": \"<ip> [or <ip>]\"` to enable",
+        "core": {
+            "ifname": "net1",
+        "pci": "$PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET2",
+            "": "ip_masquerade: 18.0.0.1 or 18.0.0.2 or 18.0.0.3"
+        },
+
+        "": "Number of worker threads. Default: 1",
+        "workers": 5,
+
+        "": "Whether to enable Network Token Functions",
+        "enable_ntf": false,
+
+        "": "Whether to enable End Marker Support",
+        "": "enable_end_marker: false",
+
+        "": "Whether to enable Notify BESS feature",
+        "": "enable_notify_bess: false",
+
+        "": "Whether to enable P4Runtime feature",
+        "enable_p4rt": false,
+        "" : "conn_timeout: 1000",
+        "" : "read_timeout: 25",
+        "" : "notify_sockaddr: /tmp/notifycp",
+        "" : "endmarker_sockaddr: /tmp/pfcpport",
+
+        "qci_qos_config": [
+            {
+                "qci": 9,
+                "cbs": 2048,
+                "ebs": 2048,
+                "pbs": 2048,
+                "priority": 6
+            },
+            {
+                "qci": 8,
+                "cbs": 2048,
+                "ebs": 2048,
+                "pbs": 2048,
+                "priority": 5
+            }
+        ],
+        "": "Control plane controller settings",
+        "cpiface": {
+            "enable_ue_ip_alloc": false,
+            "ue_ip_pool": "10.250.0.0/16",
+            "" : "nb_dst_ip: CPHostname",
+            "" : "hostname: upf",
+            "prom_port": "8080",
+            "" : "dnn:internet"
+        },
+
+        "": "p4rtc interface settings",
+        "p4rtciface": {
+        "access_ip": "172.17.0.1/32",
+        "p4rtc_server": "onos",
+        "p4rtc_port": "51001",
+        "ue_ip_pool": "10.250.0.0/24"
+        }
+    }
+
+
+  
+  route_control_premium.py: |
+    #!/usr/bin/env python
+    # SPDX-License-Identifier: Apache-2.0
+    # Copyright(c) 2019 Intel Corporation
+
+    import argparse
+    import signal
+    import sys
+    import time
+
+    # for retrieving neighbor info
+    from pyroute2 import IPDB, IPRoute
+
+    from scapy.all import *
+
+    try:
+        from pybess.bess import *
+    except ImportError:
+        print('Cannot import the API module (pybess)')
+        raise
+
+    MAX_RETRIES = 5
+    SLEEP_S = 2
+
+
+    class NeighborEntry:
+        def __init__(self):
+            self.neighbor_ip = None
+            self.iface = None
+            self.iprange = None
+            self.prefix_len = None
+            self.route_count = 0
+            self.gate_idx = 0
+            self.macstr = None
+
+        def __str__(self):
+            return ('{neigh: %s, iface: %s, ip-range: %s/%s}' %
+                    (self.neighbor_ip, self.iface, self.iprange, self.prefix_len))
+
+
+    def mac2hex(mac):
+        return int(mac.replace(':', ''), 16)
+
+
+    def send_ping(neighbor_ip):
+        send(IP(dst=neighbor_ip) / ICMP())
+
+
+    def send_arp(neighbor_ip, src_mac, iface):
+        pkt = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=neighbor_ip, hwsrc=src_mac)
+        pkt.show()
+        hexdump(pkt)
+        sendp(pkt, iface=iface)
+
+
+    def fetch_mac(dip):
+        ip = ''
+        _mac = ''
+        neighbors = ipr.get_neighbours(dst=dip)
+        for i in range(len(neighbors)):
+            for att in neighbors[i]['attrs']:
+                if 'NDA_DST' in att and dip == att[1]:
+                    # ('NDA_DST', dip)
+                    ip = att[1]
+                if 'NDA_LLADDR' in att:
+                    # ('NDA_LLADDR', _mac)
+                    _mac = att[1]
+                    return _mac
+
+
+    def link_modules(server, module, next_module, ogate=0, igate=0):
+        print('Linking {} module'.format(next_module))
+
+        # Pause bess first
+        bess.pause_all()
+        # Connect module to next_module
+        for _ in range(MAX_RETRIES):
+            try:
+                server.connect_modules(module, next_module, ogate, igate)
+            except BESS.Error as e:
+                bess.resume_all()
+                if e.code == errno.EBUSY:
+                    break
+                else:
+                    return  #raise
+            except Exception as e:
+                print(
+                    'Error connecting module {}:{}->{}:{}: {}. Retrying in {} secs...'
+                    .format(module, ogate, igate, next_module, e, SLEEP_S))
+                time.sleep(SLEEP_S)
+            else:
+                bess.resume_all()
+                break
+        else:
+            bess.resume_all()
+            print('BESS module connection ({}:{}->{}:{}) failure.'.format(
+                module, ogate, igate, next_module))
+            return
+            #raise Exception('BESS module connection ({}:{}->{}:{}) failure.'.
+            #                format(module, ogate, igate, next_module))
+
+
+    def link_route_module(server, gateway_mac, item):
+        iprange = item.iprange
+        prefix_len = item.prefix_len
+        route_module = item.iface + 'Routes'
+        last_module = item.iface + 'Merge'
+        gateway_mac_str = '{:X}'.format(gateway_mac)
+        print('Adding route entry {}/{} for {}'.format(iprange, prefix_len,
+                                                    route_module))
+
+        print('Trying to retrieve neighbor entry {} from neighbor cache'.format(
+            item.neighbor_ip))
+        neighbor_exists = neighborcache.get(item.neighbor_ip)
+
+        # How many gates does this module have?
+        # If entry does not exist, then initialize it
+        if not modgatecnt.get(route_module):
+            modgatecnt[route_module] = 0
+
+        # Compute likely index
+        if neighbor_exists:
+            # No need to create a new Update module
+            gate_idx = neighbor_exists.gate_idx
+        else:
+            # Need to create a new Update module,
+            # so get gate_idx from gate count
+            gate_idx = modgatecnt[route_module]
+
+        # Pause bess first
+        bess.pause_all()
+        # Pass routing entry to bessd's route module
+        for _ in range(MAX_RETRIES):
+            try:
+                server.run_module_command(route_module, 'add',
+                                        'IPLookupCommandAddArg', {
+                                            'prefix': iprange,
+                                            'prefix_len': int(prefix_len),
+                                            'gate': gate_idx
+                                        })
+            except:
+                print('Error adding route entry {}/{} in {}. Retrying in {}sec...'.
+                    format(iprange, prefix_len, route_module, SLEEP_S))
+                time.sleep(SLEEP_S)
+            else:
+                bess.resume_all()
+                break
+        else:
+            bess.resume_all()
+            print('BESS route entry ({}/{}) insertion failure in module {}'.format(
+                iprange, prefix_len, route_module))
+            return
+            #raise Exception('BESS route entry ({}/{}) insertion failure in module {}'.
+            #                format(iprange, prefix_len, route_module))
+
+        if not neighbor_exists:
+            print('Neighbor does not exist')
+            # Create Update module
+            update_module = route_module + 'DstMAC' + gateway_mac_str
+
+            # Pause bess first
+            bess.pause_all()
+            for _ in range(MAX_RETRIES):
+                try:
+                    server.create_module('Update', update_module, {
+                        'fields': [{
+                            'offset': 0,
+                            'size': 6,
+                            'value': gateway_mac
+                        }]
+                    })
+                except BESS.Error as e:
+                    bess.resume_all()
+                    if e.code == errno.EEXIST:
+                        break
+                    else:
+                        return  #raise
+                except Exception as e:
+                    print(
+                        'Error creating update module {}: {}. Retrying in {} secs...'
+                        .format(update_module, e, SLEEP_S))
+                    time.sleep(SLEEP_S)
+                else:
+                    bess.resume_all()
+                    break
+            else:
+                bess.resume_all()
+                print('BESS module {} creation failure.'.format(update_module))
+                return  #raise Exception('BESS module {} creation failure.'.
+                #        format(update_module))
+
+            print('Update module created')
+
+            # Connect Update module to route module
+            link_modules(server, route_module, update_module, gate_idx, 0)
+
+            # Connect Update module to dpdk_out module
+            link_modules(server, update_module, last_module, 0, 0)
+
+            # Add a new neighbor in neighbor cache
+            neighborcache[item.neighbor_ip] = item
+
+            # Add a record of the affliated gate id
+            item.gate_idx = gate_idx
+
+            # Set the mac str
+            item.macstr = gateway_mac_str
+
+            # Increment global gate count number
+            modgatecnt[route_module] += 1
+
+            neighbor_exists = item
+
+        else:
+            print('Neighbor already exists')
+
+        # Finally increment route count
+        neighborcache[item.neighbor_ip].route_count += 1
+
+
+    def del_route_entry(server, item):
+        iprange = item.iprange
+        prefix_len = item.prefix_len
+        route_module = item.iface + 'Routes'
+        last_module = item.iface + 'Merge'
+
+        neighbor_exists = neighborcache.get(item.neighbor_ip)
+        if neighbor_exists:
+            # Pause bess first
+            bess.pause_all()
+            # Delete routing entry from bessd's route module
+            for i in range(MAX_RETRIES):
+                try:
+                    server.run_module_command(route_module, 'delete',
+                                            'IPLookupCommandDeleteArg', {
+                                                'prefix': iprange,
+                                                'prefix_len': int(prefix_len)
+                                            })
+                except:
+                    print(
+                        'Error while deleting route entry for {}. Retrying in {} sec...'
+                        .format(route_module, SLEEP_S))
+                    time.sleep(SLEEP_S)
+                else:
+                    bess.resume_all()
+                    break
+            else:
+                bess.resume_all()
+                print('Route entry deletion failure.')
+                return
+                #raise Exception('Route entry deletion failure.')
+
+            print('Route entry {}/{} deleted from {}'.format(
+                iprange, prefix_len, route_module))
+
+            # Decrementing route count for the registered neighbor
+            neighbor_exists.route_count -= 1
+
+            # If route count is 0, then delete the whole module
+            if neighbor_exists.route_count == 0:
+                update_module = route_module + 'DstMAC' + neighbor_exists.macstr
+                # Pause bess first
+                bess.pause_all()
+                for i in range(MAX_RETRIES):
+                    try:
+                        server.destroy_module(update_module)
+                    except:
+                        print('Error destroying module {}. Retrying in {}sec...'.
+                            format(update_module, SLEEP_S))
+                        time.sleep(SLEEP_S)
+                    else:
+                        bess.resume_all()
+                        break
+                else:
+                    bess.resume_all()
+                    print('Module {} deletion failure.'.format(update_module))
+                    return
+                    #raise Exception('Module {} deletion failure.'.
+                    #                format(update_module))
+
+                print('Module {} destroyed'.format(update_module))
+
+                # Delete entry from the neighbor cache
+                del neighborcache[item.neighbor_ip]
+                print('Deleting item from neighborcache')
+                del neighbor_exists
+            else:
+                print('Route count for {}  decremented to {}'.format(
+                    item.neighbor_ip, neighbor_exists.route_count))
+                neighborcache[item.neighbor_ip] = neighbor_exists
+        else:
+            print('Neighbor {} does not exist'.format(item.neighbor_ip))
+
+
+    def probe_addr(item, src_mac):
+        # Store entry if entry does not exist in ARP cache
+        arpcache[item.neighbor_ip] = item
+        print('Adding entry {} in arp probe table'.format(item))
+
+        # Probe ARP request by sending ping
+        send_ping(item.neighbor_ip)
+
+        # Probe ARP request
+        ##send_arp(neighbor_ip, src_mac, item.iface)
+
+
+    def parse_new_route(msg):
+        item = NeighborEntry()
+        # Fetch prefix_len
+        item.prefix_len = msg['dst_len']
+        # Default route
+        if item.prefix_len is 0:
+            item.iprange = '0.0.0.0'
+
+        for att in msg['attrs']:
+            if 'RTA_DST' in att:
+                # Fetch IP range
+                # ('RTA_DST', iprange)
+                item.iprange = att[1]
+            if 'RTA_GATEWAY' in att:
+                # Fetch gateway MAC address
+                # ('RTA_GATEWAY', neighbor_ip)
+                item.neighbor_ip = att[1]
+                _mac = fetch_mac(att[1])
+                if not _mac:
+                    gateway_mac = 0
+                else:
+                    gateway_mac = mac2hex(_mac)
+            if 'RTA_OIF' in att:
+                # Fetch interface name
+                # ('RTA_OIF', iface)
+                item.iface = ipdb.interfaces[int(att[1])].ifname
+
+        if not item.iface in args.i or not item.iprange or not item.neighbor_ip:
+            # Neighbor info is invalid
+            del item
+            return
+
+        # if mac is 0, send ARP request
+        if gateway_mac == 0:
+            print('Adding entry {} in arp probe table'.format(item.iface))
+            probe_addr(item, ipdb.interfaces[item.iface].address)
+
+        else:  # if gateway_mac is set
+            print('Linking module {}Routes with {}Merge (Dest MAC: {})'.format(
+                item.iface, item.iface, _mac))
+
+            link_route_module(bess, gateway_mac, item)
+
+
+    def parse_new_neighbor(msg):
+        for att in msg['attrs']:
+            if 'NDA_DST' in att:
+                # ('NDA_DST', neighbor_ip)
+                neighbor_ip = att[1]
+            if 'NDA_LLADDR' in att:
+                # ('NDA_LLADDR', neighbor_mac)
+                gateway_mac = att[1]
+
+        item = arpcache.get(neighbor_ip)
+        if item:
+            print('Linking module {}Routes with {}Merge (Dest MAC: {})'.format(
+                item.iface, item.iface, gateway_mac))
+
+            # Add route entry, and add item in the registered neighbor cache
+            link_route_module(bess, mac2hex(gateway_mac), item)
+
+            # Remove entry from unresolved arp cache
+            del arpcache[neighbor_ip]
+
+
+    def parse_del_route(msg):
+        item = NeighborEntry()
+        for att in msg['attrs']:
+            if 'RTA_DST' in att:
+                # Fetch IP range
+                # ('RTA_DST', iprange)
+                item.iprange = att[1]
+            if 'RTA_GATEWAY' in att:
+                # Fetch gateway MAC address
+                # ('RTA_GATEWAY', neighbor_ip)
+                item.neighbor_ip = att[1]
+            if 'RTA_OIF' in att:
+                # Fetch interface name
+                # ('RTA_OIF', iface)
+                item.iface = ipdb.interfaces[int(att[1])].ifname
+
+        if not item.iface in args.i or not item.iprange or not item.neighbor_ip:
+            # Neighbor info is invalid
+            del item
+            return
+
+        # Fetch prefix_len
+        item.prefix_len = msg['dst_len']
+
+        del_route_entry(bess, item)
+
+        # Delete item
+        del item
+
+
+    def netlink_event_listener(ipdb, netlink_message, action):
+
+        # If you get a netlink message, parse it
+        msg = netlink_message
+
+        if action == 'RTM_NEWROUTE':
+            parse_new_route(msg)
+
+        if action == 'RTM_NEWNEIGH':
+            parse_new_neighbor(msg)
+
+        if action == 'RTM_DELROUTE':
+            parse_del_route(msg)
+
+
+    def bootstrap_routes():
+        routes = ipr.get_routes()
+        for i in routes:
+            if i['event'] == 'RTM_NEWROUTE':
+                parse_new_route(i)
+
+
+    def connect_bessd():
+        print('Connecting to BESS daemon...'),
+        # Connect to BESS (assuming host=localhost, port=10514 (default))
+        for i in range(MAX_RETRIES):
+            try:
+                if not bess.is_connected():
+                    bess.connect(grpc_url=args.ip + ':' + args.port)
+            except BESS.RPCError:
+                print(
+                    'Error connecting to BESS daemon. Retrying in {}sec...'.format(
+                        SLEEP_S))
+                time.sleep(SLEEP_S)
+            else:
+                break
+        else:
+            raise Exception('BESS connection failure.')
+
+        print('Done.')
+
+
+    def reconfigure(number, frame):
+        print('Received: {} Reloading routes'.format(number))
+        # clear arpcache
+        for ip in list(arpcache):
+            item = arpcache.get(ip)
+            del item
+        arpcache.clear()
+        for ip in list(neighborcache):
+            item = neighborcache.get(ip)
+            del item
+        neighborcache.clear()
+        for modname in list(modgatecnt):
+            item = modgatecnt.get(modname)
+            del item
+        modgatecnt.clear()
+        bootstrap_routes()
+        signal.pause()
+
+
+    def cleanup(number, frame):
+        ipdb.unregister_callback(event_callback)
+        print('Received: {} Exiting'.format(number))
+        sys.exit()
+
+
+    def main():
+        global arpcache, neighborcache, modgatecnt, ipdb, event_callback, bess, ipr
+        # for holding unresolved ARP queries
+        arpcache = {}
+        # for holding list of registered neighbors
+        neighborcache = {}
+        # for holding gate count per route module
+        modgatecnt = {}
+        # for interacting with kernel
+        ipdb = IPDB()
+        ipr = IPRoute()
+        # for bess client
+        bess = BESS()
+
+        # connect to bessd
+        connect_bessd()
+
+        # program current routes
+        bootstrap_routes()
+
+        # listen for netlink events
+        print('Registering netlink event listener callback...'),
+        event_callback = ipdb.register_callback(netlink_event_listener)
+        print('Done.')
+
+        signal.signal(signal.SIGHUP, reconfigure)
+        signal.signal(signal.SIGINT, cleanup)
+        signal.signal(signal.SIGTERM, cleanup)
+        signal.pause()
+
+
+    if __name__ == '__main__':
+        parser = argparse.ArgumentParser(
+            description='Basic IPv4 Routing Controller')
+        parser.add_argument('-i',
+                            type=str,
+                            nargs='+',
+                            help='interface(s) to control')
+        parser.add_argument('--ip',
+                            type=str,
+                            default='localhost',
+                            help='BESSD address')
+        parser.add_argument('--port', type=str, default='10514', help='BESSD port')
+
+        # for holding command-line arguments
+        global args
+        args = parser.parse_args()
+
+        if args.i:
+            main()
+        # if interface list is empty, print help menu and quit
+        else:
+            print(parser.print_help())
+
