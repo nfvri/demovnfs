@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: routes-setup
+  name: pktgen-routes-setup
 data:
-  routes_setup.sh: | 
+  pktgen-routes_setup.sh: | 
     #!/usr/bin/env bash
     # SPDX-License-Identifier: Apache-2.0
     # Copyright(c) 2019 Intel Corporation
@@ -14,16 +14,6 @@ data:
 
     set -e
     set -x
-
-    apt-get update
-    apt-get install gettext-base -y
-
-    # envsubst < /conf/upf.json > /opt/bess/bessctl/conf/upf.json
-    envsubst < /conf/upf.json > /pre-install/upf.json
-    
-    cp /pre-install/upf.json /opt/bess/bessctl/conf/upf.json
-    cp /conf/up4_premium.bess /opt/bess/bessctl/conf/up4_premium.bess
-    cp /conf/ports.py /opt/bess/bessctl/conf/ports.py
 
     # TCP port of bess/web monitor
     gui_port=8000
@@ -78,13 +68,14 @@ data:
     function setup_trafficgen_routes() {
             for ((i = 0; i < num_ipaddrs; i++)); do
                     ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}" || true
-                    #let let k=$i+100
-                    ip route add ${routes[$i]} via "${nhipaddrs[$i]}" metric 100 || true
+                    let let k=$i+100
+                    ip route add ${routes[$i]} via "${nhipaddrs[$i]}" metric $k || true
                     # ip route add ${routes[$i]} via "${nhipaddrs[$i]}" dev "${ifaces[$i]}" metric 100 || true
-                    routelist=${routes[$i]}
-                    for route in $routelist; do
-                      ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
-                    done
+                    # routelist=${routes[$i]}
+                    # for route in $routelist; do
+                    #         let k=$i+100
+                    #         ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
+                    # done
             done
     }
 
