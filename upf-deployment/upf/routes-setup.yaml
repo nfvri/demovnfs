@@ -78,9 +78,9 @@ data:
     function setup_trafficgen_routes() {
             for ((i = 0; i < num_ipaddrs; i++)); do
                     ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}" || true
-                    #let let k=$i+100
-                    ip route add ${routes[$i]} via "${nhipaddrs[$i]}" metric 100 || true
-                    # ip route add ${routes[$i]} via "${nhipaddrs[$i]}" dev "${ifaces[$i]}" metric 100 || true
+                    let k=$i+100
+                    #ip route add ${routes[$i]} via "${nhipaddrs[$i]}" metric $k || true
+                    # ip route add ${routes[$i]} via "${nhipaddrs[$i]}" dev "${ifaces[$i]}" metric $k || true
                     routelist=${routes[$i]}
                     for route in $routelist; do
                       ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true

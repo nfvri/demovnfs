@@ -28,8 +28,8 @@ spec:
           value: "1"
         resources:
           limits:
-            cpu: 256m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 512Mi
         volumeMounts:
         - name: upf-conf
           mountPath: /conf
@@ -91,8 +91,8 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 256m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 512Mi
       - name: pfcpiface
         image: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
         command: ["sh", "-c", "while ! $(nc -vz localhost 3456); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /pre-install/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create; pfcpiface -config /pre-install/upf.json"]
@@ -107,8 +107,8 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 256m
-            memory: 200Mi
+            cpu: 1000m
+            memory: 512Mi
       volumes:
       - name: upf-conf
         configMap:
