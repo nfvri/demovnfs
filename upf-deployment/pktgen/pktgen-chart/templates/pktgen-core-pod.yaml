@@ -9,19 +9,19 @@ metadata:
 spec:
   shareProcessNamespace: true
   nodeSelector:
-    {{ .Values.nodeSelector }}
+    {{- toYaml .Values.nodeSelector | nindent 4 }}
   containers:
   - name: {{ .Values.core.podName }}--core
     image: {{ .Values.image }}
     stdin: true
     tty: true
-    {{ .Values.core.command }}
+    command: {{ .Values.core.command }}
     securityContext:
-      {{ .Values.securityContext }}
+      {{- toYaml .Values.securityContext | nindent 8 }}
     resources:
-      {{ .Values.core.resources }}
+      {{- toYaml .Values.core.resources | nindent 8 }}
     volumeMounts:
-      {{ .Values.core.volumeMounts }}
+      {{- toYaml .Values.core.volumeMounts | nindent 8 }}
   volumes:
   - name: hugepages
     emptyDir:

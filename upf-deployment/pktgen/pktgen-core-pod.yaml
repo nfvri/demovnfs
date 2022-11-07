@@ -5,7 +5,7 @@ metadata:
   labels:
     app: pktgen-core
   annotations:
-    k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1
+    k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net2
 spec:
   shareProcessNamespace: true
   nodeSelector:
@@ -17,7 +17,7 @@ spec:
     tty: true
     command: ["bash", "-xc", "cp /conf/pktgen-premium-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-core-weekly"]
     securityContext:
-      privileged: true
+      privileged: false
       capabilities:
         add:
         - IPC_LOCK # AF_PACKET vdev (and 4K pages) uses mmap
@@ -26,12 +26,12 @@ spec:
         cpu: "2000m"
         memory: "2Gi"
         hugepages-1Gi: 4Gi
-        intel.com/intel_sriov_dpdk_b2b_net1: '1'
+        intel.com/intel_sriov_dpdk_b2b_net2: '1'
       limits:
         cpu: "2000m"
         memory: "2Gi"
         hugepages-1Gi: 4Gi
-        intel.com/intel_sriov_dpdk_b2b_net1: '1'
+        intel.com/intel_sriov_dpdk_b2b_net2: '1'
     volumeMounts:
     - name: pktgen-premium-core-weekly
       mountPath: /conf

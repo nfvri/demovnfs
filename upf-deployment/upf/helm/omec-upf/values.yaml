@@ -11,6 +11,14 @@ service:
   # -- Specifies the nodePort of service if the service type is NodePort
   nodePort: 30020
 
+# -- UPF network configuration
+upf:
+  # -- s1u mac address
+  s1u: 9e:b2:d3:34:cc:28
+  # -- sgi mac address
+  sgi: c2:9c:55:d4:8a:1f
+
+
 # Configuration for bessd container
 bessd:
   # -- (object) Security Context Configuration

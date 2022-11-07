@@ -97,7 +97,6 @@ data:
             fast = PMDPort(name="{}Fast".format(name), **kwargs)
             self.fpi = Merge(name="{}PortMerge".format(name))
             self.fpo = WorkerSplit(name="{}QSplit".format(name))
-            print("befor")
             for qid in range(self.num_q):
                 fpi = QueueInc(name="{}Q{}FastPI".format(name, qid), port=fast.name, qid=qid)
                 fpi.connect(next_mod=self.fpi)
@@ -107,15 +106,12 @@ data:
                 fpo = QueueOut(name="{}Q{}FastPO".format(name, qid), port=fast.name, qid=qid)
                 self.fpo.connect(next_mod=fpo, ogate=qid)
 
-            print("before init # Initialize BPF to classify incoming traffic to go to kernel and/or pipeline")
             # Initialize BPF to classify incoming traffic to go to kernel and/or pipeline
             self.bpf = BPF(name="{}FastBPF".format(name))
             self.bpf.clear()
-            print("before # Initialize route module")
             # Initialize route module
             self.rtr = IPLookup(name="{}Routes".format(name))
             
-            print("before # # Default route goes to Sink")
             # Default route goes to Sink
             self.rtr.add(prefix='0.0.0.0', prefix_len=0, gate=MAX_GATES-1)
             s = Sink(name="{}bad_route".format(name))
@@ -172,14 +168,11 @@ data:
             if conf_mode == 'dpdk':
                 kwargs = None
                 pci = alias_by_interface(name)
-                print(f"To pci einai {pci}")
                 if pci is None and pci_address is not None:
                     pci = pci_address
-                    print(f"To pci prwto if einai {pci}")
                 if pci is not None:
                     kwargs = {"pci": pci, "num_out_q": num_q, "num_inc_q": num_q, "hwcksum": self.hwcksum, "flow_profiles": self.flow_profiles}
                     try:
-                        print(f"Paw sthn fastpath {kwargs}")
                         self.init_fastpath(**kwargs)
                     except:
                         kwargs = None

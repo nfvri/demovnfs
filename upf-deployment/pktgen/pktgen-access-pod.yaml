@@ -5,7 +5,7 @@ metadata:
   labels:
     app: pktgen-access
   annotations:
-    k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net2
+    k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1
 spec:
   shareProcessNamespace: true
   nodeSelector:
@@ -21,12 +21,12 @@ spec:
         cpu: "2000m"
         memory: "4Gi"
         hugepages-1Gi: 4Gi
-        intel.com/intel_sriov_dpdk_b2b_net2: '1'
+        intel.com/intel_sriov_dpdk_b2b_net1: '1'
       limits:
         cpu: "2000m"
         memory: "4Gi"
         hugepages-1Gi: 4Gi
-        intel.com/intel_sriov_dpdk_b2b_net2: '1'
+        intel.com/intel_sriov_dpdk_b2b_net1: '1'
     volumeMounts:
     - name: hugepages
       mountPath: /dev/hugepages
@@ -36,7 +36,7 @@ spec:
     - name: pktgen-premium-access-weekly
       mountPath: /conf
     securityContext:
-      privileged: true
+      privileged: false
       capabilities:
         add:
         - IPC_LOCK

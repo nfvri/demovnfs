@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ .Values.access.podName | default "pktgen-access" }}
   annotations:
-    {{ .Values.access.podAnnotations }}
+    {{ .Values.access.podAnnotations | nindent 4}}
 spec:
   shareProcessNamespace: true
   nodeSelector:
@@ -15,11 +15,11 @@ spec:
     image: {{ .Values.image.repository }}
     stdin: true
     tty: true
-    {{ .Values.access.command }}
+    command: {{ .Values.access.command }}
     resources:
       {{ .Values.access.resources }}
     volumeMounts:
-    {{ .Values.access.podVolumeMounts }}
+    {{ .Values.access.volumeMounts }}
     securityContext:
       {{ .Values.securityContext }}
   volumes:

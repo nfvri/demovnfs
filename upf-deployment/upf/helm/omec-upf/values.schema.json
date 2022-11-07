@@ -146,6 +146,17 @@
         "tolerations": {
             "type": "array"
         },
+        "upf": {
+            "type": "object",
+            "properties": {
+                "s1u": {
+                    "type": "string"
+                },
+                "sgi": {
+                    "type": "string"
+                }
+            }
+        },
         "web": {
             "type": "object",
             "properties": {

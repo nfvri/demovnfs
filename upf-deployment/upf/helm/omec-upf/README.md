@@ -34,6 +34,9 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | service.type | string | `"NodePort"` | Specifies the type of service to deploy |
 | service.port | int | `80` | Specifies the port of service |
 | service.nodePort | int | `30020` | Specifies the nodePort of service if the service type is NodePort |
+| upf | object | `{"s1u":"9e:b2:d3:34:cc:28","sgi":"c2:9c:55:d4:8a:1f"}` | UPF network configuration |
+| upf.s1u | string | `"9e:b2:d3:34:cc:28"` | s1u mac address |
+| upf.sgi | string | `"c2:9c:55:d4:8a:1f"` | sgi mac address |
 | bessd.securityContext | object | `{"capabilities":{"add":["NET_ADMIN","IPC_LOCK"]}}` | Security Context Configuration |
 | bessd.resources | object | `{"limits":{"cpu":"6000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"2Gi"},"requests":{"cpu":"6000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"2Gi"}}` | Resources configuration of bessd |
 | web.resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"}}` | Resources configuration of web |
