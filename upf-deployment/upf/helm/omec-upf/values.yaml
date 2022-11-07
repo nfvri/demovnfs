@@ -2,17 +2,24 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Service of omec upf
 service:
+  # -- Specifies the type of service to deploy
   type: NodePort
+  # -- Specifies the port of service
   port: 80
+  # -- Specifies the nodePort of service if the service type is NodePort
   nodePort: 30020
 
+# Configuration for bessd container
 bessd:
+  # -- (object) Security Context Configuration
   securityContext:
     capabilities:
       add:
       - NET_ADMIN
       - IPC_LOCK
+  # -- (object) Resources configuration of bessd
   resources:
     requests:
       cpu: "6000m"
@@ -27,31 +34,40 @@ bessd:
       intel.com/intel_sriov_dpdk_b2b_net1: '1'
       intel.com/intel_sriov_dpdk_b2b_net2: '1'
 
+# Configuration for web container
 web:
+  # -- (object) Resources configuration of web
   resources:
     limits:
       cpu: 1000m
       memory: 512Mi
 
+# Configuration for routectl container
 routectl:
+  # -- (object) Resources configuration of routectl
   resources:
     limits:
       cpu: 1000m
       memory: 512Mi
 
-
+# Configuration for pfcpiface container
 pfcpiface:
+  # -- (object) Resources configuration of pfcpiface
   resources:
     limits:
       cpu: 1000m
       memory: 512Mi
 
+# -- (object) podAnnotations Map of annotations to add to the pods
 podAnnotations:
   k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2
 
+# -- (object) Node labels for omec-upf pods assignment
 nodeSelector:
   kubernetes.io/hostname: "clx2"
 
+# -- (array) Tolerations for nfvri-apiserver pods assignment
 tolerations: []
 
+# -- (object)  Affinity for nfvri-apiserver pods assignment
 affinity: {}
