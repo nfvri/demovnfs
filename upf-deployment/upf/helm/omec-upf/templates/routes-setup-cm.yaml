@@ -1,7 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: routes-setup
+  name: {{ include "omec-upf.fullname" . }}-routes-setup
+  annotations:
+    "helm.sh/hook": pre-upgrade,pre-install
+  labels:
+    {{- include "omec-upf.labels" . | nindent 4 }}
 data:
   routes_setup.sh: | 
     #!/usr/bin/env bash
@@ -78,14 +82,13 @@ data:
     function setup_trafficgen_routes() {
             for ((i = 0; i < num_ipaddrs; i++)); do
                     ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}" || true
-                    let let k=$i+100
-                    ip route add ${routes[$i]} via "${nhipaddrs[$i]}" metric $k || true
-                    # ip route add ${routes[$i]} via "${nhipaddrs[$i]}" dev "${ifaces[$i]}" metric 100 || true
-                    # routelist=${routes[$i]}
-                    # for route in $routelist; do
-                    #         let k=$i+100
-                    #         ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
-                    # done
+                    let k=$i+100
+                    #ip route add ${routes[$i]} via "${nhipaddrs[$i]}" metric $k || true
+                    # ip route add ${routes[$i]} via "${nhipaddrs[$i]}" dev "${ifaces[$i]}" metric $k || true
+                    routelist=${routes[$i]}
+                    for route in $routelist; do
+                      ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
+                    done
             done
     }
 

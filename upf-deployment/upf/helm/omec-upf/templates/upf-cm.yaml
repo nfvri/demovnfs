@@ -1,7 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: upf-conf
+  name: {{ include "omec-upf.fullname" . }}-upf-conf
+  annotations:
+    "helm.sh/hook": pre-upgrade,pre-install
+  labels:
+    {{- include "omec-upf.labels" . | nindent 4 }}
 data:
   ports.py: |
     #!/usr/bin/env python
@@ -738,7 +742,7 @@ data:
         "max_sessions": 50000,
 
         "": "Set the log level to one of \"panic\", \"fatal\", \"error\", \"warning\", \"info\", \"debug\", \"trace\"",
-        "log_level": "trace",
+        "log_level": "info",
 
         "": "Use the sim block to enable simulation using either Source module or via il_trafficgen",
         "sim": {

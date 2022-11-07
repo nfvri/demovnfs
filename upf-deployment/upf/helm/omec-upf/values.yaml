@@ -1,0 +1,57 @@
+# Default values for omec-upf.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30020
+
+bessd:
+  securityContext:
+    capabilities:
+      add:
+      - NET_ADMIN
+      - IPC_LOCK
+  resources:
+    requests:
+      cpu: "6000m"
+      memory: "2Gi"
+      hugepages-1Gi: 4Gi
+      intel.com/intel_sriov_dpdk_b2b_net1: '1'
+      intel.com/intel_sriov_dpdk_b2b_net2: '1'
+    limits:
+      cpu: "6000m"
+      memory: "2Gi"
+      hugepages-1Gi: 4Gi
+      intel.com/intel_sriov_dpdk_b2b_net1: '1'
+      intel.com/intel_sriov_dpdk_b2b_net2: '1'
+
+web:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+
+routectl:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+
+
+pfcpiface:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+
+podAnnotations:
+  k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2
+
+nodeSelector:
+  kubernetes.io/hostname: "clx2"
+
+tolerations: []
+
+affinity: {}
