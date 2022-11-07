@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod 
+metadata:
+  name: {{ .Values.access.podName | default "pktgen-access" }}
+  labels:
+    app: {{ .Values.access.podName | default "pktgen-access" }}
+  annotations:
+    {{ .Values.access.podAnnotations }}
+spec:
+  shareProcessNamespace: true
+  nodeSelector:
+    {{ .Values.nodeSelector }}
+  containers:
+  - name: {{ .Values.access.podName }}--access
+    image: {{ .Values.image.repository }}
+    stdin: true
+    tty: true
+    {{ .Values.access.command }}
+    resources:
+      {{ .Values.access.resources }}
+    volumeMounts:
+    {{ .Values.access.podVolumeMounts }}
+    securityContext:
+      {{ .Values.securityContext }}
+  volumes:
+  - name: hugepages
+    emptyDir:
+      medium: HugePages
+  - name: pattern-weekly
+    configMap:
+      name: pattern-weekly
+      defaultMode: 0777
+  - name: pktgen-premium-access-weekly
+    configMap:
+      name: pktgen-premium-access-weekly
+      defaultMode: 0777

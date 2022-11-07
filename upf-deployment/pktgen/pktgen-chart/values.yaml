@@ -1,0 +1,72 @@
+# Default values for pktgen-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nodeSelector:
+    kubernetes.io/hostname: "clx1"
+
+securityContext:
+  privileged: true
+  capabilities:
+    add:
+    - IPC_LOCK
+image:
+  repository: omecproject/upf-epc-bess:master-latest
+  pullPolicy: Always
+
+access:
+  podName: pktgen-premium-access
+
+  podAnnotations:
+    k8s.v1.cni.cncf.io/networks: default /sriov-dpdk-b2b-net2
+
+  command: ["bash", "-xc", "cp /conf/pktgen-premium-access-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-access-weekly"]
+
+  resources:
+    requests:
+      cpu: "2000m"
+      memory: "4Gi"
+      hugepages-1Gi: 4Gi
+      intel.com/intel_sriov_dpdk_b2b_net2: '1'
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+      hugepages-1Gi: 4Gi
+      intel.com/intel_sriov_dpdk_b2b_net2: '1'
+
+  volumeMounts:
+    - name: hugepages
+      mountPath: /dev/hugepages
+      readOnly: False
+    - name: pattern-weekly
+      mountPath: /opt/bess/bessctl/conf/patterns/
+    - name: pktgen-premium-access-weekly
+      mountPath: /conf
+
+core:
+  podName: pktgen-premium-core
+  
+  podAnnotations:
+    k8s.v1.cni.cncf.io/networks: default /sriov-dpdk-b2b-net2
+
+  command: ["bash", "-xc", "cp /conf/pktgen-premium-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-core-weekly"]
+
+  resources:
+    requests:
+      cpu: "2000m"
+      memory: "4Gi"
+      hugepages-1Gi: 4Gi
+      intel.com/intel_sriov_dpdk_b2b_net2: '1'
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+      hugepages-1Gi: 4Gi
+      intel.com/intel_sriov_dpdk_b2b_net2: '1'
+
+  volumeMounts:
+  - name: pktgen-premium-core-weekly
+    mountPath: /conf
+  - name: pattern-weekly
+    mountPath: /opt/bess/bessctl/conf/patterns/          
+  - name: hugepages
+    mountPath: /dev/hugepages
