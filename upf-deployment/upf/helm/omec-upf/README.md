@@ -44,5 +44,5 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | pfcpiface.resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"}}` | Resources configuration of pfcpiface |
 | podAnnotations | object | `{"k8s.v1.cni.cncf.io/networks":"default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2"}` | podAnnotations Map of annotations to add to the pods |
 | nodeSelector | object | `{"kubernetes.io/hostname":"clx2"}` | Node labels for omec-upf pods assignment |
-| tolerations | array | `[]` | Tolerations for nfvri-apiserver pods assignment |
-| affinity | object | `{}` | Affinity for nfvri-apiserver pods assignment |
+| tolerations | array | `[]` | Tolerations for omec-upf pods assignment |
+| affinity | object | `{}` | Affinity for omec-upf pods assignment |

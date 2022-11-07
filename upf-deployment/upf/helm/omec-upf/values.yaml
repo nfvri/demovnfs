@@ -74,8 +74,8 @@ podAnnotations:
 nodeSelector:
   kubernetes.io/hostname: "clx2"
 
-# -- (array) Tolerations for nfvri-apiserver pods assignment
+# -- (array) Tolerations for omec-upf pods assignment
 tolerations: []
 
-# -- (object)  Affinity for nfvri-apiserver pods assignment
+# -- (object)  Affinity for omec-upf pods assignment
 affinity: {}
