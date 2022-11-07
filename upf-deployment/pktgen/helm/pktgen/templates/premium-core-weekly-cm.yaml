@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: pktgen-premium-core-weekly
+  name: {{ .Values.core.podName }}-core-weekly
+  annotations:
+    "helm.sh/hook": pre-upgrade,pre-install
 data:  
   pktgen-premium-core-weekly.bess: |
     """
@@ -35,9 +37,7 @@ data:
     max_load = 13000000000
     
     #flow create 1 ingress pattern eth / ipv4 / end actions rss types ipv4 l3-dst-only end key_len 0 queues end / end
-    n6_pkts = [sim.gen_inet_packet(pkt_size, "22:53:7a:15:58:50", "40:a6:b7:1b:6d:31", "6.6.6.6", "16.0.0.1"),]
-    #n6_pkts = [sim.gen_inet_packet(pkt_size, "22:53:7a:15:58:50", "3a:75:03:3c:7a:19", "6.6.6.6", "16.0.0.1"),]
-
+    n6_pkts = [sim.gen_inet_packet(pkt_size, "22:53:7a:15:58:50", "{{ .Values.upf.sgi }}", "6.6.6.6", "16.0.0.1"),]
 
     # for wid in range(len(workers)):
     #    bess.add_worker(wid=wid, core=int(workers[wid]))

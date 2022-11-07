@@ -1,21 +1,22 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {{ .Values.core.podName }}
+  name: {{ .Values.core.podName | default "pktgen-access" }}
   labels:
-    app: {{ .Values.core.podName }}
+    app: {{ .Values.core.podName | default "pktgen-access" }}
   annotations:
-    {{ .Values.core.podAnnotations }}
+    rollme: {{ randAlphaNum 5 | quote }}
+    {{- toYaml .Values.core.podAnnotations | nindent 4 }}
 spec:
   shareProcessNamespace: true
   nodeSelector:
     {{- toYaml .Values.nodeSelector | nindent 4 }}
   containers:
   - name: {{ .Values.core.podName }}--core
-    image: {{ .Values.image }}
+    image: {{ .Values.image.repository }}
     stdin: true
     tty: true
-    command: {{ .Values.core.command }}
+    command: ["bash", "-xc", "cp /conf/pktgen-premium-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-core-weekly"]
     securityContext:
       {{- toYaml .Values.securityContext | nindent 8 }}
     resources:

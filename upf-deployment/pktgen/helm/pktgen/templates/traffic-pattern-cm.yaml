@@ -2,6 +2,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: pattern-weekly
+  annotations:
+    "helm.sh/hook": pre-upgrade,pre-install
 data:
   example-large-traffic-rate-pattern.txt: |
     37.60626805
