@@ -1,0 +1,36 @@
+# OMEC-UPF
+
+{{ template "chart.badgesSection" . }}
+
+A Helm chart for deploying the OMEC UPF on Kubernetes.
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```bash
+helm install -n omec-upf omec-upf path/to/helm/chart
+```
+
+The command deploys OMEC-UPF on the Kubernetes cluster in the default configuration.
+The [Parameters](#parameters) section lists the parameters that can be configured during installation.
+
+> **Tip**: List all releases using `helm list`
+
+## Uninstalling the Chart
+
+To uninstall/delete the `my-release` deployment:
+
+```console
+helm delete -n omec-upf my-release
+```
+
+The command removes all the Kubernetes components but PVC's associated with the chart and deletes the release.
+
+## Parameters
+
+{{ template "chart.valuesTable" . }}
