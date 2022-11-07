@@ -2,6 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# -- Configure process namespace sharing for pod
+shareProcessNamespace: true
+
 # Service of omec upf
 service:
   # -- Specifies the type of service to deploy

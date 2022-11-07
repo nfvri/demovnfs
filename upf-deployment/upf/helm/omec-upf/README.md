@@ -31,6 +31,7 @@ The command removes all the Kubernetes components but PVC's associated with the 
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| shareProcessNamespace | bool | `true` | Configure process namespace sharing for pod |
 | service.type | string | `"NodePort"` | Specifies the type of service to deploy |
 | service.port | int | `80` | Specifies the port of service |
 | service.nodePort | int | `30020` | Specifies the nodePort of service if the service type is NodePort |

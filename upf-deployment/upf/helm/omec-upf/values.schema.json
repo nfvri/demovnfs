@@ -143,6 +143,9 @@
                 }
             }
         },
+        "shareProcessNamespace": {
+            "type": "boolean"
+        },
         "tolerations": {
             "type": "array"
         },
