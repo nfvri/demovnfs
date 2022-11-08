@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "omec-upf.fullname" . }}-routes-setup
+  name: {{ include "omec-upf.fullname" . }}-init-setup
   annotations:
     "helm.sh/hook": pre-upgrade,pre-install
   labels:
     {{- include "omec-upf.labels" . | nindent 4 }}
 data:
-  routes_setup.sh: | 
+  init_setup.sh: | 
     #!/usr/bin/env bash
     # SPDX-License-Identifier: Apache-2.0
     # Copyright(c) 2019 Intel Corporation
@@ -22,12 +22,11 @@ data:
     apt-get update
     apt-get install gettext-base -y
 
-    # envsubst < /conf/upf.json > /opt/bess/bessctl/conf/upf.json
     envsubst < /conf/upf.json > /pre-install/upf.json
     
     cp /pre-install/upf.json /opt/bess/bessctl/conf/upf.json
-    cp /conf/up4_premium.bess /opt/bess/bessctl/conf/up4_premium.bess
-    cp /conf/ports.py /opt/bess/bessctl/conf/ports.py
+    cp /bess-overrides/up4_premium.bess /opt/bess/bessctl/conf/up4_premium.bess
+    cp /bess-overrides/ports.py /opt/bess/bessctl/conf/ports.py
 
     # TCP port of bess/web monitor
     gui_port=8000
@@ -77,8 +76,6 @@ data:
             for ((i = 0; i < num_ipaddrs; i++)); do
                     ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}" || true
                     let k=$i+100
-                    #ip route add ${routes[$i]} via "${nhipaddrs[$i]}" metric $k || true
-                    # ip route add ${routes[$i]} via "${nhipaddrs[$i]}" dev "${ifaces[$i]}" metric $k || true
                     routelist=${routes[$i]}
                     for route in $routelist; do
                       ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
@@ -118,13 +115,6 @@ data:
                     ip link set "${ifaces[$i]}" address "${macaddrs[$i]}"
                     ip link set "${ifaces[$i]}" promisc on
                     ip link set "${ifaces[$i]}" xdp off
-                    #if [ "$mode" == 'af_xdp' ]; then
-                    #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple off
-                    #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple on
-                    #        sudo ip netns exec pause ethtool -N "${ifaces[$i]}" flow-type udp4 action 0
-                    #        sudo ip netns exec pause ethtool -N "${ifaces[$i]}" flow-type tcp4 action 0
-                    #        sudo ip netns exec pause ethtool -u "${ifaces[$i]}"
-                    #fi
             done
             setup_addrs
     }
@@ -133,9 +123,6 @@ data:
     "dpdk" | "sim") setup_mirror_links ;;
     "af_xdp" | "af_packet")
             setup_mirror_links
-            #move_ifaces
-            # Make sure that kernel does not send back icmp dest unreachable msg(s)
-            #sudo ip netns exec pause iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
             iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
             ;;
     *) ;;
