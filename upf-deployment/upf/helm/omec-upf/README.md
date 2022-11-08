@@ -38,34 +38,43 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | serviceAccount.create | bool | `false` | Specifies whether a ServiceAccount should be created  |
 | serviceAccount.annotations | object | `{}` | Additional custom annotations for the ServiceAccount  |
 | serviceAccount.name | string | `""` | The name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template  |
-| rbac | object | `{"clusterRole":"cluster-admin","create":false}` | RBAC Configuration |
 | rbac.create | bool | `false` | Specifies whether a cluster role binding should be created |
 | rbac.clusterRole | string | `"cluster-admin"` | The cluster role name |
-| upf | object | `{"s1u":"9e:b2:d3:34:cc:28","sgi":"c2:9c:55:d4:8a:1f"}` | UPF network configuration |
-| upf.s1u | string | `"9e:b2:d3:34:cc:28"` | s1u mac address. Default s1u mac 9e:b2:d3:34:cc:28 |
-| upf.sgi | string | `"c2:9c:55:d4:8a:1f"` | sgi mac address. Default sgi mac c2:9c:55:d4:8a:1f |
+| upf.s1u.iface | string | `"net0"` | s1u gateway interface name |
+| upf.s1u.mac | string | `"9e:b2:d3:34:cc:28"` | s1u MAC addresses of gateway interface |
+| upf.s1u.ip | string | `"198.18.0.1/30"` | s1u ip address |
+| upf.s1u.nhip | string | `"198.18.0.2"` | s1u static ip address of its neighbor of gateway interface |
+| upf.s1u.nhmac | string | `"22:53:7a:15:58:50"` | s1u static MAC addresses of the neighbor of gateway interface |
+| upf.s1u.route | string | `"11.1.1.128/25"` | s1u IPv4 route table entry in cidr format |
+| upf.sgi.iface | string | `"net1"` | sgi gateway interface name |
+| upf.sgi.mac | string | `"c2:9c:55:d4:8a:1f"` | sgi MAC addresses of gateway interface |
+| upf.sgi.ip | string | `"198.19.0.1/30"` | sgi ip address |
+| upf.sgi.nhip | string | `"198.19.0.2"` | sgi static ip address of its neighbor of gateway interface |
+| upf.sgi.nhmac | string | `"22:53:7a:15:58:50"` | sgi static MAC addresses of the neighbor of gateway interface |
+| upf.sgi.route | string | `"0.0.0.0/0"` | sgi IPv4 route table entry in cidr format |
 | bessd.command | list | `[]` | Override default container command (useful when using custom images or configmaps) |
 | bessd.upfConfFile | string | `"/opt/bess/bessctl/conf/upf.json"` | Path of upf conf file. Populates the CONF_FILE env variable of bessd container. Default to /opt/bess/bessctl/conf/upf.json |
 | bessd.securityContext | object | `{"capabilities":{"add":["NET_ADMIN","IPC_LOCK"]}}` | Security Context Configuration |
-| bessd.resources | object | `{"limits":{"cpu":"6000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"2Gi"},"requests":{"cpu":"6000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"2Gi"}}` | Resources configuration of bessd |
+| bessd.resources.requests | object | `{"cpu":"6000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"2Gi"}` | The resources requests for the bessd container |
+| bessd.resources.limits | object | `{"cpu":"6000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"2Gi"}` | The resources limits for the bessd container |
 | bessd.readinessProbe | object | `{"initialDelaySeconds":30,"periodSeconds":20,"tcpSocket":{"port":10514}}` | OMEC UPF bessd container's readiness probe |
 | bessd.livenessProbe | object | `{"initialDelaySeconds":30,"periodSeconds":20,"tcpSocket":{"port":10514}}` | OMEC UPF bessd container's liveness probe |
 | bessd.extraVolumeMounts | array | `[]` | A list of volume mounts to be added to the bessd container |
 | web.command | list | `[]` | Override default container command (useful when using custom images or configmaps) |
 | web.readinessProbe | object | `{}` | OMEC UPF web container's readiness probe |
 | web.livenessProbe | object | `{}` | OMEC UPF web container's liveness probe |
-| web.resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"}}` | Resources configuration of web |
+| web.resources.limits | object | `{"cpu":"1000m","memory":"512Mi"}` | The resources requests for the web container |
 | web.extraVolumeMounts | array | `[]` | A list of volume mounts to be added to the web container |
 | routectl.command | list | `[]` | Override default container command (useful when using custom images or configmaps) |
 | routectl.securityContext | object | `{}` | Security Context Configuration |
 | routectl.readinessProbe | object | `{}` | OMEC UPF routectl container's readiness probe |
 | routectl.livenessProbe | object | `{}` | OMEC UPF routectl container's liveness probe |
-| routectl.resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"}}` | Resources configuration of routectl |
+| routectl.resources.limits | object | `{"cpu":"1000m","memory":"512Mi"}` | The resources requests for the routectl container   |
 | routectl.extraVolumeMounts | array | `[]` | A list of volume mounts to be added to the routectl container |
 | pfcpiface.command | list | `[]` | Override default container command (useful when using custom images or configmaps) |
 | pfcpiface.readinessProbe | object | `{}` | OMEC UPF pfcpiface container's readiness probe |
 | pfcpiface.livenessProbe | object | `{}` | OMEC UPF pfcpiface container's liveness probe |
-| pfcpiface.resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"}}` | Resources configuration of pfcpiface |
+| pfcpiface.resources.limits | object | `{"cpu":"1000m","memory":"512Mi"}` | The resources requests for the pfcpiface container   |
 | pfcpiface.extraVolumeMounts | array | `[]` | A list of volume mounts to be added to the pfcpiface container |
 | podAnnotations | object | `{"k8s.v1.cni.cncf.io/networks":"default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2"}` | podAnnotations Map of annotations to add to the pods |
 | nodeSelector | object | `{"kubernetes.io/hostname":"clx2"}` | Node labels for omec-upf pods assignment |

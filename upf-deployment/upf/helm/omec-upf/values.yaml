@@ -5,7 +5,7 @@
 # -- Configure process namespace sharing for pod
 shareProcessNamespace: true
 
-# Service of omec upf
+## Service of omec upf
 service:
   # -- Specifies the type of service to deploy
   type: NodePort
@@ -28,22 +28,46 @@ serviceAccount:
   #
   name: ""
 
-# -- RBAC Configuration
+## RBAC Configuration
 rbac:
   # -- Specifies whether a cluster role binding should be created
   create: false
   # -- The cluster role name
   clusterRole: "cluster-admin"
 
-# -- UPF network configuration
+## UPF network configuration
 upf:
-  # -- s1u mac address. Default s1u mac 9e:b2:d3:34:cc:28
-  s1u: 9e:b2:d3:34:cc:28
-  # -- sgi mac address. Default sgi mac c2:9c:55:d4:8a:1f
-  sgi: c2:9c:55:d4:8a:1f
+  ## s1u network configuration
+  s1u:
+    # -- s1u gateway interface name
+    iface: net0
+    # -- s1u MAC addresses of gateway interface
+    mac: 9e:b2:d3:34:cc:28
+    # -- s1u ip address
+    ip: 198.18.0.1/30
+    # -- s1u static ip address of its neighbor of gateway interface
+    nhip: 198.18.0.2
+    # -- s1u static MAC addresses of the neighbor of gateway interface
+    nhmac: 22:53:7a:15:58:50
+    # -- s1u IPv4 route table entry in cidr format
+    route: 11.1.1.128/25
+  ## sgi network configuration
+  sgi: 
+    # -- sgi gateway interface name
+    iface: net1
+    # -- sgi MAC addresses of gateway interface
+    mac: c2:9c:55:d4:8a:1f
+    # -- sgi ip address
+    ip: 198.19.0.1/30
+    # -- sgi static ip address of its neighbor of gateway interface
+    nhip: 198.19.0.2
+    # -- sgi static MAC addresses of the neighbor of gateway interface
+    nhmac: 22:53:7a:15:58:50
+    # -- sgi IPv4 route table entry in cidr format
+    route: 0.0.0.0/0
 
 
-# Configuration for bessd container
+## Configuration for bessd container
 bessd:
   # -- Override default container command (useful when using custom images or configmaps)
   command: []
@@ -56,14 +80,16 @@ bessd:
       add:
       - NET_ADMIN
       - IPC_LOCK
-  # -- (object) Resources configuration of bessd
+  ##  Resources configuration of bessd
   resources:
+    # -- The resources requests for the bessd container
     requests:
       cpu: "6000m"
       memory: "2Gi"
       hugepages-1Gi: 4Gi
       intel.com/intel_sriov_dpdk_b2b_net1: '1'
       intel.com/intel_sriov_dpdk_b2b_net2: '1'
+    # -- The resources limits for the bessd container
     limits:
       cpu: "6000m"
       memory: "2Gi"
@@ -87,7 +113,7 @@ bessd:
   # -- (array) A list of volume mounts to be added to the bessd container
   extraVolumeMounts: []
 
-# Configuration for web container
+## Configuration for web container
 web:
   # -- Override default container command (useful when using custom images or configmaps)
   command: []
@@ -96,8 +122,9 @@ web:
   readinessProbe: {}
   # -- (object) OMEC UPF web container's liveness probe
   livenessProbe: {}
-  # -- (object) Resources configuration of web
+  ##  Resources configuration of web
   resources:
+    # -- The resources requests for the web container
     limits:
       cpu: 1000m
       memory: 512Mi
@@ -105,7 +132,7 @@ web:
   # -- (array) A list of volume mounts to be added to the web container
   extraVolumeMounts: []
 
-# Configuration for routectl container
+## Configuration for routectl container
 routectl:
   # -- Override default container command (useful when using custom images or configmaps)
   command: []
@@ -118,8 +145,9 @@ routectl:
   # -- (object) OMEC UPF routectl container's liveness probe
   livenessProbe: {}
   
-  # -- (object) Resources configuration of routectl
+  ## Resources configuration of routectl
   resources:
+    # -- The resources requests for the routectl container  
     limits:
       cpu: 1000m
       memory: 512Mi
@@ -127,7 +155,7 @@ routectl:
   # -- (array) A list of volume mounts to be added to the routectl container
   extraVolumeMounts: []
 
-# Configuration for pfcpiface container
+## Configuration for pfcpiface container
 pfcpiface:
   # -- Override default container command (useful when using custom images or configmaps)
   command: []
@@ -136,8 +164,9 @@ pfcpiface:
   readinessProbe: {}
   # -- (object) OMEC UPF pfcpiface container's liveness probe
   livenessProbe: {}  
-  # -- (object) Resources configuration of pfcpiface
+  ## Resources configuration of pfcpiface
   resources:
+    # -- The resources requests for the pfcpiface container  
     limits:
       cpu: 1000m
       memory: 512Mi

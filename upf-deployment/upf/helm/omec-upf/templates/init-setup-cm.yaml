@@ -33,40 +33,35 @@ data:
     bessd_port=10514
     metrics_port=8080
 
-    # Driver options. Choose any one of the three
-    #
-    # "af_packet" uses AF_PACKET sockets via DPDK's vdev for pkt I/O.
-    mode="af_packet"
-
     # Gateway interface(s)
     #
     # In the order of ("s1u" "sgi")
-    ifaces=("net0" "net1")
+    ifaces=({{ .Values.upf.s1u.iface | default "net0" | quote }} {{ .Values.upf.sgi.iface | default "net1" | quote }})
 
     # Static IP addresses of gateway interface(s) in cidr format
     #
     # In the order of (s1u sgi)
-    ipaddrs=(198.18.0.1/30 198.19.0.1/30)
+    ipaddrs=({{ .Values.upf.s1u.ip | default "198.18.0.1/30" }} {{ .Values.upf.sgi.ip | default "198.19.0.1/30" }})
 
     # MAC addresses of gateway interface(s)
     #
     # In the order of (s1u sgi)
-    macaddrs=({{ .Values.upf.s1u | default "9e:b2:d3:34:cc:28" }} {{ .Values.upf.sgi | default "c2:9c:55:d4:8a:1f" }})
+    macaddrs=({{ .Values.upf.s1u.mac | default "9e:b2:d3:34:cc:28" }} {{ .Values.upf.sgi.mac | default "c2:9c:55:d4:8a:1f" }})
 
     # Static IP addresses of the neighbors of gateway interface(s)
     #
     # In the order of (n-s1u n-sgi)
-    nhipaddrs=(198.18.0.2 198.19.0.2)
+    nhipaddrs=({{ .Values.upf.s1u.nhip | default "198.18.0.2" }} {{ .Values.upf.sgi.nhip | default "198.19.0.2" }})
 
     # Static MAC addresses of the neighbors of gateway interface(s)
     # 
     # In the order of (n-s1u n-sgi)
-    nhmacaddrs=(22:53:7a:15:58:50 22:53:7a:15:58:50)
+    nhmacaddrs=({{ .Values.upf.s1u.nhmac | default "22:53:7a:15:58:50" }} {{ .Values.upf.sgi.nhmac | default "22:53:7a:15:58:50 "}})
 
     # IPv4 route table entries in cidr format per port
     #
     # In the order of ("{r-s1u}" "{r-sgi}")
-    routes=("11.1.1.128/25" "0.0.0.0/0")
+    routes=({{ .Values.upf.s1u.route | default "11.1.1.128/25" | quote }} {{ .Values.upf.sgi.route | default "0.0.0.0/0" | quote }})
 
     num_ifaces=${#ifaces[@]}
     num_ipaddrs=${#ipaddrs[@]}
@@ -118,19 +113,9 @@ data:
             done
             setup_addrs
     }
+
+    setup_mirror_links
+
+    iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
     
-    case $mode in
-    "dpdk" | "sim") setup_mirror_links ;;
-    "af_xdp" | "af_packet")
-            setup_mirror_links
-            iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
-            ;;
-    *) ;;
-
-    esac
-
-    # Setup trafficgen routes
-    if [ "$mode" != 'sim' ]; then
-            setup_trafficgen_routes
-    fi
-
+    setup_trafficgen_routes
