@@ -28,8 +28,11 @@ serviceAccount:
   #
   name: ""
 
+# -- RBAC Configuration
 rbac:
+  # -- Specifies whether a cluster role binding should be created
   create: false
+  # -- The cluster role name
   clusterRole: "cluster-admin"
 
 # -- UPF network configuration

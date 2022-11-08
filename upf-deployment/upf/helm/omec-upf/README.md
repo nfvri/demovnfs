@@ -38,8 +38,9 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | serviceAccount.create | bool | `false` | Specifies whether a ServiceAccount should be created  |
 | serviceAccount.annotations | object | `{}` | Additional custom annotations for the ServiceAccount  |
 | serviceAccount.name | string | `""` | The name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template  |
-| rbac.create | bool | `false` |  |
-| rbac.clusterRole | string | `"cluster-admin"` |  |
+| rbac | object | `{"clusterRole":"cluster-admin","create":false}` | RBAC Configuration |
+| rbac.create | bool | `false` | Specifies whether a cluster role binding should be created |
+| rbac.clusterRole | string | `"cluster-admin"` | The cluster role name |
 | upf | object | `{"s1u":"9e:b2:d3:34:cc:28","sgi":"c2:9c:55:d4:8a:1f"}` | UPF network configuration |
 | upf.s1u | string | `"9e:b2:d3:34:cc:28"` | s1u mac address. Default s1u mac 9e:b2:d3:34:cc:28 |
 | upf.sgi | string | `"c2:9c:55:d4:8a:1f"` | sgi mac address. Default sgi mac c2:9c:55:d4:8a:1f |
