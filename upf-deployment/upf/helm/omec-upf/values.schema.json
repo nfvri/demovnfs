@@ -255,10 +255,50 @@
             "type": "object",
             "properties": {
                 "s1u": {
-                    "type": "string"
+                    "type": "object",
+                    "properties": {
+                        "iface": {
+                            "type": "string"
+                        },
+                        "ip": {
+                            "type": "string"
+                        },
+                        "mac": {
+                            "type": "string"
+                        },
+                        "nhip": {
+                            "type": "string"
+                        },
+                        "nhmac": {
+                            "type": "string"
+                        },
+                        "route": {
+                            "type": "string"
+                        }
+                    }
                 },
                 "sgi": {
-                    "type": "string"
+                    "type": "object",
+                    "properties": {
+                        "iface": {
+                            "type": "string"
+                        },
+                        "ip": {
+                            "type": "string"
+                        },
+                        "mac": {
+                            "type": "string"
+                        },
+                        "nhip": {
+                            "type": "string"
+                        },
+                        "nhmac": {
+                            "type": "string"
+                        },
+                        "route": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
