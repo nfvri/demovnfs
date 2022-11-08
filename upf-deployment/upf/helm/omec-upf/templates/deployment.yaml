@@ -23,66 +23,123 @@ spec:
       containers:
       - name: routectl
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
-        command: ["bash", "-c", "until ss -a | grep -q 3456;  do sleep 5; echo 'Waiting for bessd'; done; python /conf/route_control_premium.py -i net0 net1"]
+        {{- if .Values.routectl.command }}
+        command: {{- toYaml .Values.routectl.command | nindent 10 }}
+        {{- else }}
+        command: ["bash", "-c", "until ss -a | grep -q 3456;  do sleep 5; echo 'Waiting for bessd'; done; python /bess-overrides/route_control_premium.py -i net0 net1"]
+        {{- end }}
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
+        {{- if .Values.routectl.readinessProbe }}
+        readinessProbe: {{- toYaml .Values.routectl.readinessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.routectl.livenessProbe }}
+        livenessProbe: {{- toYaml .Values.routectl.livenessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.routectl.securityContext }}
+        securityContext:
+          {{- toYaml .Values.routectl.securityContext | nindent 10 }}
+        {{- end }}
+        {{- if .Values.routectl.resources }}
         resources:
-          {{- toYaml .Values.routectl.resources | nindent 12 }}
+          {{- toYaml .Values.routectl.resources | nindent 10 }}
+        {{- end }}
         volumeMounts:
-        - name: {{ include "omec-upf.fullname" . }}-upf-conf
+        - name: {{ include "omec-upf.fullname" . }}-upf-json
           mountPath: /conf
+        - name: {{ include "omec-upf.fullname" . }}-bess-overrides
+          mountPath: /bess-overrides
         - name: hugepages
           mountPath: /dev/hugepages
           readOnly: False
+        {{- if .Values.routectl.extraVolumeMounts }}
+        {{- toYaml .Values.routectl.extraVolumeMounts | nindent 10 }}
+        {{- end }}     
       - name: bessd
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
         stdin: true
         tty: true
-        command: ["bash", "-xec", "/init-conf/routes_setup.sh && bessd -grpc-url=0.0.0.0:10514; until ss -a | grep -q 10514; do sleep 5; echo waiting for bessd; done;  ./bessctl run up4_premium; ./bessctl http 0.0.0.0 3456"]
+        {{- if .Values.bessd.command }}
+        command: {{- toYaml .Values.bessd.command | nindent 10 }}
+        {{- else }}
+        command: ["bash", "-xec", "/init-conf/init_setup.sh && bessd -grpc-url=0.0.0.0:10514; until ss -a | grep -q 10514; do sleep 5; echo waiting for bessd; done;  ./bessctl run up4_premium; ./bessctl http 0.0.0.0 3456"]
+        {{- end }}
         env:
         - name: CONF_FILE
-          value: /opt/bess/bessctl/conf/upf.json
-        readinessProbe:
-          tcpSocket:
-            port: 10514
-          initialDelaySeconds: 30
-          periodSeconds: 20
-        livenessProbe:
-          tcpSocket:
-            port: 10514
-          initialDelaySeconds: 30
-          periodSeconds: 20
+          value: {{ .Values.bessd.upfConfFile | default "/opt/bess/bessctl/conf/upf.json" }}
+        {{- if .Values.bessd.readinessProbe }}
+        readinessProbe: {{- toYaml .Values.bessd.readinessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.bessd.livenessProbe }}
+        livenessProbe: {{- toYaml .Values.bessd.livenessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.bessd.securityContext }}
         securityContext:
-          {{- toYaml .Values.bessd.securityContext | nindent 12 }}
+          {{- toYaml .Values.bessd.securityContext | nindent 10 }}
+        {{- end }}
+        {{- if .Values.bessd.resources }}
         resources:
-          {{- toYaml .Values.bessd.resources | nindent 12 }}
+          {{- toYaml .Values.bessd.resources | nindent 10 }}
+        {{- end }}
         volumeMounts:
-        - name: {{ include "omec-upf.fullname" . }}-routes-setup
+        - name: {{ include "omec-upf.fullname" . }}-init-setup
           mountPath: /init-conf
-        - name: {{ include "omec-upf.fullname" . }}-upf-conf
+        - name: {{ include "omec-upf.fullname" . }}-upf-json
           mountPath: /conf
+        - name: {{ include "omec-upf.fullname" . }}-bess-overrides
+          mountPath: /bess-overrides
         - name: {{ include "omec-upf.fullname" . }}-pre-install
           mountPath: /pre-install
         - name: hugepages
           mountPath: /dev/hugepages
+        {{- if .Values.bessd.extraVolumeMounts }}
+        {{- toYaml .Values.bessd.extraVolumeMounts | nindent 10 }}
+        {{- end }}
       - name: web
         image: upf-epc-8806-bess:0.3.0-dev
+        {{- if .Values.web.command }}
+        command: {{- toYaml .Values.web.command | nindent 10 }}
+        {{- else }} 
         command: ["bash", "-c", "bessctl  http 0.0.0.0 8001"]
+        {{- end }}
         ports:
         - name: http-web
           containerPort: 8001
           protocol: TCP
         resources:
           {{- toYaml .Values.web.resources | nindent 12 }}
+        {{- if .Values.web.readinessProbe }}
+        readinessProbe: {{- toYaml .Values.web.readinessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.web.livenessProbe }}
+        livenessProbe: {{- toYaml .Values.web.livenessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.bessd.extraVolumeMounts }}
+        volumeMounts:
+        {{- toYaml .Values.web.extraVolumeMounts | nindent 10 }}
+        {{- end }}
       - name: pfcpiface
         image: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
+        {{- if .Values.pfcpiface.command }}
+        command: {{- toYaml .Values.pfcpiface.command | nindent 10 }}
+        {{- else }}
         command: ["sh", "-c", "while ! $(nc -vz localhost 3456); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /pre-install/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create; pfcpiface -config /pre-install/upf.json"]
+        {{- end }}
+        {{- if .Values.pfcpiface.readinessProbe }}
+        readinessProbe: {{- toYaml .Values.pfcpiface.readinessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.pfcpiface.livenessProbe }}
+        livenessProbe: {{- toYaml .Values.pfcpiface.livenessProbe | nindent 10 }}
+        {{- end }}
         volumeMounts:
-        - name: {{ include "omec-upf.fullname" . }}-upf-conf
+        - name: {{ include "omec-upf.fullname" . }}-upf-json
           mountPath: /conf
         - name: {{ include "omec-upf.fullname" . }}-pre-install
           mountPath: /pre-install
+        {{- if .Values.bessd.extraVolumeMounts }}
+        {{- toYaml .Values.pfcpiface.extraVolumeMounts | nindent 10 }}
+        {{- end }}
         ports:
         - name: http
           containerPort: 8082
@@ -90,19 +147,26 @@ spec:
         resources:
           {{- toYaml .Values.pfcpiface.resources | nindent 12 }}
       volumes:
-      - name: {{ include "omec-upf.fullname" . }}-upf-conf
+      - name: {{ include "omec-upf.fullname" . }}-upf-json
         configMap:
-          name: {{ include "omec-upf.fullname" . }}-upf-conf
+          name: {{ include "omec-upf.fullname" . }}-upf-json
+          defaultMode: 0777
+      - name: {{ include "omec-upf.fullname" . }}-bess-overrides
+        configMap:
+          name: {{ include "omec-upf.fullname" . }}-bess-overrides
           defaultMode: 0777
       - name: hugepages
         emptyDir:
           medium: HugePages
-      - name: {{ include "omec-upf.fullname" . }}-routes-setup
+      - name: {{ include "omec-upf.fullname" . }}-init-setup
         configMap:
-          name: {{ include "omec-upf.fullname" . }}-routes-setup
+          name: {{ include "omec-upf.fullname" . }}-init-setup
           defaultMode: 0777
       - name: {{ include "omec-upf.fullname" . }}-pre-install 
         emptyDir: {}
+      {{- if .Values.extraVolumes }}
+      {{- toYaml .Values.extraVolumes | nindent 6}}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

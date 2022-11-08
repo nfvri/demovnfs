@@ -1,0 +1,16 @@
+{{- if .Values.rbac.create }}
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "omec-upf.serviceAccountName" . }}
+  labels:
+    {{- include "omec-upf.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include  "omec-upf.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.rbac.clusterRole }}
+{{- end }}

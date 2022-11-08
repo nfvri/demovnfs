@@ -14,16 +14,39 @@ service:
   # -- Specifies the nodePort of service if the service type is NodePort
   nodePort: 30020
 
+## Service account for omec-upf to use.
+##
+serviceAccount:
+  # -- Specifies whether a ServiceAccount should be created
+  #
+  create: false
+  # -- (object) Additional custom annotations for the ServiceAccount
+  #
+  annotations: {}
+  # -- (string) The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  #
+  name: ""
+
+rbac:
+  create: false
+  clusterRole: "cluster-admin"
+
 # -- UPF network configuration
 upf:
-  # -- s1u mac address
+  # -- s1u mac address. Default s1u mac 9e:b2:d3:34:cc:28
   s1u: 9e:b2:d3:34:cc:28
-  # -- sgi mac address
+  # -- sgi mac address. Default sgi mac c2:9c:55:d4:8a:1f
   sgi: c2:9c:55:d4:8a:1f
 
 
 # Configuration for bessd container
 bessd:
+  # -- Override default container command (useful when using custom images or configmaps)
+  command: []
+  # -- Path of upf conf file. Populates the CONF_FILE env variable of bessd container. Default to /opt/bess/bessctl/conf/upf.json
+  upfConfFile: /opt/bess/bessctl/conf/upf.json
+
   # -- (object) Security Context Configuration
   securityContext:
     capabilities:
@@ -45,29 +68,79 @@ bessd:
       intel.com/intel_sriov_dpdk_b2b_net1: '1'
       intel.com/intel_sriov_dpdk_b2b_net2: '1'
 
+  # -- (object) OMEC UPF bessd container's readiness probe
+  readinessProbe:
+    tcpSocket:
+      port: 10514
+    initialDelaySeconds: 30
+    periodSeconds: 20
+  # -- (object) OMEC UPF bessd container's liveness probe
+  livenessProbe:
+    tcpSocket:
+      port: 10514
+    initialDelaySeconds: 30
+    periodSeconds: 20  
+
+  # -- (array) A list of volume mounts to be added to the bessd container
+  extraVolumeMounts: []
+
 # Configuration for web container
 web:
+  # -- Override default container command (useful when using custom images or configmaps)
+  command: []
+
+  # -- (object) OMEC UPF web container's readiness probe
+  readinessProbe: {}
+  # -- (object) OMEC UPF web container's liveness probe
+  livenessProbe: {}
   # -- (object) Resources configuration of web
   resources:
     limits:
       cpu: 1000m
       memory: 512Mi
 
+  # -- (array) A list of volume mounts to be added to the web container
+  extraVolumeMounts: []
+
 # Configuration for routectl container
 routectl:
+  # -- Override default container command (useful when using custom images or configmaps)
+  command: []
+
+  # -- (object) Security Context Configuration
+  securityContext: {}
+
+  # -- (object) OMEC UPF routectl container's readiness probe
+  readinessProbe: {}
+  # -- (object) OMEC UPF routectl container's liveness probe
+  livenessProbe: {}
+  
   # -- (object) Resources configuration of routectl
   resources:
     limits:
       cpu: 1000m
       memory: 512Mi
 
+  # -- (array) A list of volume mounts to be added to the routectl container
+  extraVolumeMounts: []
+
 # Configuration for pfcpiface container
 pfcpiface:
+  # -- Override default container command (useful when using custom images or configmaps)
+  command: []
+  
+  # -- (object) OMEC UPF pfcpiface container's readiness probe
+  readinessProbe: {}
+  # -- (object) OMEC UPF pfcpiface container's liveness probe
+  livenessProbe: {}  
   # -- (object) Resources configuration of pfcpiface
   resources:
     limits:
       cpu: 1000m
       memory: 512Mi
+
+  # -- (array) A list of volume mounts to be added to the pfcpiface container
+  extraVolumeMounts: []
 
 # -- (object) podAnnotations Map of annotations to add to the pods
 podAnnotations:
@@ -82,3 +155,6 @@ tolerations: []
 
 # -- (object)  Affinity for omec-upf pods assignment
 affinity: {}
+
+# -- (array) A list of volumes to be added to the pod
+extraVolumes: []

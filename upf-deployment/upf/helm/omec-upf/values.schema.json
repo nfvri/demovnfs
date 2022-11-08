@@ -8,6 +8,50 @@
         "bessd": {
             "type": "object",
             "properties": {
+                "command": {
+                    "type": "array"
+                },
+                "extraVolumeMounts": {
+                    "type": "array"
+                },
+                "livenessProbe": {
+                    "type": "object",
+                    "properties": {
+                        "initialDelaySeconds": {
+                            "type": "integer"
+                        },
+                        "periodSeconds": {
+                            "type": "integer"
+                        },
+                        "tcpSocket": {
+                            "type": "object",
+                            "properties": {
+                                "port": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "readinessProbe": {
+                    "type": "object",
+                    "properties": {
+                        "initialDelaySeconds": {
+                            "type": "integer"
+                        },
+                        "periodSeconds": {
+                            "type": "integer"
+                        },
+                        "tcpSocket": {
+                            "type": "object",
+                            "properties": {
+                                "port": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
                 "resources": {
                     "type": "object",
                     "properties": {
@@ -68,8 +112,14 @@
                             }
                         }
                     }
+                },
+                "upfConfFile": {
+                    "type": "string"
                 }
             }
+        },
+        "extraVolumes": {
+            "type": "array"
         },
         "nodeSelector": {
             "type": "object",
@@ -82,6 +132,18 @@
         "pfcpiface": {
             "type": "object",
             "properties": {
+                "command": {
+                    "type": "array"
+                },
+                "extraVolumeMounts": {
+                    "type": "array"
+                },
+                "livenessProbe": {
+                    "type": "object"
+                },
+                "readinessProbe": {
+                    "type": "object"
+                },
                 "resources": {
                     "type": "object",
                     "properties": {
@@ -108,9 +170,32 @@
                 }
             }
         },
+        "rbac": {
+            "type": "object",
+            "properties": {
+                "clusterRole": {
+                    "type": "string"
+                },
+                "create": {
+                    "type": "boolean"
+                }
+            }
+        },
         "routectl": {
             "type": "object",
             "properties": {
+                "command": {
+                    "type": "array"
+                },
+                "extraVolumeMounts": {
+                    "type": "array"
+                },
+                "livenessProbe": {
+                    "type": "object"
+                },
+                "readinessProbe": {
+                    "type": "object"
+                },
                 "resources": {
                     "type": "object",
                     "properties": {
@@ -126,6 +211,9 @@
                             }
                         }
                     }
+                },
+                "securityContext": {
+                    "type": "object"
                 }
             }
         },
@@ -139,6 +227,20 @@
                     "type": "integer"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object"
+                },
+                "create": {
+                    "type": "boolean"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -163,6 +265,18 @@
         "web": {
             "type": "object",
             "properties": {
+                "command": {
+                    "type": "array"
+                },
+                "extraVolumeMounts": {
+                    "type": "array"
+                },
+                "livenessProbe": {
+                    "type": "object"
+                },
+                "readinessProbe": {
+                    "type": "object"
+                },
                 "resources": {
                     "type": "object",
                     "properties": {
