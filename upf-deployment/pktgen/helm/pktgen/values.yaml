@@ -1,29 +1,35 @@
-# Default values for pktgen-chart.
+# Default values for pktgen.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# -- Node labels for node selection
 nodeSelector:
     kubernetes.io/hostname: "clx1"
 
+# -- Security configuration
 securityContext:
   privileged: False
   capabilities:
     add:
     - IPC_LOCK
+
 image:
   repository: omecproject/upf-epc-bess:master-latest
   pullPolicy: Always
 
+# -- Network configuration
 upf:
   s1u: 3a:75:03:3c:7a:19
   sgi: 8e:a9:bb:1e:80:71
 
+# Access Packet generator Configuration
 access:
   podName: pktgen-premium-access
 
   podAnnotations:
     k8s.v1.cni.cncf.io/networks: default /sriov-dpdk-b2b-net1
 
+  # -- Access Packet generator container resources configuration
   resources:
     requests:
       cpu: "2000m"
@@ -45,12 +51,14 @@ access:
     - name: pktgen-premium-access-weekly
       mountPath: /conf
 
+# Core Packets generator configuration
 core:
   podName: pktgen-premium-core
   
   podAnnotations:
     k8s.v1.cni.cncf.io/networks: default /sriov-dpdk-b2b-net2
 
+  # -- Core Packet generator container resources configuration
   resources:
     requests:
       cpu: "2000m"

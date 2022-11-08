@@ -1,0 +1,196 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "access": {
+            "type": "object",
+            "properties": {
+                "podAnnotations": {
+                    "type": "object",
+                    "properties": {
+                        "k8s.v1.cni.cncf.io/networks": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "podName": {
+                    "type": "string"
+                },
+                "resources": {
+                    "type": "object",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "hugepages-1Gi": {
+                                    "type": "string"
+                                },
+                                "intel.com/intel_sriov_dpdk_b2b_net1": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "hugepages-1Gi": {
+                                    "type": "string"
+                                },
+                                "intel.com/intel_sriov_dpdk_b2b_net1": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "volumeMounts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "mountPath": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "readOnly": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "core": {
+            "type": "object",
+            "properties": {
+                "podAnnotations": {
+                    "type": "object",
+                    "properties": {
+                        "k8s.v1.cni.cncf.io/networks": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "podName": {
+                    "type": "string"
+                },
+                "resources": {
+                    "type": "object",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "hugepages-1Gi": {
+                                    "type": "string"
+                                },
+                                "intel.com/intel_sriov_dpdk_b2b_net2": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "hugepages-1Gi": {
+                                    "type": "string"
+                                },
+                                "intel.com/intel_sriov_dpdk_b2b_net2": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "volumeMounts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "mountPath": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "image": {
+            "type": "object",
+            "properties": {
+                "pullPolicy": {
+                    "type": "string"
+                },
+                "repository": {
+                    "type": "string"
+                }
+            }
+        },
+        "nodeSelector": {
+            "type": "object",
+            "properties": {
+                "kubernetes.io/hostname": {
+                    "type": "string"
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object",
+            "properties": {
+                "capabilities": {
+                    "type": "object",
+                    "properties": {
+                        "add": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "privileged": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "upf": {
+            "type": "object",
+            "properties": {
+                "s1u": {
+                    "type": "string"
+                },
+                "sgi": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
