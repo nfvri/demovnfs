@@ -20,6 +20,7 @@ spec:
         {{- include "omec-upf.selectorLabels" . | nindent 8 }}
     spec:
       shareProcessNamespace: {{ .Values.shareProcessNamespace }}
+      serviceAccountName: {{ include "omec-upf.serviceAccountName" . }}
       containers:
       - name: routectl
         image: nfvri/upf-epc-8806-bess:0.3.0-dev
