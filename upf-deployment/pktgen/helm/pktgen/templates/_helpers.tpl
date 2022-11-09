@@ -34,7 +34,7 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "pktgen.labels" -}}
-helm.sh/chart: {{ include "pktgen-chart.chart" . }}
+helm.sh/chart: {{ include "pktgen.chart" . }}
 {{ include "pktgen.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.access.podName }}-access-weekly
+  name: premium-access-weekly
   annotations:
     "helm.sh/hook": pre-upgrade,pre-install
 data:  

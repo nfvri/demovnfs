@@ -5,6 +5,12 @@
         "access": {
             "type": "object",
             "properties": {
+                "command": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "podAnnotations": {
                     "type": "object",
                     "properties": {
@@ -51,23 +57,6 @@
                                 "memory": {
                                     "type": "string"
                                 }
-                            }
-                        }
-                    }
-                },
-                "volumeMounts": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "mountPath": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "readOnly": {
-                                "type": "boolean"
                             }
                         }
                     }
@@ -77,6 +66,18 @@
         "core": {
             "type": "object",
             "properties": {
+                "command": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "extraVolumeMounts": {
+                    "type": "array"
+                },
+                "extraVolumes": {
+                    "type": "array"
+                },
                 "podAnnotations": {
                     "type": "object",
                     "properties": {
@@ -123,20 +124,6 @@
                                 "memory": {
                                     "type": "string"
                                 }
-                            }
-                        }
-                    }
-                },
-                "volumeMounts": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "mountPath": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
                             }
                         }
                     }
@@ -161,6 +148,9 @@
                     "type": "string"
                 }
             }
+        },
+        "overideConfigMap": {
+            "type": "boolean"
         },
         "securityContext": {
             "type": "object",
