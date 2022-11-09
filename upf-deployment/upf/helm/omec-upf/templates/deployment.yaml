@@ -64,7 +64,7 @@ spec:
         {{- if .Values.bessd.command }}
         command: {{- toYaml .Values.bessd.command | nindent 10 }}
         {{- else }}
-        command: ["bash", "-xec", "sleep 1h; /init-conf/init_setup.sh && bessd -grpc-url=0.0.0.0:10514; until ss -a | grep -q 10514; do sleep 5; echo waiting for bessd; done;  ./bessctl run up4_premium; ./bessctl http 0.0.0.0 3456"]
+        command: ["bash", "-xec", "/init-conf/init_setup.sh && bessd -grpc-url=0.0.0.0:10514; until ss -a | grep -q 10514; do sleep 5; echo waiting for bessd; done;  ./bessctl run up4_premium; ./bessctl http 0.0.0.0 3456"]
         {{- end }}
         env:
         - name: CONF_FILE
