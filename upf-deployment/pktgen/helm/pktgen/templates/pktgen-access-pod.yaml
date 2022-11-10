@@ -9,11 +9,12 @@ metadata:
     {{- toYaml .Values.access.podAnnotations | nindent 4 }}
 spec:
   shareProcessNamespace: true
+  serviceAccountName: {{ include "pktgen.serviceAccountName" . }}
   nodeSelector:
     {{- toYaml .Values.nodeSelector | nindent 6 }}
   containers:
   - name: access
-    image: {{ .Values.image.repository }}
+    image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
     stdin: true
     tty: true
     command: {{- toYaml .Values.access.command | nindent 6 }}

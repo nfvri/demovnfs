@@ -6,69 +6,102 @@
 nodeSelector:
     kubernetes.io/hostname: "clx1"
 
-# -- Security configuration
+# Security configuration
 securityContext:
   privileged: false
   capabilities:
     add:
     - IPC_LOCK
 
+# Pktgen bessd container configuration
 image:
-  repository: omecproject/upf-epc-bess:master-latest
-  pullPolicy: Always
+  # -- image repository
+  repository: omecproject/upf-epc-bess
+  # -- image pull policy
+  pullPolicy: IfNotPresent
+  # -- image tag
+  tag: "master-latest"
 
-# -- Network configuration
+## RBAC Configuration
+rbac:
+  # -- Specifies whether a cluster role binding should be created
+  create: false
+  # -- The cluster role name
+  clusterRole: "cluster-admin"
+
+## Service account for omec-upf to use.
+##
+serviceAccount:
+  # -- Specifies whether a ServiceAccount should be created
+  #
+  create: false
+
+## Network configuration
 upf:
+  # -- upf access interface MAC address
   s1u: 3a:75:03:3c:7a:19
+  # -- upf core interface MAC address
   sgi: 4e:a6:53:e3:0f:65 
 
 # -- Select true when the user supplies custom traffic pattern, configMap and values override
 overideConfigMap: false
 
-# Access Packet generator Configuration
+# Configuration for access interface pktgen
 access:
-  podName: pktgen-premium-access
-  
+  # -- Default container command to be executed (override when using custom configmaps and traffic patterns)
   command: ["bash", "-xc", "cp /conf/pktgen-premium-access-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-access-weekly"]
 
+  # -- 
   podAnnotations:
     k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1
 
-  # -- Access Packet generator container resources configuration
+  # -- Container resources configuration
   resources:
+    # -- Resources requested by pktgen-access
     requests:
       cpu: "2000m"
       memory: "4Gi"
       hugepages-1Gi: 4Gi
       intel.com/intel_sriov_dpdk_b2b_net1: '1'
+    # -- Resources limits for pktgen-access
     limits:
       cpu: "2000m"
       memory: "4Gi"
       hugepages-1Gi: 4Gi
       intel.com/intel_sriov_dpdk_b2b_net1: '1'
-
-# Core Packets generator configuration
-core:
-  podName: pktgen-premium-core
   
+  # List of extra VolumeMounts. Override using a custom values file
+  extraVolumeMounts: []
+  
+  # List of extra volumes to be added. Override using a custom values file
+  extraVolumes: []
+
+
+# Configuration for access interface pktgen
+core:
   podAnnotations:
     k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net2
 
+  # -- Default container command to be executed (override when using custom configmaps and traffic patterns)
   command: ["bash", "-xc", "cp /conf/pktgen-premium-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-core-weekly"]
 
-  # -- Core Packet generator container resources configuration
+  # -- Container resources configuration
   resources:
+    # -- Resources requested by pktgen-access
     requests:
       cpu: "2000m"
       memory: "4Gi"
       hugepages-1Gi: 4Gi
       intel.com/intel_sriov_dpdk_b2b_net2: '1'
+    # -- Resources limits for pktgen-access
     limits:
       cpu: "2000m"
       memory: "4Gi"
       hugepages-1Gi: 4Gi
       intel.com/intel_sriov_dpdk_b2b_net2: '1'
   
+  # List of extra VolumeMounts. Override using a custom values file
   extraVolumeMounts: []
   
+  # List of extra volumes to be added. Override using a custom values file
   extraVolumes: []

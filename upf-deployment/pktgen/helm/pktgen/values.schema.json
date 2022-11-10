@@ -11,6 +11,12 @@
                         "type": "string"
                     }
                 },
+                "extraVolumeMounts": {
+                    "type": "array"
+                },
+                "extraVolumes": {
+                    "type": "array"
+                },
                 "podAnnotations": {
                     "type": "object",
                     "properties": {
@@ -18,9 +24,6 @@
                             "type": "string"
                         }
                     }
-                },
-                "podName": {
-                    "type": "string"
                 },
                 "resources": {
                     "type": "object",
@@ -86,9 +89,6 @@
                         }
                     }
                 },
-                "podName": {
-                    "type": "string"
-                },
                 "resources": {
                     "type": "object",
                     "properties": {
@@ -138,6 +138,9 @@
                 },
                 "repository": {
                     "type": "string"
+                },
+                "tag": {
+                    "type": "string"
                 }
             }
         },
@@ -151,6 +154,17 @@
         },
         "overideConfigMap": {
             "type": "boolean"
+        },
+        "rbac": {
+            "type": "object",
+            "properties": {
+                "clusterRole": {
+                    "type": "string"
+                },
+                "create": {
+                    "type": "boolean"
+                }
+            }
         },
         "securityContext": {
             "type": "object",
@@ -167,6 +181,14 @@
                     }
                 },
                 "privileged": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "create": {
                     "type": "boolean"
                 }
             }
