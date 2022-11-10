@@ -191,7 +191,7 @@ pfcpiface:
   ## Image configuration
   image:
     # -- pfcpiface image repository
-    repository: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
+    repository: nfvri/upf-epc-8806-pfcpiface
     # -- pfcpiface image pull policy
     pullPolicy: IfNotPresent
     # -- pfcpiface image tag
