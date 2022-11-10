@@ -23,7 +23,7 @@ spec:
       serviceAccountName: {{ include "omec-upf.serviceAccountName" . }}
       containers:
       - name: routectl
-        image: nfvri/upf-epc-8806-bess:0.3.0-dev
+        image: "{{ .Values.routectl.image.repository }}:{{ .Values.routectl.image.tag }}"
         {{- if .Values.routectl.command }}
         command: {{- toYaml .Values.routectl.command | nindent 10 }}
         {{- else }}
@@ -58,7 +58,7 @@ spec:
         {{- toYaml .Values.routectl.extraVolumeMounts | nindent 10 }}
         {{- end }}     
       - name: bessd
-        image: nfvri/upf-epc-8806-bess:0.3.0-dev
+        image: "{{ .Values.bessd.image.repository }}:{{ .Values.bessd.image.tag }}"
         stdin: true
         tty: true
         {{- if .Values.bessd.command }}
@@ -98,7 +98,7 @@ spec:
         {{- toYaml .Values.bessd.extraVolumeMounts | nindent 10 }}
         {{- end }}
       - name: web
-        image: upf-epc-8806-bess:0.3.0-dev
+        image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
         {{- if .Values.web.command }}
         command: {{- toYaml .Values.web.command | nindent 10 }}
         {{- else }} 
@@ -121,7 +121,7 @@ spec:
         {{- toYaml .Values.web.extraVolumeMounts | nindent 10 }}
         {{- end }}
       - name: pfcpiface
-        image: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
+        image: "{{ .Values.pfcpiface.image.repository }}:{{ .Values.pfcpiface.image.tag }}"
         {{- if .Values.pfcpiface.command }}
         command: {{- toYaml .Values.pfcpiface.command | nindent 10 }}
         {{- else }}

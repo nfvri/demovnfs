@@ -51,6 +51,8 @@ upf:
     nhmac: 22:53:7a:15:58:50
     # -- s1u IPv4 route table entry in cidr format
     route: 11.1.1.128/25
+    # -- s1u pci environment variable name
+    pci: PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET1
   ## sgi network configuration
   sgi: 
     # -- sgi gateway interface name
@@ -65,10 +67,21 @@ upf:
     nhmac: 22:53:7a:15:58:50
     # -- sgi IPv4 route table entry in cidr format
     route: 0.0.0.0/0
+    # -- s1u sgi environment variable name
+    pci: PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET1
 
 
 ## Configuration for bessd container
 bessd:
+  ## Image configuration
+  image:
+    # -- bessd image repository
+    repository: nfvri/upf-epc-8806-bess
+    # -- bessd image pull policy
+    pullPolicy: IfNotPresent
+    # -- bessd image tag
+    tag: "0.3.0-dev"
+
   # -- Override default container command (useful when using custom images or configmaps)
   command: []
   # -- Path of upf conf file. Populates the CONF_FILE env variable of bessd container. Default to /opt/bess/bessctl/conf/upf.json
@@ -87,15 +100,15 @@ bessd:
       cpu: "6000m"
       memory: "2Gi"
       hugepages-1Gi: 4Gi
-      intel.com/intel_sriov_dpdk_b2b_net1: '1'
-      intel.com/intel_sriov_dpdk_b2b_net2: '1'
+    #  intel.com/intel_sriov_dpdk_b2b_net1: '1'
+    #  intel.com/intel_sriov_dpdk_b2b_net2: '1'
     # -- The resources limits for the bessd container
     limits:
       cpu: "6000m"
       memory: "2Gi"
       hugepages-1Gi: 4Gi
-      intel.com/intel_sriov_dpdk_b2b_net1: '1'
-      intel.com/intel_sriov_dpdk_b2b_net2: '1'
+    #  intel.com/intel_sriov_dpdk_b2b_net1: '1'
+   #   intel.com/intel_sriov_dpdk_b2b_net2: '1'
 
   # -- (object) OMEC UPF bessd container's readiness probe
   readinessProbe:
@@ -115,6 +128,15 @@ bessd:
 
 ## Configuration for web container
 web:
+  ## Image configuration
+  image:
+    # -- web image repository
+    repository: nfvri/upf-epc-8806-bess
+    # -- web image pull policy
+    pullPolicy: IfNotPresent
+    # -- web image tag
+    tag: "0.3.0-dev"
+
   # -- Override default container command (useful when using custom images or configmaps)
   command: []
 
@@ -134,6 +156,15 @@ web:
 
 ## Configuration for routectl container
 routectl:
+  ## Image configuration
+  image:
+    # -- routectl image repository
+    repository: nfvri/upf-epc-8806-bess
+    # -- routectl image pull policy
+    pullPolicy: IfNotPresent
+    # -- routectl image tag
+    tag: "0.3.0-dev"
+
   # -- Override default container command (useful when using custom images or configmaps)
   command: []
 
@@ -157,6 +188,15 @@ routectl:
 
 ## Configuration for pfcpiface container
 pfcpiface:
+  ## Image configuration
+  image:
+    # -- pfcpiface image repository
+    repository: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
+    # -- pfcpiface image pull policy
+    pullPolicy: IfNotPresent
+    # -- pfcpiface image tag
+    tag: "0.3.0-dev"
+
   # -- Override default container command (useful when using custom images or configmaps)
   command: []
   
@@ -175,8 +215,8 @@ pfcpiface:
   extraVolumeMounts: []
 
 # -- (object) podAnnotations Map of annotations to add to the pods
-podAnnotations:
-  k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2
+podAnnotations: {}
+  # k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2
 
 # -- (object) Node labels for omec-upf pods assignment
 nodeSelector:
