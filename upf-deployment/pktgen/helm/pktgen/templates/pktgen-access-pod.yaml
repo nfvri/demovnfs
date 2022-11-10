@@ -25,10 +25,10 @@ spec:
     {{- if .Values.overideConfigMap }}
     {{- toYaml .Values.access.extraVolumeMounts | nindent 4 }}
     {{- else }}
+    - name: {{ include "pktgen.fullname" . }}-access-weekly
+      mountPath: /conf
     - name: pattern-weekly
       mountPath: /opt/bess/bessctl/conf/patterns/
-    - name: pktgen-premium-access-weekly
-      mountPath: /conf
     - name: hugepages
       mountPath: /dev/hugepages
     {{- end }}
@@ -43,8 +43,8 @@ spec:
     configMap:
       name: pattern-weekly
       defaultMode: 0777
-  - name: pktgen-premium-access-weekly
+  - name: {{ include "pktgen.fullname" . }}-access-weekly
     configMap:
-      name: pktgen-premium-access-weekly
+      name: {{ include "pktgen.fullname" . }}-access-weekly
       defaultMode: 0777
   {{- end}}

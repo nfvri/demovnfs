@@ -25,9 +25,9 @@ spec:
     {{- if .Values.overideConfigMap }}
     {{- toYaml .Values.core.extraVolumeMounts | nindent 4 }}
     {{- else }}
-    - name: pktgen-premium-core-weekly
+    - name: {{ include "pktgen.fullname" . }}-core-weekly
       mountPath: /conf
-    - name: pattern-weekly
+    - name: {{ include "pktgen.fullname" . }}-pattern-weekly
       mountPath: /opt/bess/bessctl/conf/patterns/
     - name: hugepages
       mountPath: /dev/hugepages
@@ -39,12 +39,12 @@ spec:
   {{- if .Values.overideConfigMap }}
   {{- toYaml .Values.core.extraVolumes | nindent 2 }}
   {{- else }}
-  - name: pattern-weekly
+  - name: {{ include "pktgen.fullname" . }}-pattern-weekly
     configMap:
-      name: pattern-weekly
+      name: {{ include "pktgen.fullname" . }}-pattern-weekly
       defaultMode: 0777
-  - name: pktgen-premium-core-weekly
+  - name: {{ include "pktgen.fullname" . }}-core-weekly
     configMap:
-      name: pktgen-premium-core-weekly
+      name: {{ include "pktgen.fullname" . }}-core-weekly
       defaultMode: 0777
   {{- end}}

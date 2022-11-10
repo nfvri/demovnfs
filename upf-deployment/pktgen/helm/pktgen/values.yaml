@@ -20,7 +20,7 @@ image:
 # -- Network configuration
 upf:
   s1u: 3a:75:03:3c:7a:19
-  sgi: ea:bb:de:f7:a2:16 
+  sgi: 4e:a6:53:e3:0f:65 
 
 # -- Select true when the user supplies custom traffic pattern, configMap and values override
 overideConfigMap: false

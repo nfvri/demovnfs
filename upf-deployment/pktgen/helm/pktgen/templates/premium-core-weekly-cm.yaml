@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: premium-core-weekly
+  name: {{ include "pktgen.fullname" . }}-core-weekly
+  labels:
+  {{ include "pktgen.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": pre-upgrade,pre-install
 data:  
