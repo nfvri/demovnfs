@@ -1,37 +1,50 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {{ .Values.core.podName | default "pktgen-access" }}
+  name: {{ include "pktgen.fullname" . }}-core
   labels:
-    app: {{ .Values.core.podName | default "pktgen-access" }}
+  {{ include "pktgen.labels" . | nindent 4 }}
   annotations:
     rollme: {{ randAlphaNum 5 | quote }}
     {{- toYaml .Values.core.podAnnotations | nindent 4 }}
 spec:
   shareProcessNamespace: true
   nodeSelector:
-    {{- toYaml .Values.nodeSelector | nindent 4 }}
+  {{- toYaml .Values.nodeSelector | nindent 6 }}
   containers:
-  - name: {{ .Values.core.podName }}--core
+  - name: core
     image: {{ .Values.image.repository }}
     stdin: true
     tty: true
-    command: ["bash", "-xc", "cp /conf/pktgen-premium-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-core-weekly"]
+    command: {{- toYaml .Values.core.command | nindent 6 }}
     securityContext:
-      {{- toYaml .Values.securityContext | nindent 8 }}
+    {{- toYaml .Values.securityContext | nindent 6 }}
     resources:
-      {{- toYaml .Values.core.resources | nindent 8 }}
+    {{- toYaml .Values.core.resources | nindent 6 }}
     volumeMounts:
-      {{- toYaml .Values.core.volumeMounts | nindent 8 }}
+    {{- if .Values.overideConfigMap }}
+    {{- toYaml .Values.core.extraVolumeMounts | nindent 4 }}
+    {{- else }}
+    - name: {{ include "pktgen.fullname" . }}-core-weekly
+      mountPath: /conf
+    - name: {{ include "pktgen.fullname" . }}-pattern-weekly
+      mountPath: /opt/bess/bessctl/conf/patterns/
+    - name: hugepages
+      mountPath: /dev/hugepages
+    {{- end }}
   volumes:
   - name: hugepages
     emptyDir:
       medium: HugePages
-  - name: pattern-weekly
+  {{- if .Values.overideConfigMap }}
+  {{- toYaml .Values.core.extraVolumes | nindent 2 }}
+  {{- else }}
+  - name: {{ include "pktgen.fullname" . }}-pattern-weekly
     configMap:
-      name: pattern-weekly
+      name: {{ include "pktgen.fullname" . }}-pattern-weekly
       defaultMode: 0777
-  - name: pktgen-premium-core-weekly
+  - name: {{ include "pktgen.fullname" . }}-core-weekly
     configMap:
-      name: pktgen-premium-core-weekly
+      name: {{ include "pktgen.fullname" . }}-core-weekly
       defaultMode: 0777
+  {{- end}}
