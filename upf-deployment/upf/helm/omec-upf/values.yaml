@@ -108,7 +108,7 @@ bessd:
       memory: "2Gi"
       hugepages-1Gi: 4Gi
     #  intel.com/intel_sriov_dpdk_b2b_net1: '1'
-   #   intel.com/intel_sriov_dpdk_b2b_net2: '1'
+    #  intel.com/intel_sriov_dpdk_b2b_net2: '1'
 
   # -- (object) OMEC UPF bessd container's readiness probe
   readinessProbe:
