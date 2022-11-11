@@ -219,8 +219,8 @@ podAnnotations: {}
   # k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2
 
 # -- (object) Node labels for omec-upf pods assignment
-nodeSelector:
-  kubernetes.io/hostname: "clx2"
+nodeSelector: {}
+ # kubernetes.io/hostname: "clx2"
 
 # -- (array) Tolerations for omec-upf pods assignment
 tolerations: []

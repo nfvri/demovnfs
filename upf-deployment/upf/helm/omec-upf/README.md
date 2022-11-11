@@ -91,7 +91,7 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | pfcpiface.resources.limits | object | `{"cpu":"1000m","memory":"512Mi"}` | The resources requests for the pfcpiface container   |
 | pfcpiface.extraVolumeMounts | array | `[]` | A list of volume mounts to be added to the pfcpiface container |
 | podAnnotations | object | `{}` | podAnnotations Map of annotations to add to the pods |
-| nodeSelector | object | `{"kubernetes.io/hostname":"clx2"}` | Node labels for omec-upf pods assignment |
+| nodeSelector | object | `{}` | Node labels for omec-upf pods assignment |
 | tolerations | array | `[]` | Tolerations for omec-upf pods assignment |
 | affinity | object | `{}` | Affinity for omec-upf pods assignment |
 | extraVolumes | array | `[]` | A list of volumes to be added to the pod |

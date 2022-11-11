@@ -124,12 +124,7 @@
             "type": "array"
         },
         "nodeSelector": {
-            "type": "object",
-            "properties": {
-                "kubernetes.io/hostname": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "pfcpiface": {
             "type": "object",
