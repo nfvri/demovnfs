@@ -57,13 +57,13 @@ data:
         "": "Gateway interfaces",
         "access": {
             "ifname": {{ .Values.upf.s1u.iface | default "net0" | quote }},
-            "pci": "{{ .Values.upf.s1u.pci }}"
+            "pci": "${{ .Values.upf.s1u.pci }}"
         },
 
         "": "UE IP Natting. Update the line below to `\"ip_masquerade\": \"<ip> [or <ip>]\"` to enable",
         "core": {
             "ifname": {{ .Values.upf.sgi.iface | default "net1" | quote }},
-            "pci": "{{ .Values.upf.sgi.pci }}",
+            "pci": "${{ .Values.upf.sgi.pci }}",
             "": "ip_masquerade: 18.0.0.1 or 18.0.0.2 or 18.0.0.3"
         },
 
