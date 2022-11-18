@@ -68,7 +68,7 @@ data:
         },
 
         "": "Number of worker threads. Default: 1",
-        "workers": 5,
+        "workers": {{ .Values.upf.num_workers | default "4" | quote }},
 
         "": "Whether to enable Network Token Functions",
         "enable_ntf": false,
