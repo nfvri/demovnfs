@@ -14,6 +14,15 @@ service:
   # -- Specifies the nodePort of service if the service type is NodePort
   nodePort: 30020
 
+## Service of omec upf
+serviceMetrics:
+  # -- Specifies the type of service to deploy
+  type: ClusterIP
+  # -- Specifies the port of service
+  port: 8080
+  # -- Specifies the nodePort of service if the service type is NodePort
+  nodePort: 30022
+
 ## Service account for omec-upf to use.
 ##
 serviceAccount:
@@ -41,8 +50,9 @@ serviceMonitor:
   create: true
   # -- Specify the namespace for the service monitor
   monitoringNamespace: monitoring
-  # -- Specify the release for the service monitor
-  monitoringRelease: k8s-prom
+  # -- Specify extra monitoring labels for the service monitor
+  monitoringLabels:
+    release: k8s-prom
   # -- Specify the time scrape interval
   scrapeInterval: 5s
   # -- Specify the scrape timeout

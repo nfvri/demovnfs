@@ -125,7 +125,7 @@ spec:
         {{- if .Values.pfcpiface.command }}
         command: {{- toYaml .Values.pfcpiface.command | nindent 10 }}
         {{- else }}
-        command: ["sh", "-c", "while ! $(nc -vz localhost 3456); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /pre-install/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create; pfcpiface -config /pre-install/upf.json"]
+        command: ["sh", "-c", "while ! $(nc -vz 127.0.0.1 3456); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /pre-install/upf.json -bess 127.0.0.1:10514 -http 0.0.0.0:8082 -simulate create; pfcpiface -config /pre-install/upf.json -bess 127.0.0.1:10514 -http 0.0.0.0:8082"]
         {{- end }}
         {{- if .Values.pfcpiface.readinessProbe }}
         readinessProbe: {{- toYaml .Values.pfcpiface.readinessProbe | nindent 10 }}
@@ -144,6 +144,9 @@ spec:
         ports:
         - name: http
           containerPort: 8082
+          protocol: TCP
+        - name: http-metrics
+          containerPort: 8080
           protocol: TCP
         resources:
           {{- toYaml .Values.pfcpiface.resources | nindent 12 }}
