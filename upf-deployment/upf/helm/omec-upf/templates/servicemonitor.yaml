@@ -1,0 +1,22 @@
+{{- if .Values.serviceMonitor.create -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "omec-upf.fullname" . }}-monitor
+  namespace: {{ .Values.serviceMonitor.monitoringNamespace }}
+  labels:
+    release: {{ .Values.serviceMonitor.monitoringRelease }}
+    {{- include "omec-upf.labels" . | nindent 4 }}
+spec:
+  endpoints:
+  - port: {{ include "omec-upf.fullname" . }}-http
+    interval: {{ .Values.serviceMonitor.scrapeInterval }}
+    scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "omec-upf.selectorLabels" . | nindent 8 }}
+{{- end }}
+

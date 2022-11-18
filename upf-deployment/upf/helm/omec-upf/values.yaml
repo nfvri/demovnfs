@@ -35,6 +35,20 @@ rbac:
   # -- The cluster role name
   clusterRole: "cluster-admin"
 
+## Service Monitor Configuration for operated Prometheus
+serviceMonitor:
+  # -- Specify if service monitor will be created
+  create: true
+  # -- Specify the namespace for the service monitor
+  monitoringNamespace: monitoring
+  # -- Specify the release for the service monitor
+  monitoringRelease: k8s-prom
+  # -- Specify the time scrape interval
+  scrapeInterval: 5s
+  # -- Specify the scrape timeout
+  scrapeTimeout: 5s
+
+
 ## UPF network configuration
 upf:
   ## s1u network configuration

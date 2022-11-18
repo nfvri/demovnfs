@@ -21,8 +21,12 @@ data:
 
     apt-get update
     apt-get install gettext-base -y
+    pci_vfio_net1=$(echo ${PCIDEVICE_OPENSHIFT_IO_VFIO_NET1} | cut -d "," -f 1 | tr -s " ")
+    pci_vfio_net2=$(echo ${PCIDEVICE_OPENSHIFT_IO_VFIO_NET1} | cut -d "," -f 2 | tr -s " ")
 
-    envsubst < /conf/upf.json > /pre-install/upf.json
+    sed -e "s/PCIDEVICE_OPENSHIFT_IO_VFIO_NET1/pci_vfio_net1/g" /conf/upf.json > /pre-install/tmp_upf.json
+    sed -i "s/PCIDEVICE_OPENSHIFT_IO_VFIO_NET2/pci_vfio_net2/g" /pre-install/tmp_upf.json
+    envsubst < /pre-install/tmp_upf.json > /pre-install/upf.json
     
     cp /pre-install/upf.json /opt/bess/bessctl/conf/upf.json
     cp /bess-overrides/up4_premium.bess /opt/bess/bessctl/conf/up4_premium.bess
