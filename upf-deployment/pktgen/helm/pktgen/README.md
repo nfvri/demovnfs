@@ -31,29 +31,29 @@ The command removes all the Kubernetes components but PVC's associated with the 
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| access.command | list | `["bash","-xc","cp /conf/pktgen-premium-access-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-access-weekly"]` | Default container command to be executed (override when using custom configmaps and traffic patterns) |
-| access.extraVolumeMounts | list | `[]` |  |
-| access.extraVolumes | list | `[]` |  |
-| access.podAnnotations."k8s.v1.cni.cncf.io/networks" | string | `"default/sriov-dpdk-b2b-net1"` |  |
-| access.resources | object | `{"limits":{"cpu":"2000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","memory":"4Gi"},"requests":{"cpu":"2000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","memory":"4Gi"}}` | Container resources configuration |
-| access.resources.limits | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","memory":"4Gi"}` | Resources limits for pktgen-access |
-| access.resources.requests | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net1":"1","memory":"4Gi"}` | Resources requested by pktgen-access |
-| core.command | list | `["bash","-xc","cp /conf/pktgen-premium-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-core-weekly"]` | Default container command to be executed (override when using custom configmaps and traffic patterns) |
-| core.extraVolumeMounts | list | `[]` |  |
-| core.extraVolumes | list | `[]` |  |
-| core.podAnnotations."k8s.v1.cni.cncf.io/networks" | string | `"default/sriov-dpdk-b2b-net2"` |  |
-| core.resources | object | `{"limits":{"cpu":"2000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"4Gi"},"requests":{"cpu":"2000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"4Gi"}}` | Container resources configuration |
-| core.resources.limits | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"4Gi"}` | Resources limits for pktgen-access |
-| core.resources.requests | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","intel.com/intel_sriov_dpdk_b2b_net2":"1","memory":"4Gi"}` | Resources requested by pktgen-access |
-| image.pullPolicy | string | `"IfNotPresent"` | image pull policy |
-| image.repository | string | `"omecproject/upf-epc-bess"` | image repository |
-| image.tag | string | `"master-latest"` | image tag |
-| nodeSelector | object | `{"kubernetes.io/hostname":"clx1"}` | Node labels for node selection |
-| overideConfigMap | bool | `false` | Select true when the user supplies custom traffic pattern, configMap and values override |
-| rbac.clusterRole | string | `"cluster-admin"` | The cluster role name |
-| rbac.create | bool | `false` | Specifies whether a cluster role binding should be created |
-| securityContext.capabilities.add[0] | string | `"IPC_LOCK"` |  |
+| nodeSelector | object | `{}` | Node labels for node selection |
 | securityContext.privileged | bool | `false` |  |
+| securityContext.capabilities.add[0] | string | `"IPC_LOCK"` |  |
+| image.repository | string | `"omecproject/upf-epc-bess"` | image repository |
+| image.pullPolicy | string | `"IfNotPresent"` | image pull policy |
+| image.tag | string | `"master-latest"` | image tag |
+| rbac.create | bool | `false` | Specifies whether a cluster role binding should be created |
+| rbac.clusterRole | string | `"cluster-admin"` | The cluster role name |
 | serviceAccount.create | bool | `false` | Specifies whether a ServiceAccount should be created  |
 | upf.s1u | string | `"3a:75:03:3c:7a:19"` | upf access interface MAC address |
 | upf.sgi | string | `"4e:a6:53:e3:0f:65"` | upf core interface MAC address |
+| overideConfigMap | bool | `false` | Select true when the user supplies custom traffic pattern, configMap and values override |
+| access.command | list | `["bash","-xc","cp /conf/pktgen-premium-access-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-access-weekly"]` | Default container command to be executed (override when using custom configmaps and traffic patterns) |
+| access.podAnnotations | object | `{}` |  |
+| access.resources | object | `{"limits":{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"},"requests":{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}}` | Container resources configuration |
+| access.resources.requests | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}` | Resources requested by pktgen-access |
+| access.resources.limits | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}` | Resources limits for pktgen-access |
+| access.extraVolumeMounts | list | `[]` |  |
+| access.extraVolumes | list | `[]` |  |
+| core.podAnnotations | object | `{}` |  |
+| core.command | list | `["bash","-xc","cp /conf/pktgen-premium-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-core-weekly"]` | Default container command to be executed (override when using custom configmaps and traffic patterns) |
+| core.resources | object | `{"limits":{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"},"requests":{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}}` | Container resources configuration |
+| core.resources.requests | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}` | Resources requested by pktgen-access |
+| core.resources.limits | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}` | Resources limits for pktgen-access |
+| core.extraVolumeMounts | list | `[]` |  |
+| core.extraVolumes | list | `[]` |  |

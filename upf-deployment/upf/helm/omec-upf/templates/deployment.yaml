@@ -84,7 +84,7 @@ spec:
           {{- toYaml .Values.bessd.resources | nindent 10 }}
         {{- end }}
         volumeMounts:
-        - name: {{ include "omec-upf.fullname" . }}-init-setup
+        - name: {{ include "omec-upf.fullname" . }}-config
           mountPath: /init-conf
         - name: {{ include "omec-upf.fullname" . }}-upf-json
           mountPath: /conf
@@ -162,9 +162,9 @@ spec:
       - name: hugepages
         emptyDir:
           medium: HugePages
-      - name: {{ include "omec-upf.fullname" . }}-init-setup
+      - name: {{ include "omec-upf.fullname" . }}-config
         configMap:
-          name: {{ include "omec-upf.fullname" . }}-init-setup
+          name: {{ include "omec-upf.fullname" . }}-config
           defaultMode: 0777
       - name: {{ include "omec-upf.fullname" . }}-pre-install 
         emptyDir: {}

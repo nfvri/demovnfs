@@ -18,12 +18,7 @@
                     "type": "array"
                 },
                 "podAnnotations": {
-                    "type": "object",
-                    "properties": {
-                        "k8s.v1.cni.cncf.io/networks": {
-                            "type": "string"
-                        }
-                    }
+                    "type": "object"
                 },
                 "resources": {
                     "type": "object",
@@ -35,9 +30,6 @@
                                     "type": "string"
                                 },
                                 "hugepages-1Gi": {
-                                    "type": "string"
-                                },
-                                "intel.com/intel_sriov_dpdk_b2b_net1": {
                                     "type": "string"
                                 },
                                 "memory": {
@@ -52,9 +44,6 @@
                                     "type": "string"
                                 },
                                 "hugepages-1Gi": {
-                                    "type": "string"
-                                },
-                                "intel.com/intel_sriov_dpdk_b2b_net1": {
                                     "type": "string"
                                 },
                                 "memory": {
@@ -82,12 +71,7 @@
                     "type": "array"
                 },
                 "podAnnotations": {
-                    "type": "object",
-                    "properties": {
-                        "k8s.v1.cni.cncf.io/networks": {
-                            "type": "string"
-                        }
-                    }
+                    "type": "object"
                 },
                 "resources": {
                     "type": "object",
@@ -99,9 +83,6 @@
                                     "type": "string"
                                 },
                                 "hugepages-1Gi": {
-                                    "type": "string"
-                                },
-                                "intel.com/intel_sriov_dpdk_b2b_net2": {
                                     "type": "string"
                                 },
                                 "memory": {
@@ -116,9 +97,6 @@
                                     "type": "string"
                                 },
                                 "hugepages-1Gi": {
-                                    "type": "string"
-                                },
-                                "intel.com/intel_sriov_dpdk_b2b_net2": {
                                     "type": "string"
                                 },
                                 "memory": {
@@ -145,12 +123,7 @@
             }
         },
         "nodeSelector": {
-            "type": "object",
-            "properties": {
-                "kubernetes.io/hostname": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "overideConfigMap": {
             "type": "boolean"

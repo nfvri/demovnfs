@@ -114,11 +114,11 @@
                             }
                         }
                     }
-                },
-                "upfConfFile": {
-                    "type": "string"
                 }
             }
+        },
+        "config": {
+            "type": "object"
         },
         "extraVolumes": {
             "type": "array"
@@ -265,6 +265,48 @@
                 }
             }
         },
+        "serviceMetrics": {
+            "type": "object",
+            "properties": {
+                "create": {
+                    "type": "boolean"
+                },
+                "nodePort": {
+                    "type": "integer"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "properties": {
+                "create": {
+                    "type": "boolean"
+                },
+                "monitoringLabels": {
+                    "type": "object",
+                    "properties": {
+                        "release": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "monitoringNamespace": {
+                    "type": "string"
+                },
+                "scrapeInterval": {
+                    "type": "string"
+                },
+                "scrapeTimeout": {
+                    "type": "string"
+                }
+            }
+        },
         "shareProcessNamespace": {
             "type": "boolean"
         },
@@ -277,9 +319,6 @@
                 "s1u": {
                     "type": "object",
                     "properties": {
-                        "iface": {
-                            "type": "string"
-                        },
                         "ip": {
                             "type": "string"
                         },
@@ -303,9 +342,6 @@
                 "sgi": {
                     "type": "object",
                     "properties": {
-                        "iface": {
-                            "type": "string"
-                        },
                         "ip": {
                             "type": "string"
                         },
