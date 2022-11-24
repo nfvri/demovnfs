@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: upf
+  labels:
+    app: upf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: upf
+  template:
+    metadata:
+      labels:
+        app: upf
+      annotations:
+        k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1,default/sriov-dpdk-b2b-net2
+    spec:
+      shareProcessNamespace: true
+      nodeSelector:
+        kubernetes.io/hostname: "clx2"
+      containers:
+      - name: routectl
+        image: nfvri/upf-epc-8806-bess:0.3.0-dev
+        command: ["bash", "-c", "until ss -a | grep -q 3456;  do sleep 5; echo 'Waiting for bessd'; done; python /conf/route_control_premium.py -i net0 net1"]
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        volumeMounts:
+        - name: upf-conf
+          mountPath: /conf
+        - name: hugepages
+          mountPath: /dev/hugepages
+          readOnly: False
+      - name: bessd
+        image: nfvri/upf-epc-8806-bess:0.3.0-dev
+        stdin: true
+        tty: true
+        command: ["bash", "-xec", "/init-conf/routes_setup.sh && bessd -grpc-url=0.0.0.0:10514; until ss -a | grep -q 10514; do sleep 5; echo waiting for bessd; done;  ./bessctl run up4_premium; ./bessctl http 0.0.0.0 3456"]
+        env:
+        - name: CONF_FILE
+          value: /opt/bess/bessctl/conf/upf.json
+        readinessProbe:
+          tcpSocket:
+            port: 10514
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        livenessProbe:
+          tcpSocket:
+            port: 10514
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        securityContext:
+          #privileged: true
+          capabilities:
+            add:
+            - NET_ADMIN
+            - IPC_LOCK # AF_PACKET vdev (and 4K pages) uses mmap
+        resources:
+          requests:
+            cpu: "6000m"
+            memory: "2Gi"
+            hugepages-1Gi: 4Gi
+            intel.com/intel_sriov_dpdk_b2b_net1: '1'
+            intel.com/intel_sriov_dpdk_b2b_net2: '1'
+          limits:
+            cpu: "6000m"
+            memory: "2Gi"
+            hugepages-1Gi: 4Gi
+            intel.com/intel_sriov_dpdk_b2b_net1: '1'
+            intel.com/intel_sriov_dpdk_b2b_net2: '1'
+        volumeMounts:
+        - name: routes-setup
+          mountPath: /init-conf
+        - name: upf-conf
+          mountPath: /conf
+        - name: pre-install
+          mountPath: /pre-install
+        - name: hugepages
+          mountPath: /dev/hugepages
+      - name: web
+        image: upf-epc-8806-bess:0.3.0-dev
+        command: ["bash", "-c", "bessctl  http 0.0.0.0 8001"]
+        ports:
+        - name: http-web
+          containerPort: 8001
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+      - name: pfcpiface
+        image: nfvri/upf-epc-8806-pfcpiface:0.3.0-dev
+        command: ["sh", "-c", "while ! $(nc -vz localhost 3456); do echo 'Waiting...'; sleep 10; done; pfcpiface -config /pre-install/upf.json -bess localhost:10514 -http 0.0.0.0:8082 -simulate create; pfcpiface -config /pre-install/upf.json"]
+        volumeMounts:
+        - name: upf-conf
+          mountPath: /conf
+        - name: pre-install
+          mountPath: /pre-install
+        ports:
+        - name: http
+          containerPort: 8082
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+      volumes:
+      - name: upf-conf
+        configMap:
+          name: upf-conf
+          defaultMode: 0777
+      - name: hugepages
+        emptyDir:
+          medium: HugePages
+      - name: routes-setup
+        configMap:
+          name: routes-setup
+          defaultMode: 0777
+      - name: pre-install 
+        emptyDir: {}

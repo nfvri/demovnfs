@@ -1,0 +1,20 @@
+{{- if .Values.serviceMetrics.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "omec-upf.fullname" . }}-metrics
+  labels:
+    {{- include "omec-upf.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.serviceMetrics.type }}
+  ports:
+    - port: {{ .Values.serviceMetrics.port }}
+      {{- if eq .Values.serviceMetrics.type "NodePort" }}
+      nodePort: {{ .Values.serviceMetrics.nodePort }}
+      {{- end }}
+      targetPort: http-metrics
+      protocol: TCP
+      name: http-metrics
+  selector:
+    {{- include "omec-upf.selectorLabels" . | nindent 4 }}
+{{- end }}

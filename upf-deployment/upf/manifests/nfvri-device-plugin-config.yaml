@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: device-plugin-config
+  namespace: openshift-sriov-network-operator
+data:
+  w0.tme.shift.zone: |
+    {
+        "resourceList": [
+          {
+            "resourceName": "intracom_vfio_net1",
+            "selectors": {
+              "drivers": [
+                "vfio-pci"
+              ],
+              "pfNames": [
+                "ens4f0#0-15"
+              ],
+              "IsRdma": false,
+              "NeedVhostNet": false
+            },
+          },
+          {
+            "resourceName": "intracom_vfio_net2",
+            "selectors": {
+              "drivers": [
+                "vfio-pci"
+              ],
+              "pfNames": [
+                "ens4f1#0-15"
+              ],
+              "IsRdma": false,
+              "NeedVhostNet": false
+            },
+          }
+        ]
+    }    
+  
+  w1.tme.shift.zone: | 
+    {
+        "resourceList": [
+          {
+            "resourceName": "intracom_vfio_net1",
+            "selectors": {
+              "drivers": [
+                "vfio-pci"
+              ],
+              "pfNames": [
+                "ens4f0#0-15"
+              ],
+              "IsRdma": false,
+              "NeedVhostNet": false
+            },
+          },
+          {
+            "resourceName": "intracom_vfio_net2",
+            "selectors": {
+              "drivers": [
+                "vfio-pci"
+              ],
+              "pfNames": [
+                "ens4f1#0-15"
+              ],
+              "IsRdma": false,
+              "NeedVhostNet": false
+            },
+          }
+        ]
+    }    
+  
