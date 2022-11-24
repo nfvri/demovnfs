@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "redis-benchmark.fullname" . }}
+  labels:
+    {{- include "redis-benchmark.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "redis-benchmark.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "redis-benchmark.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "redis-benchmark.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:         
+        - name: redis
+          securityContext:
+            {{- toYaml .Values.redis.securityContext | nindent 12 }}
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          {{- if .Values.redis.command }}
+          command: {{- toYaml .Values.redis.command | nindent 10}}
+          {{- else }}
+          command: ["sh", "-c", "redis-server /etc/redis/redis.conf"]
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.redis.service.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          volumeMounts:
+          - name: {{ include "redis-benchmark.fullname" . }}-config
+            mountPath: /etc/redis/
+          {{- if .Values.redis.extraVolumeMounts }}
+          {{- toYaml .Values.redis.extraVolumeMounts | nindent 10 }}
+          {{- end }}
+        - name: exporter
+          securityContext:
+            {{- toYaml .Values.exporter.securityContext | nindent 12 }}
+          image: "{{ .Values.exporter.image.repository }}:{{ .Values.exporter.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.exporter.image.pullPolicy }}
+          env:
+          - name: REDIS_ADDR
+            value: "redis://{{ include "redis-benchmark.fullname" . }}:{{ .Values.redis.service.port }}"
+          ports:
+            - name: http-metrics
+              containerPort: {{ .Values.exporter.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: http-metrics
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: http-metrics
+          resources:
+            {{- toYaml .Values.exporter.resources | nindent 12 }}
+          {{- if .Values.exporter.extraVolumeMounts }}
+          volumeMounts:
+          {{- toYaml .Values.exporter.extraVolumeMounts | nindent 10 }}
+          {{- end }}
+        - name: benchmark
+          securityContext:
+            {{- toYaml .Values.redis.securityContext | nindent 12 }}
+          image: "{{ .Values.benchmark.image.repository }}:{{ .Values.benchmark.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.benchmark.image.pullPolicy }}
+          {{- if .Values.benchmark.command }}
+          command: {{- toYaml .Values.benchmark.command | nindent 10}}
+          {{- else }}
+          command: ["sh", "-c", "until ss -a | grep -q 6379; do sleep 5; echo waiting for redis; done; /scripts/redis_load.sh"]
+          {{- end }}
+          resources:
+            {{- toYaml .Values.benchmark.resources | nindent 12 }}
+          volumeMounts:
+          - name: {{ include "redis-benchmark.fullname" . }}-scripts
+            mountPath: /scripts
+          {{- if .Values.benchmark.extraVolumeMounts }}
+          {{- toYaml .Values.benchmark.extraVolumeMounts | nindent 10 }}
+          {{- end }}           
+      volumes:
+      - name: {{ include "redis-benchmark.fullname" . }}-scripts  
+        configMap:
+          name: {{ include "redis-benchmark.fullname" . }}-scripts
+          defaultMode: 0777
+      - name: {{ include "redis-benchmark.fullname" . }}-config  
+        configMap:
+          name: {{ include "redis-benchmark.fullname" . }}-config
+          defaultMode: 0777      
+      {{- if .Values.extraVolumes }}
+      {{- toYaml .Values.extraVolumes | nindent 6}}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

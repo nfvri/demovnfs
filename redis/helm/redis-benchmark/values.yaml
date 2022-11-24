@@ -1,0 +1,187 @@
+# Default values for redis-benchmark.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Number of redis benchmark replicas to deploy
+replicaCount: 1
+
+# -- String to partially override chart name
+nameOverride: ""
+# -- String to fully override full chart name
+fullnameOverride: ""
+
+# -- Docker registry secret names as an array
+imagePullSecrets: []
+
+# -- Annotations for redis benchmark and replicas pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+
+# -- Configure Pods Security Context
+podSecurityContext: {}
+  # fsGroup: 2000
+## Service account redis benchmark to use.
+##
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+## RBAC Configuration
+rbac:
+  # -- Specifies whether a cluster role binding should be created
+  create: false
+  # -- The cluster role name
+  clusterRole: "cluster-admin"
+
+## Service Monitor Configuration for operated Prometheus
+serviceMonitor:
+  # -- Specify if service monitor will be created
+  create: false
+  # -- Specify the namespace for the service monitor
+  monitoringNamespace: monitoring
+  # -- Specify extra monitoring labels for the service monitor
+  monitoringLabels:
+    release: k8s-prom
+  # -- Specify the time scrape interval
+  scrapeInterval: 5s
+  # -- Specify the scrape timeout
+  scrapeTimeout: 5s
+
+
+benchmark:
+  ## Image configuration
+  image:
+    # -- redis image repository
+    repository: redis
+    # -- redis image pull policy
+    pullPolicy: IfNotPresent
+    # -- Overrides the redis image tag whose default is the chart appVersion.
+    tag: "3.2.8"
+  
+  # -- (array) Overrides the default redis container command
+  command: []
+  
+  # -- (object) Allows you to add any scripts files in {{ chartName }}-scripts configmap, such as redis_load.sh bash script
+  scripts: {}
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # -- Optionally specify extra list of additional volumeMounts for the redis master container(s)
+  extraVolumeMounts: []
+redis:
+  ## Image configuration
+  image:
+    # -- redis image repository
+    repository: redis
+    # -- redis image pull policy
+    pullPolicy: IfNotPresent
+    # -- Overrides the redis image tag whose default is the chart appVersion.
+    tag: "3.2.8"
+  
+  # -- (array) Overrides the default redis container command
+  command: []
+
+  # -- (object) Allows you to add any config files in {{ chartName }}-config configmap, such as redis.conf file
+  config: {}
+  
+  # -- (object) Allows you to add any scripts files in {{ chartName }}-scripts configmap, such as redis_load.sh bash script
+  scripts: {}
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    port: 6379
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # -- Optionally specify extra list of additional volumeMounts for the redis master container(s)
+  extraVolumeMounts: []
+
+exporter:
+  image:
+    repository: bitnami/redis-exporter
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    port: 9121
+    
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  
+  # -- Optionally specify extra list of additional volumeMounts for the exporter master container(s)
+  extraVolumeMounts: []
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# -- Optionally specify extra list of additional volumes for the redis becnhmark master pod(s)
+extraVolumes: []

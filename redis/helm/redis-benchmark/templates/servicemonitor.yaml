@@ -1,0 +1,22 @@
+{{- if .Values.serviceMonitor.create -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "redis-benchmark.fullname" . }}-monitor
+  namespace: {{ .Values.serviceMonitor.monitoringNamespace }}
+  labels:
+    {{ .Values.serviceMonitor.monitoringLabels | toYaml | nindent 4 }}
+    {{- include "redis-benchmark.labels" . | nindent 4 }}
+spec:
+  endpoints:
+  - port: http-metrics
+    interval: {{ .Values.serviceMonitor.scrapeInterval }}
+    scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "redis-benchmark.selectorLabels" . | nindent 8 }}
+{{- end }}
+
