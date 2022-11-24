@@ -49,7 +49,6 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | serviceMonitor.monitoringLabels | object | `{"release":"k8s-prom"}` | Specify extra monitoring labels for the service monitor |
 | serviceMonitor.scrapeInterval | string | `"5s"` | Specify the time scrape interval |
 | serviceMonitor.scrapeTimeout | string | `"5s"` | Specify the scrape timeout |
-| upf.s1u | string | `{"ip":"198.18.0.1/30","mac":"9e:b2:d3:34:cc:28","nhip":"198.18.0.2","nhmac":"22:53:7a:15:58:50","pci":"PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET1","route":"11.1.1.128/25"}` | Number of workers as string to assign for queue handling on each port num_workers: "4" # s1u network configuration |
 | upf.s1u.mac | string | `"9e:b2:d3:34:cc:28"` | s1u MAC addresses of gateway interface |
 | upf.s1u.ip | string | `"198.18.0.1/30"` | s1u ip address |
 | upf.s1u.nhip | string | `"198.18.0.2"` | s1u static ip address of its neighbor of gateway interface |

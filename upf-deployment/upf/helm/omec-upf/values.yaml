@@ -65,10 +65,12 @@ serviceMonitor:
 upf:
   # -- (string) Number of workers as string to assign for queue handling on each port
   # num_workers: "4"
+  
   ## s1u network configuration
   s1u:
     # -- (string) s1u gateway interface name
     # iface: net0
+    
     # -- s1u MAC addresses of gateway interface
     mac: 9e:b2:d3:34:cc:28
     # -- s1u ip address
@@ -85,6 +87,7 @@ upf:
   sgi: 
     # -- (string) sgi gateway interface name
     # iface: net1
+
     # -- sgi MAC addresses of gateway interface
     mac: c2:9c:55:d4:8a:1f
     # -- sgi ip address
