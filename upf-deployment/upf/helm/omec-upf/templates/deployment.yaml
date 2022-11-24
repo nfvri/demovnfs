@@ -116,7 +116,7 @@ spec:
         {{- if .Values.web.livenessProbe }}
         livenessProbe: {{- toYaml .Values.web.livenessProbe | nindent 10 }}
         {{- end }}
-        {{- if .Values.bessd.extraVolumeMounts }}
+        {{- if .Values.web.extraVolumeMounts }}
         volumeMounts:
         {{- toYaml .Values.web.extraVolumeMounts | nindent 10 }}
         {{- end }}
@@ -138,7 +138,7 @@ spec:
           mountPath: /conf
         - name: {{ include "omec-upf.fullname" . }}-pre-install
           mountPath: /pre-install
-        {{- if .Values.bessd.extraVolumeMounts }}
+        {{- if .Values.pfcpiface.extraVolumeMounts }}
         {{- toYaml .Values.pfcpiface.extraVolumeMounts | nindent 10 }}
         {{- end }}
         ports:
