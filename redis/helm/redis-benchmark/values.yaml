@@ -51,23 +51,24 @@ serviceMonitor:
   # -- Specify the scrape timeout
   scrapeTimeout: 5s
 
-
+## Configuration for benchmark container
 benchmark:
   ## Image configuration
   image:
-    # -- redis image repository
+    # -- benchmark image repository
     repository: redis
-    # -- redis image pull policy
+    # -- benchmark image pull policy
     pullPolicy: IfNotPresent
-    # -- Overrides the redis image tag whose default is the chart appVersion.
+    # -- Overrides the benchmark image tag whose default is the chart appVersion.
     tag: "3.2.8"
   
-  # -- (array) Overrides the default redis container command
+  # -- (array) Overrides the default benchmark container command
   command: []
   
   # -- (object) Allows you to add any scripts files in {{ chartName }}-scripts configmap, such as redis_load.sh bash script
   scripts: {}
 
+  # -- (object) Security Context Configuration
   securityContext: {}
     # capabilities:
     #   drop:
@@ -76,7 +77,7 @@ benchmark:
     # runAsNonRoot: true
     # runAsUser: 1000
 
-
+  # --  Resources configuration of benchmark
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -91,6 +92,8 @@ benchmark:
 
   # -- Optionally specify extra list of additional volumeMounts for the redis master container(s)
   extraVolumeMounts: []
+
+## Configuration for redis container
 redis:
   ## Image configuration
   image:
@@ -110,6 +113,7 @@ redis:
   # -- (object) Allows you to add any scripts files in {{ chartName }}-scripts configmap, such as redis_load.sh bash script
   scripts: {}
 
+  # -- (object) Security Context Configuration
   securityContext: {}
     # capabilities:
     #   drop:
@@ -118,10 +122,14 @@ redis:
     # runAsNonRoot: true
     # runAsUser: 1000
 
+  ## Service of redis container
   service:
+    # -- Specifies the type of service to deploy for redis
     type: ClusterIP
+    # -- Specifies the port of service for redis
     port: 6379
 
+  ##  Resources configuration of redis container
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -137,13 +145,18 @@ redis:
   # -- Optionally specify extra list of additional volumeMounts for the redis master container(s)
   extraVolumeMounts: []
 
+## Configuration for exporter container
 exporter:
+  ## Image configuration
   image:
+    # -- exporter image repository
     repository: bitnami/redis-exporter
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
+    # -- exporter image pull policy
+    # -- Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
 
+  # -- (object) Security Context Configuration
   securityContext: {}
     # capabilities:
     #   drop:
@@ -152,10 +165,14 @@ exporter:
     # runAsNonRoot: true
     # runAsUser: 1000
 
+  ## Service of exporter container
   service:
+    # -- Specifies the type of service to deploy for exporter
     type: ClusterIP
+    # -- Specifies the port of service for exporter
     port: 9121
     
+  ##  Resources configuration of exporter container
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -170,17 +187,26 @@ exporter:
   
   # -- Optionally specify extra list of additional volumeMounts for the exporter master container(s)
   extraVolumeMounts: []
+
+## Autoscaling configuration
 autoscaling:
+  # -- Enable replica autoscaling settings
   enabled: false
+  # -- Minimum replicas for the pod autoscaling
   minReplicas: 1
+  # -- Maximum replicas for the pod autoscaling
   maxReplicas: 100
+  # -- Percentage of CPU to consider when autoscaling
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+# -- (object) Node labels for redis benchmark pods assignment
 nodeSelector: {}
 
+# -- (array) Tolerations for redis benchmark pods assignment
 tolerations: []
 
+# -- (object)  Affinity for redis benchmark pods assignment
 affinity: {}
 
 # -- Optionally specify extra list of additional volumes for the redis becnhmark master pod(s)
