@@ -27,7 +27,8 @@ spec:
       serviceAccountName: {{ include "redis-benchmark.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      containers:         
+      containers:
+# -------------------------------------------------------------------------------------------------------------------    
         - name: redis
           securityContext:
             {{- toYaml .Values.redis.securityContext | nindent 12 }}
@@ -40,7 +41,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.redis.service.port }}
+              containerPort: 6379
               protocol: TCP
           resources:
             {{- toYaml .Values.redis.resources | nindent 12 }}
@@ -50,6 +51,7 @@ spec:
           {{- if .Values.redis.extraVolumeMounts }}
           {{- toYaml .Values.redis.extraVolumeMounts | nindent 10 }}
           {{- end }}
+# -------------------------------------------------------------------------------------------------------------------
         - name: exporter
           securityContext:
             {{- toYaml .Values.exporter.securityContext | nindent 12 }}
@@ -76,6 +78,7 @@ spec:
           volumeMounts:
           {{- toYaml .Values.exporter.extraVolumeMounts | nindent 10 }}
           {{- end }}
+# -------------------------------------------------------------------------------------------------------------------
         - name: benchmark
           securityContext:
             {{- toYaml .Values.redis.securityContext | nindent 12 }}
@@ -93,7 +96,8 @@ spec:
             mountPath: /scripts
           {{- if .Values.benchmark.extraVolumeMounts }}
           {{- toYaml .Values.benchmark.extraVolumeMounts | nindent 10 }}
-          {{- end }}           
+          {{- end }}  
+# -------------------------------------------------------------------------------------------------------------------         
       volumes:
       - name: {{ include "redis-benchmark.fullname" . }}-scripts  
         configMap:
@@ -102,7 +106,8 @@ spec:
       - name: {{ include "redis-benchmark.fullname" . }}-config  
         configMap:
           name: {{ include "redis-benchmark.fullname" . }}-config
-          defaultMode: 0777      
+          defaultMode: 0777 
+# -------------------------------------------------------------------------------------------------------------------     
       {{- if .Values.extraVolumes }}
       {{- toYaml .Values.extraVolumes | nindent 6}}
       {{- end }}

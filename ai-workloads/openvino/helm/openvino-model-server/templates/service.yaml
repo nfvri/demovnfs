@@ -7,13 +7,13 @@ metadata:
 spec:
   type: {{ .Values.openvino.service.type }}
   ports:
-    - port: {{ .Values.openvino.service.ports.port1 }}
-      targetPort: 8000
+    - port: {{ .Values.openvino.service.restport }}
+      targetPort: restport
       protocol: TCP
-      name: port1
-    - port: {{ .Values.openvino.service.ports.port2 }}
-      targetPort: 9000
+      name: restport
+    - port: {{ .Values.openvino.service.port }}
+      targetPort: port
       protocol: TCP
-      name: port2
+      name: port
   selector:
     {{- include "openvino-model-server.selectorLabels" . | nindent 4 }}

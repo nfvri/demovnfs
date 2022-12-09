@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tensorflow-serving.fullname" . }}
+  labels:
+    {{- include "tensorflow-serving.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "tensorflow-serving.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "tensorflow-serving.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "tensorflow-serving.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: tf-serving
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env: 
+            - name: MODEL_NAME
+              value: imagenet_resnet_v2_50
+          {{- if .Values.args }}
+          args: {{- toYaml .Values.args | nindent 10}}
+          {{- else }}
+          args: ["--tensorflow_intra_op_parallelism=512", "--tensorflow_inter_op_parallelism=512",  "--monitoring_config_file=/monitoring_config/prometheus.txt"]
+          {{- end }}
+          ports:
+            - name: grpcport
+              containerPort: 8500
+              protocol: TCP
+            - name: restport
+              containerPort: 8501
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts: 
+          - name: monitoring-config
+            mountPath: /monitoring_config
+      volumes:
+        - name: monitoring-config
+          configMap:
+            name: {{ include "tensorflow-serving.fullname" . }}-config 
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

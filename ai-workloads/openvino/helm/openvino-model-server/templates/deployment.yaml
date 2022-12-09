@@ -27,28 +27,26 @@ spec:
       serviceAccountName: {{ include "openvino-model-server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-#------------------------------------------------------------------------------------------------
       containers:
-        - name: openvino
+        - name: {{ .Values.openvino.containerName }}
           securityContext:
             {{- toYaml .Values.openvino.securityContext | nindent 12 }}
           image: "{{ .Values.openvino.image.repository }}:{{ .Values.openvino.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.openvino.image.pullPolicy }}
-          {{- if .Values.openvino.command }}
-          command: {{- toYaml .Values.openvino.command | nindent 10}}
+          {{- if .Values.openvino.args }}
+          args: {{- toYaml .Values.openvino.args | nindent 10}}
           {{- else }}
-          command: ["--model_name", "resnet", "--model_path", "/resnet50-binary", "--layout", "NHWC", "--batch_size", "2", "--plugin_config", "{\"CPU_THROUGHPUT_STREAMS\": \"1\"}", "--port", "9000", "--rest_port", "8000"]
+          args: ["--model_name", "resnet", "--model_path", "/resnet50-binary", "--layout", "NHWC", "--batch_size", "2", "--plugin_config", "{\"CPU_THROUGHPUT_STREAMS\": \"1\"}", "--port", "9000", "--rest_port", "8000"]
           {{- end }}
           ports:
-            - name: port1
-              containerPort: 8000  
+            - name: restport
+              containerPort: 8000
               protocol: TCP
-            - name: port2  
-              containerPort: 9000 
+            - name: port
+              containerPort: 9000
               protocol: TCP
           resources:
             {{- toYaml .Values.openvino.resources | nindent 12 }}
-#------------------------------------------------------------------------------------------------
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

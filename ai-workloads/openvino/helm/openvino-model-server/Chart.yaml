@@ -1,6 +1,8 @@
 apiVersion: v2
 name: openvino-model-server
-description: A Helm chart for Kubernetes. It will change
+description: |
+  A Helm chart for deploying openvino model-server on Kubernetes.
+  The resnet50-binary model is included. 
 
 # A chart can be either an 'application' or a 'library' chart.
 #

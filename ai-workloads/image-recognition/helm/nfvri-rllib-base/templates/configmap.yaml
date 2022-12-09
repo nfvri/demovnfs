@@ -1,0 +1,181 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nfvri-rllib-base.fullname" . }}-scripts
+  labels:
+    {{- include "nfvri-rllib-base.labels" . | nindent 4 }}
+data:
+  async_requests.py: |
+    import asyncio
+    import logging
+
+    import aiohttp
+    import attr
+    from attr.validators import instance_of
+
+    # Code in: https://www.youtube.com/watch?v=jbdWXL-LwUE
+
+    LOGGER_FORMAT = '%(asctime)s %(message)s'
+    logging.basicConfig(format=LOGGER_FORMAT, datefmt='[%H:%M:%S]')
+    log = logging.getLogger()
+    log.setLevel(logging.INFO)
+
+    @attr.s
+    class Fetch:
+
+        limit = attr.ib() #batch
+        rate = attr.ib(default = 5, converter = int) #speed
+
+        async def make_request(self, url):
+            async with self.limit:
+                async with aiohttp.ClientSession() as session:
+                    async with session.request(method = 'POST', url = url, data = '{"instances": [1.0, 2.0, 5.0]}') as response:
+                    #async with session.post(url,
+                        json = await response.json()
+                        status = response.status
+                        log.info(f'Made request: {url}, Status: {status}')
+
+                        await asyncio.sleep(self.rate)
+
+
+    async def make_requests(urls, rate, limit):
+        limit = asyncio.Semaphore(limit)
+
+        f = Fetch(
+                rate = rate,
+                limit = limit,
+        )
+
+        tasks = []
+
+        for url in urls:
+            tasks.append(f.make_request(url = url))
+
+        results = await asyncio.gather(*tasks)
+
+
+    limit = 1000
+    urls = []
+    for i in range(0,limit):
+        urls.append('http://localhost:8501/v1/models/half_plus_two:predict')
+
+    while True:
+        asyncio.run(
+                make_requests(
+                    urls = urls,
+                    rate = 1,
+                    limit = limit
+                )
+        )
+  create_input_images.py: |
+    import os
+    import tensorflow as tf
+    import json
+
+    def setup_input_images(batch_size=32):
+        _URL = 'https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip'
+        path_to_zip = tf.keras.utils.get_file('cats_and_dogs.zip', origin=_URL, extract=True)
+        PATH = os.path.join(os.path.dirname(path_to_zip), 'cats_and_dogs_filtered')
+
+        validation_dir = os.path.join(PATH, 'validation')
+
+        IMG_SIZE = (160, 160)
+
+        validation_dataset = tf.keras.utils.image_dataset_from_directory(validation_dir,
+                                                                        shuffle=False,
+                                                                        batch_size=batch_size,
+                                                                        image_size=IMG_SIZE)
+
+        AUTOTUNE = tf.data.AUTOTUNE
+        validation_dataset = validation_dataset.prefetch(buffer_size=AUTOTUNE)
+
+        val_batch = validation_dataset.take(1)
+
+
+        for batch, label in val_batch.as_numpy_iterator():
+            print(label)
+
+        return batch
+
+    def prepare_inputs(image):
+        data = json.dumps({
+            "instances": image.tolist()
+        })
+        print(data)
+
+        headers = {"content-type": "application/json"}
+        return data
+
+
+
+
+    batch = setup_input_images(batch_size=32)
+
+    for index in range(batch.shape[0]):
+        image = batch[index]
+        print(prepare_inputs(image))
+
+  make_requests.py: |
+    import asyncio
+    import logging
+
+    import aiohttp
+    import attr
+    from attr.validators import instance_of
+
+    # Code in: https://www.youtube.com/watch?v=jbdWXL-LwUE
+
+    LOGGER_FORMAT = '%(asctime)s %(message)s'
+    logging.basicConfig(format=LOGGER_FORMAT, datefmt='[%H:%M:%S]')
+    log = logging.getLogger()
+    log.setLevel(logging.INFO)
+
+    @attr.s
+    class Fetch:
+
+        limit = attr.ib() #batch
+        rate = attr.ib(default = 5, converter = int) #speed
+
+        async def make_request(self, url):
+            async with self.limit:
+                async with aiohttp.ClientSession() as session:
+                    async with session.request(method = 'POST', url = url, data = '{"instances": [1.0, 2.0, 5.0]}') as response:
+                    #async with session.post(url,
+                        json = await response.json()
+                        status = response.status
+                        log.info(f'Made request: {url}, Status: {status}')
+
+                        await asyncio.sleep(self.rate)
+
+
+    async def make_requests(urls, rate, limit):
+        limit = asyncio.Semaphore(limit)
+
+        f = Fetch(
+                rate = rate,
+                limit = limit,
+        )
+
+        tasks = []
+
+        for url in urls:
+            tasks.append(f.make_request(url = url))
+
+        results = await asyncio.gather(*tasks)
+
+
+    limit = 1000
+    urls = []
+    for i in range(0,limit):
+        urls.append('http://localhost:8501/v1/models/half_plus_two:predict')
+
+    while True:
+        asyncio.run(
+                make_requests(
+                    urls = urls,
+                    rate = 1,
+                    limit = limit
+                )
+        )
+
+      

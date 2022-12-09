@@ -25,16 +25,16 @@ serviceAccount:
 
 ## Configuration for openvino container
 openvino:
+
+  containerName: openvino
   ## Image configuration
   image:
-    repository: openvino/model_server
+    repository: nfvri/openvino-models
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
  
-  command: []     # (array) Overrides the default container command
-  config: {}      # (object) Allows you to add any config files in {{ chartName }}-config configmap
-  scripts: {}     # (object) Allows you to add any scripts files in {{ chartName }}-scripts configmap
+  agrs: []     # (array) Overrides the default container args
 
   securityContext: {}
     # capabilities:
@@ -49,9 +49,8 @@ openvino:
       # Specifies the type of service to deploy for openvino
       type: ClusterIP
       # Specifies the port of service for openvino
-      ports: 
-        port1: 8088
-        port2: 9000
+      restport: 8088
+      port: 9000
 
   ##  Resources configuration of openvino container
   resources: {}
