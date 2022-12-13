@@ -23,12 +23,12 @@ podSecurityContext: {}
   # fsGroup: 2000
 
 image:
-  repository: nfvri/rllib-base
-  pullPolicy: IfNotPresent
+  repository: nfvri/tensorflow-serving-models
+  pullPolicy: Always 
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.3.0"
+  tag: "2.10.1"
 
-args: []        # (array) Overrides the default container args
+command: []        # (array) Overrides the default container ar
 
 
 # You can't override the files on /scripts

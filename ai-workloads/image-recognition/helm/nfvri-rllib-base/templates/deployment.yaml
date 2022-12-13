@@ -33,10 +33,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.args }}
-          args: {{- toYaml .Values.args | nindent 10}}
+          {{- if .Values.command }}
+          command: {{- toYaml .Values.command | nindent 10}}
           {{- else }}
-          args: ["bash", "-c", "while true; do sleep 10; done"]
+          command: ["bash", "-c", "while true; do sleep 10; done"]
           {{- end }}
           volumeMounts: 
             - name: scripts
