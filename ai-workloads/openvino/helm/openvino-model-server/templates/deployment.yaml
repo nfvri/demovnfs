@@ -33,11 +33,7 @@ spec:
             {{- toYaml .Values.openvino.securityContext | nindent 12 }}
           image: "{{ .Values.openvino.image.repository }}:{{ .Values.openvino.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.openvino.image.pullPolicy }}
-          {{- if .Values.openvino.args }}
-          args: {{- toYaml .Values.openvino.args | nindent 10}}
-          {{- else }}
-          args: ["--model_name", "resnet", "--model_path", "/resnet50-binary", "--layout", "NHWC", "--batch_size", "2", "--plugin_config", "{\"CPU_THROUGHPUT_STREAMS\": \"1\"}", "--port", "9000", "--rest_port", "8000"]
-          {{- end }}
+          command: ["bash", "-c", "/scripts/my_script.sh"]
           ports:
             - name: restport
               containerPort: 8000
@@ -47,6 +43,14 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.openvino.resources | nindent 12 }}
+          volumeMounts:
+          - name: scripts
+            mountPath: /scripts/
+      volumes:
+      - name: scripts
+        configMap:
+          name: {{ include "openvino-model-server.fullname" . }}-scripts
+          defaultMode: 0777
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

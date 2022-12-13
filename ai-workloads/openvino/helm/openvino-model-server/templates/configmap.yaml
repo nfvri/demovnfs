@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openvino-model-server.fullname" . }}-scripts
+  labels:
+    {{- include "openvino-model-server.labels" . | nindent 4 }}
+data:
+  input_images.txt: |
+    images/airliner.jpeg 404
+    images/arctic-fox.jpeg 279
+    images/bee.jpeg 309
+    images/golden_retriever.jpeg 207
+    images/gorilla.jpeg 366
+    images/magnetic_compass.jpeg 635
+    images/peacock.jpeg 84
+    images/pelican.jpeg 144
+    images/snail.jpeg 113
+    images/zebra.jpeg 340
+
+  my_script.sh: |
+    /ovms/bin/ovms --model_name resnet --model_path /resnet50-binary --layout NHWC --batch_size 2 --plugin_config {\"CPU_THROUGHPUT_STREAMS\": \"1\"} --port 9000 --rest_port 8000 &
+    python3 /make_requests.py --rest_url http://127.0.0.1:8000 --model_name resnet --input_name 0 --output_name 1463 --images /scripts/input_images.txt --batchsize 2 --threads 10 

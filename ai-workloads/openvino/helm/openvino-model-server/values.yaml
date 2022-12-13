@@ -13,6 +13,14 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
+
+## RBAC Configuration
+rbac:
+  # -- Specifies whether a cluster role binding should be created
+  create: false
+  # -- The cluster role name
+  clusterRole: "cluster-admin"
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -30,9 +38,9 @@ openvino:
   ## Image configuration
   image:
     repository: nfvri/openvino-models
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "latest"
+    tag: "2021.4.2"
  
   agrs: []     # (array) Overrides the default container args
 
