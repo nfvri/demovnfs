@@ -30,7 +30,7 @@ image:
   tag: "2.10.1"
 
 # (array) Overrides the default container args
-args: []   
+command: []   
 
 # (object) Allows you to add any config files in {{ chartName }}-config configmap
 config: 
