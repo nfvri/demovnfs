@@ -33,9 +33,6 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env: 
-            - name: MODEL_NAME
-              value: imagenet_resnet_v2_50
           {{- if .Values.args }}
           args: {{- toYaml .Values.args | nindent 10}}
           {{- else }}
