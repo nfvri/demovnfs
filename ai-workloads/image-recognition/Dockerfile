@@ -1,6 +1,6 @@
 FROM tensorflow/serving:2.10.1
 
-ENV MODEL_NAME=imagenet_resnet_v2_50
+ENV MODEL_NAME=mobile_net_cats
 COPY requirements.txt /
 
 RUN apt-get update && \
@@ -10,4 +10,5 @@ RUN apt-get update && \
     pip3 install -r /requirements.txt
 
 COPY imagenet_resnet_v2_50 /models/imagenet_resnet_v2_50
+COPY mobile_net_cats /models/mobile_net_cats
 
