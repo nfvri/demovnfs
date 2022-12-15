@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "stress-ng.fullname" . }}
+  labels:
+    {{- include "stress-ng.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.podAnnotations | nindent 4 }}
+spec:
+  serviceAccountName: {{ include "stress-ng.serviceAccountName" . }}
+  securityContext:
+    {{- toYaml .Values.podSecurityContext | nindent 4 }}
+  containers:
+    - name: stress-ng
+      workingDir: /
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+      imagePullPolicy: {{ .Values.image.pullPolicy }}
+      {{- if .Values.command }}
+      command: {{- toYaml .Values.command | nindent 6 }}
+      {{- else }}      
+      command: ["bash", "-c", "cp /app/load_generator.py / && /usr/bin/python3 /load_generator.py"]
+      {{- end }}
+      env:
+      - name: CPU_WORKERS
+        value: {{ .Values.stress.cpuWorkers | quote }}      
+      - name: MAX_LOAD
+        value: {{ .Values.stress.maxLoad | quote }}
+      - name: TIMER
+        value: {{ .Values.stress.timer | quote }}
+      resources:
+        {{- toYaml .Values.resources | nindent 8 }}
+      volumeMounts:
+      - name: load-generator-py
+        mountPath: /app/
+      - name: pattern
+        mountPath: /pattern/
+  terminationGracePeriodSeconds: 30
+  volumes:
+  - name: load-generator-py
+    configMap:
+      name: {{ include "stress-ng.fullname" .}}
+  - name: pattern
+    configMap:
+      name: {{ include "stress-ng.fullname" .}}-pattern  
+  {{- with .Values.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.affinity }}
+  affinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

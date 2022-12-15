@@ -1,0 +1,36 @@
+# STRESS-NG
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```bash
+helm install -n stress-ng stress-ng path/to/helm/chart
+```
+
+The command deploys stress-ng on the Kubernetes cluster in the default configuration.
+The [Parameters](#parameters) section lists the parameters that can be configured during installation.
+
+> **Tip**: List all releases using `helm list`
+
+## Uninstalling the Chart
+
+To uninstall/delete the `my-release` deployment:
+
+```console
+helm delete -n stress-ng my-release
+```
+
+The command removes all the Kubernetes components but PVC's associated with the chart and deletes the release.
+
+## Parameters
+
+{{ template "chart.valuesTable" . }}

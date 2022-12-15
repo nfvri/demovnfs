@@ -1,0 +1,120 @@
+{{- $root := . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stress-ng.serviceAccountName" . }}
+data:
+  {{- if .Values.config }}
+  {{- range $configName, $configYaml := .Values.config }}
+  {{ $configName }}: |
+    {{- if (eq (kindOf $configYaml) "map")}}
+    {{-   tpl (toYaml $configYaml) $root | nindent 4 }}
+    {{- else -}}
+    {{-   tpl $configYaml $root | nindent 4 }}
+    {{- end -}}
+  {{- end -}}
+  {{- else }}
+  load_generator.py: |
+    #!/usr/bin/python3
+    #################################################################################
+    # Example run:
+    #   export LOAD=95 ; export TIMER=15 ; export STEPS=5 ; python3 load_generator.py
+    #################################################################################
+    #
+    import time
+    import os
+    import yaml
+    import subprocess
+
+
+    def lines_from(file):
+        lines = []
+        fp = open(file, "r")
+        line = fp.readline()
+        while line:
+            lines.append(float(line.split("\n")[0]))
+            line = fp.readline()
+        fp.close()
+        return lines
+
+
+    traffic_pattern_file = "/pattern/pattern.txt"
+
+    class StressNg(object):
+        def __init__(self):
+            self.nodename = os.uname()[1]
+            self.krelease = os.uname()[2]
+            self.cpusyscount = os.cpu_count()
+            self.cpuaffinity = os.sched_getaffinity(0)
+            self.cpuusable = len(os.sched_getaffinity(0))
+
+            
+        def load_generation(self, cpu_workers, max_load, stressng_time=10):
+            
+
+            if not os.path.exists(traffic_pattern_file):
+                print(f"Traffic pattern file {traffic_pattern_file} does not exist!")
+                exit(1)
+            lines = lines_from(traffic_pattern_file)
+            if len(lines) < 1:
+                print("The traffic pattern file should contain at least one traffic step.")
+                exit(1)
+            max_file_load = max(lines)
+            
+            print(f"Starting load_generation cycle")
+
+            while 1:
+                for day in range(0,7):
+                    if day > 1:
+                        max_daily_load = max_load / 2
+                    else:
+                        max_daily_load = max_load
+                    for line in lines:
+                        load = (line * max_daily_load) / max_file_load            
+                        print(f"Executing stress-ng for {stressng_time} seconds at {int(load)} load")
+                        
+                        p1 = subprocess.Popen(["stress-ng","-c",f"{cpu_workers}", "-l", f"{int(load)}", "-t", f"{stressng_time}"])
+                        try:
+                          p1.wait(timeout=2*stressng_time)
+                        except:
+                          print("Timeout...")
+                          pass
+                        
+            print(f"Completed load_generation cycle")
+
+
+    if __name__ == "__main__":
+        DEFAULT_CPU_WORKERS=1
+        DEFAULT_MAX_LOAD=100
+        DEFAULT_TIMER=10
+        DEFAULT_STEPS=None
+
+        # fetch LOAD environment variables
+        try:
+            default_cpu_workers = int(os.getenv('CPU_WORKERS', DEFAULT_CPU_WORKERS))
+        except KeyError:
+            print(f"Error parsing {os.environ['CPU_WORKERS']} as interger. Using cpu_workers={default_cpu_workers} instead.")
+            default_max_load = default_max_load
+        # fetch LOAD environment variables
+        try:
+            default_max_load = int(os.getenv('MAX_LOAD', DEFAULT_MAX_LOAD))
+        except KeyError:
+            print(f"Error parsing {os.environ['LOAD']} as interger. Using load={default_max_load} instead.")
+            default_max_load = default_max_load
+        # fetch TIMER environment variables
+        try:
+            default_timer = int(os.getenv('TIMER', DEFAULT_TIMER))
+        except KeyError:
+            print(f"Error parsing {os.environ['TIMER']} as interger. Using timer={DEFAULT_TIMER} instead.")
+            default_timer = DEFAULT_TIMER
+
+        stress=StressNg()
+        stress.load_generation(cpu_workers=default_cpu_workers,
+                                max_load=default_max_load, 
+                                stressng_time=default_timer)
+
+    #
+    # END OF FILE
+    #
+
+  {{- end }}
