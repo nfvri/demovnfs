@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
-ENV TF_VER "2.4.4"
+ENV TF_VER "2.10.0"
 ENV Z3LIB_VER "4.8.10"
 ENV LIBFFI_VER "3.3"
 ENV PROTOC_VER "3.12.4"

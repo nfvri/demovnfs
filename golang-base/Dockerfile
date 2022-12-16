@@ -1,6 +1,6 @@
 FROM golang:1.18.3-bullseye
 
-ENV TF_VER "2.4.3"
+ENV TF_VER "2.10.0"
 
 RUN apt-get update \
  && apt-get -y install git make gcc bzr libvirt-dev linux-headers-amd64 libbpfcc libbpfcc-dev bpfcc-tools python3 swig python3-numpy protobuf-compiler curl gnupg ipmitool

@@ -1,0 +1,52 @@
+serviceMonitor:
+  create: true
+  monitoringNamespace: nfvri-monitoring
+  monitoringRelease: k8s-prom
+  monitoringLabels:
+    nfvri/component: nfvri
+  scrapeInterval: 5s
+  scrapeTimeout: 5s
+
+upf:
+  num_workers: "16"
+  s1u:
+    pci: PCIDEVICE_OPENSHIFT_IO_VFIO_NET1
+  sgi:
+    pci: PCIDEVICE_OPENSHIFT_IO_VFIO_NET2
+
+
+bessd:
+  #command: ["bash", "-xec", "sleep infinity"]
+  command: ["bash", "-xec", "/init-conf/init_setup.sh; bessd -grpc-url=0.0.0.0:10514; until ss -a | grep -q 10514; do sleep 5; echo waiting for bessd; done;  ./bessctl run up4_premium; ./bessctl http 0.0.0.0 3456"]
+
+  securityContext:
+    capabilities:
+      add:
+      - NET_ADMIN
+      - IPC_LOCK
+
+  resources:
+    requests:
+      cpu: "32000m"
+      memory: "16Gi"
+      hugepages-1Gi: 4Gi
+      openshift.io/vfio_net1: '2'
+    limits:
+      cpu: "32000m"
+      memory: "16Gi"
+      hugepages-1Gi: 4Gi
+      openshift.io/vfio_net1: '2'
+
+podAnnotations:
+  k8s.v1.cni.cncf.io/networks: nfvri-monitoring/intel-newton-net1
+
+nodeSelector:
+  kubernetes.io/hostname: w3.tme.shift.zone
+
+serviceAccount:
+  create: true
+
+## RBAC Configuration
+rbac:
+  create: true
+  clusterRole: "cluster-admin"

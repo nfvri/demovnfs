@@ -1,5 +1,5 @@
 #NS = your docker namespace
-export VERSION ?= 1.18.3-rhel8
+export VERSION ?= 1.18.3-2.10.0-rhel8
 
 # For private repo
 # export REPO = gcr.io/nfvsap
