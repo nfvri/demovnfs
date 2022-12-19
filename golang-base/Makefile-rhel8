@@ -18,9 +18,9 @@ build-golang-base:
 
 push-golang-base:
 	# For private repo
-	#cat .gcloud_keyfile.json | docker login -u _json_key --password-stdin https://gcr.io
+	cat .gcloud_keyfile.json | $(CONTAINER_MANAGER) login -u _json_key --password-stdin $(REPO)
 	# For public repo
-	echo $(REPO_PAT) | base64 -d | $(CONTAINER_MANAGER) login -u $(USERNAME) --password-stdin
+	#echo $(REPO_PAT) | base64 -d | $(CONTAINER_MANAGER) login -u $(USERNAME) --password-stdin
 	$(CONTAINER_MANAGER) push $(REPO)/$(NAME):$(VERSION)
 
 clean-golang-base:
