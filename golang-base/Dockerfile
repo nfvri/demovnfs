@@ -1,4 +1,4 @@
-FROM golang:1.18.3-bullseye
+FROM golang:1.19.4-bullseye
 
 ENV TF_VER "2.10.0"
 
