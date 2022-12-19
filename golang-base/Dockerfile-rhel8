@@ -1,5 +1,7 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
+ENV GOLANG_VERSION 1.19.4
+ENV GOLANG_DOWNLOAD_SHA256 c9c08f783325c4cf840a94333159cc937f05f75d36a8b307951d5bd959cf2ab8
 ENV TF_VER "2.10.0"
 ENV Z3LIB_VER "4.8.10"
 ENV LIBFFI_VER "3.3"
@@ -47,9 +49,7 @@ RUN git clone --depth 1 --branch v0.24.0 https://github.com/iovisor/bcc.git && \
 	rm -rf /bcc
 
 # Get Go
-ENV GOLANG_VERSION 1.18.3
 ENV GOLANG_DOWNLOAD_URL https://golang.org/dl/go$GOLANG_VERSION.linux-amd64.tar.gz
-ENV GOLANG_DOWNLOAD_SHA256 956f8507b302ab0bb747613695cdae10af99bbd39a90cae522b7c0302cc27245
 
 RUN curl -fsSL "$GOLANG_DOWNLOAD_URL" -o golang.tar.gz \
 	&& echo "$GOLANG_DOWNLOAD_SHA256  golang.tar.gz" | sha256sum -c - \
