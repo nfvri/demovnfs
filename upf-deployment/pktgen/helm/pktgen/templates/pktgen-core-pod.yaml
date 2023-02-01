@@ -23,6 +23,8 @@ spec:
     resources:
     {{- toYaml .Values.core.resources | nindent 6 }}
     volumeMounts:
+    - name: hugepages
+      mountPath: /dev/hugepages
     {{- if .Values.overideConfigMap }}
     {{- toYaml .Values.core.extraVolumeMounts | nindent 4 }}
     {{- else }}
@@ -30,8 +32,6 @@ spec:
       mountPath: /conf
     - name: {{ include "pktgen.fullname" . }}-pattern-weekly
       mountPath: /opt/bess/bessctl/conf/patterns/
-    - name: hugepages
-      mountPath: /dev/hugepages
     {{- end }}
   volumes:
   - name: hugepages
