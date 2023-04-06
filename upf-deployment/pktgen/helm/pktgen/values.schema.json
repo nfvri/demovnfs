@@ -17,6 +17,9 @@
                 "extraVolumes": {
                     "type": "array"
                 },
+                "pattern": {
+                    "type": "string"
+                },
                 "podAnnotations": {
                     "type": "object"
                 },
@@ -69,6 +72,9 @@
                 },
                 "extraVolumes": {
                     "type": "array"
+                },
+                "pattern": {
+                    "type": "string"
                 },
                 "podAnnotations": {
                     "type": "object"

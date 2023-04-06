@@ -1,6 +1,6 @@
 # OMEC-UPF
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.3.0](https://img.shields.io/badge/AppVersion-v0.3.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.3.0](https://img.shields.io/badge/AppVersion-v0.3.0-informational?style=flat-square)
 
 A Helm chart for deploying the OMEC UPF on Kubernetes.
 
@@ -60,7 +60,7 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | upf.sgi.nhip | string | `"198.19.0.2"` | sgi static ip address of its neighbor of gateway interface |
 | upf.sgi.nhmac | string | `"22:53:7a:15:58:50"` | sgi static MAC addresses of the neighbor of gateway interface |
 | upf.sgi.route | string | `"0.0.0.0/0"` | sgi IPv4 route table entry in cidr format |
-| upf.sgi.pci | string | `"PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET1"` | s1u sgi environment variable name |
+| upf.sgi.pci | string | `"PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET2"` | s1u sgi environment variable name |
 | bessd.image.repository | string | `"nfvri/upf-epc-8806-bess"` | bessd image repository |
 | bessd.image.pullPolicy | string | `"IfNotPresent"` | bessd image pull policy |
 | bessd.image.tag | string | `"0.3.0-dev"` | bessd image tag |
@@ -86,7 +86,7 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | routectl.securityContext | object | `{}` | Security Context Configuration |
 | routectl.readinessProbe | object | `{}` | OMEC UPF routectl container's readiness probe |
 | routectl.livenessProbe | object | `{}` | OMEC UPF routectl container's liveness probe |
-| routectl.resources.limits | object | `{"cpu":"1000m","memory":"512Mi"}` | The resources requests for the routectl container   |
+| routectl.resources.limits | object | `{"cpu":"1000m","memory":"512Mi"}` | The resources requests for the routectl container |
 | routectl.extraVolumeMounts | array | `[]` | A list of volume mounts to be added to the routectl container |
 | pfcpiface.image.repository | string | `"nfvri/upf-epc-8806-pfcpiface"` | pfcpiface image repository |
 | pfcpiface.image.pullPolicy | string | `"IfNotPresent"` | pfcpiface image pull policy |
@@ -94,7 +94,7 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | pfcpiface.command | array | `[]` | Override default container command (useful when using custom images or configmaps) |
 | pfcpiface.readinessProbe | object | `{}` | OMEC UPF pfcpiface container's readiness probe |
 | pfcpiface.livenessProbe | object | `{}` | OMEC UPF pfcpiface container's liveness probe |
-| pfcpiface.resources.limits | object | `{"cpu":"1000m","memory":"512Mi"}` | The resources requests for the pfcpiface container   |
+| pfcpiface.resources.limits | object | `{"cpu":"1000m","memory":"512Mi"}` | The resources requests for the pfcpiface container |
 | pfcpiface.extraVolumeMounts | array | `[]` | A list of volume mounts to be added to the pfcpiface container |
 | config | object | `{}` | Allows you to add any config files in {{ chartName }}-config configmap, such as init_setup.sh bash script |
 | podAnnotations | object | `{}` | podAnnotations Map of annotations to add to the pods |

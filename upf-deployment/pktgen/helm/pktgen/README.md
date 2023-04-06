@@ -1,6 +1,6 @@
 # pktgen
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
 
 A Helm chart for deploying the pktgen on Kubernetes.
 
@@ -44,6 +44,7 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | upf.sgi | string | `"4e:a6:53:e3:0f:65"` | upf core interface MAC address |
 | overideConfigMap | bool | `false` | Select true when the user supplies custom traffic pattern, configMap and values override |
 | access.command | list | `["bash","-xc","cp /conf/pktgen-premium-access-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-access-weekly"]` | Default container command to be executed (override when using custom configmaps and traffic patterns) |
+| access.pattern | string | `"small"` | Pattern file will be used on access network. Select between small or large. |
 | access.podAnnotations | object | `{}` |  |
 | access.resources | object | `{"limits":{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"},"requests":{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}}` | Container resources configuration |
 | access.resources.requests | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}` | Resources requested by pktgen-access |
@@ -52,6 +53,7 @@ The command removes all the Kubernetes components but PVC's associated with the 
 | access.extraVolumes | list | `[]` |  |
 | core.podAnnotations | object | `{}` |  |
 | core.command | list | `["bash","-xc","cp /conf/pktgen-premium-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-premium-core-weekly"]` | Default container command to be executed (override when using custom configmaps and traffic patterns) |
+| core.pattern | string | `"small"` | Pattern file will be used on core network. Select between small or large. |
 | core.resources | object | `{"limits":{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"},"requests":{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}}` | Container resources configuration |
 | core.resources.requests | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}` | Resources requested by pktgen-access |
 | core.resources.limits | object | `{"cpu":"2000m","hugepages-1Gi":"4Gi","memory":"4Gi"}` | Resources limits for pktgen-access |
