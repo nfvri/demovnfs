@@ -4,8 +4,6 @@ metadata:
   name: {{ include "pktgen.fullname" . }}-core-weekly
   labels:
   {{ include "pktgen.labels" . | nindent 4 }}
-  annotations:
-    "helm.sh/hook": pre-upgrade,pre-install
 data:  
   pktgen-premium-core-weekly.bess: |
     """
@@ -34,7 +32,7 @@ data:
     flows = 100
     #workers=[10,12]
     #workers=[3,4]
-    traffic_pattern_file = "./conf/patterns/example-large-traffic-rate-pattern.txt"
+    traffic_pattern_file = "./conf/patterns/{{ .Values.core.pattern }}.txt"
     time_step = 10 #secs
     max_load = {{ default "13000000000" .Values.core.maxLoadBits }} 
     

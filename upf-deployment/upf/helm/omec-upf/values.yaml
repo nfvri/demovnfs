@@ -60,17 +60,16 @@ serviceMonitor:
   # -- Specify the scrape timeout
   scrapeTimeout: 5s
 
-
 ## UPF network configuration
 upf:
   # -- (string) Number of workers as string to assign for queue handling on each port
   # num_workers: "4"
-  
+
   ## s1u network configuration
   s1u:
     # -- (string) s1u gateway interface name
     # iface: net0
-    
+
     # -- s1u MAC addresses of gateway interface
     mac: 9e:b2:d3:34:cc:28
     # -- s1u ip address
@@ -84,7 +83,7 @@ upf:
     # -- s1u pci environment variable name
     pci: PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET1
   ## sgi network configuration
-  sgi: 
+  sgi:
     # -- (string) sgi gateway interface name
     # iface: net1
 
@@ -99,8 +98,7 @@ upf:
     # -- sgi IPv4 route table entry in cidr format
     route: 0.0.0.0/0
     # -- s1u sgi environment variable name
-    pci: PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET1
-
+    pci: PCIDEVICE_INTEL_COM_INTEL_SRIOV_DPDK_B2B_NET2
 
 ## Configuration for bessd container
 bessd:
@@ -122,8 +120,8 @@ bessd:
   securityContext:
     capabilities:
       add:
-      - NET_ADMIN
-      - IPC_LOCK
+        - NET_ADMIN
+        - IPC_LOCK
   ##  Resources configuration of bessd
   resources:
     # -- The resources requests for the bessd container
@@ -152,7 +150,7 @@ bessd:
     tcpSocket:
       port: 10514
     initialDelaySeconds: 30
-    periodSeconds: 20  
+    periodSeconds: 20
 
   # -- (array) A list of volume mounts to be added to the bessd container
   extraVolumeMounts: []
@@ -206,10 +204,10 @@ routectl:
   readinessProbe: {}
   # -- (object) OMEC UPF routectl container's liveness probe
   livenessProbe: {}
-  
+
   ## Resources configuration of routectl
   resources:
-    # -- The resources requests for the routectl container  
+    # -- The resources requests for the routectl container
     limits:
       cpu: 1000m
       memory: 512Mi
@@ -230,14 +228,14 @@ pfcpiface:
 
   # -- (array) Override default container command (useful when using custom images or configmaps)
   command: []
-  
+
   # -- (object) OMEC UPF pfcpiface container's readiness probe
   readinessProbe: {}
   # -- (object) OMEC UPF pfcpiface container's liveness probe
-  livenessProbe: {}  
+  livenessProbe: {}
   ## Resources configuration of pfcpiface
   resources:
-    # -- The resources requests for the pfcpiface container  
+    # -- The resources requests for the pfcpiface container
     limits:
       cpu: 1000m
       memory: 512Mi
@@ -259,7 +257,7 @@ config: {}
   #   apt-get update
   #   apt-get install gettext-base -y
   #   envsubst < /conf/upf.json > /pre-install/upf.json
-    
+
   #   cp /pre-install/upf.json /opt/bess/bessctl/conf/upf.json
   #   cp /bess-overrides/up4_premium.bess /opt/bess/bessctl/conf/up4_premium.bess
   #   cp /bess-overrides/ports.py /opt/bess/bessctl/conf/ports.py
@@ -284,7 +282,7 @@ config: {}
   #   # In the order of (n-s1u n-sgi)
   #   nhipaddrs=({{ .Values.upf.s1u.nhip | default "198.18.0.2" }} {{ .Values.upf.sgi.nhip | default "198.19.0.2" }})
   #   # Static MAC addresses of the neighbors of gateway interface(s)
-  #   # 
+  #   #
   #   # In the order of (n-s1u n-sgi)
   #   nhmacaddrs=({{ .Values.upf.s1u.nhmac | default "22:53:7a:15:58:50" }} {{ .Values.upf.sgi.nhmac | default "22:53:7a:15:58:50 "}})
   #   # IPv4 route table entries in cidr format per port
@@ -339,7 +337,7 @@ config: {}
   #   }
   #   setup_mirror_links
   #   iptables -I OUTPUT -p icmp --icmp-type port-unreachable -j DROP
-    
+
   #   setup_trafficgen_routes
 
 # -- (object) podAnnotations Map of annotations to add to the pods
