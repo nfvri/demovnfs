@@ -24,29 +24,12 @@ COPY licenses /licenses
 RUN dnf -y update-minimal --disableplugin=subscription-manager --setopt=tsflags=nodocs \
 		--security --sec-severity=Important --sec-severity=Critical
 
-# Clang and LLVM version 11 is in RHEL8.4
-RUN REPOLIST=rhel-8-for-x86_64-appstream-rpms,rhel-8-for-x86_64-baseos-rpms \
-	INSTALL_PKGS="llvm-libs llvm-devel llvm clang clang-libs clang-devel clang-tools-extra" && \
-	dnf -y install --disablerepo "*" --enablerepo ${REPOLIST} --setopt=tsflags=nodocs --releasever 8.4 ${INSTALL_PKGS} && \
-	dnf -y install python3-dnf-plugin-versionlock && \
-	dnf versionlock ${INSTALL_PKGS} && \
-	dnf clean all
-
 ### Add necessary Red Hat UBI and RHEL repos here
-RUN REPOLIST=ubi-8-baseos-rpms,ubi-8-appstream-rpms,codeready-builder-for-rhel-8-x86_64-rpms,rhel-8-for-x86_64-appstream-rpms,rhel-8-for-x86_64-baseos-rpms \
-	INSTALL_PKGS="git make gcc libvirt-devel kernel-headers cmake ncurses-devel libbpf libbpf-devel ncurses-libs bpftool python3 swig python3-numpy curl gnupg ipmitool unzip" && \
-	dnf -y install --disablerepo "*" --enablerepo ${REPOLIST} --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-	dnf clean all
-
-# Compile and install bcc
-RUN git clone --depth 1 --branch v0.24.0 https://github.com/iovisor/bcc.git && \
-	mkdir ./bcc/build && \
-	cd ./bcc/build && \
-	cmake3 .. && \
-	make -j${CCPUS} && \
-	make install && \
-	cd / && \
-	rm -rf /bcc
+RUN export REPOLIST="codeready-builder-for-rhel-8-x86_64-rpms,rhel-8-for-x86_64-appstream-rpms,rhel-8-for-x86_64-baseos-rpms" && \
+    export INSTALL_PKGS="git make gcc gcc-c++ libvirt-devel kernel-headers kernel-devel cmake libbpf libbpf-devel bpftool python3 swig python3-numpy curl gnupg ipmitool unzip ncurses ncurses-devel ncurses-libs ncurses-compat-libs python3-dnf-plugin-versionlock" && \
+    dnf -y install --disablerepo "*" --enablerepo ${REPOLIST} --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf versionlock ${INSTALL_PKGS} && \
+    dnf clean all
 
 # Get Go
 ENV GOLANG_DOWNLOAD_URL https://golang.org/dl/go$GOLANG_VERSION.linux-amd64.tar.gz
@@ -119,6 +102,27 @@ RUN curl -fsLo z3-${Z3LIB_VER}.tar.gz https://github.com/Z3Prover/z3/archive/ref
 	cd ../.. && \
 	rm z3-${Z3LIB_VER}.tar.gz && \
 	rm -rf z3-z3-${Z3LIB_VER}
+
+# Compile and install LLVM & Clang
+RUN git clone --depth=1 --branch llvmorg-9.0.1 https://github.com/llvm/llvm-project.git \
+    && cd llvm-project \
+    && mkdir build \
+    && cd build \
+    && cmake -DLLVM_ENABLE_PROJECTS=clang -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../llvm \
+    && make -j${CCPUS} \
+    && make install \
+    && cd / \
+    && rm -fr /llvm-project
+
+# Compile and install bcc
+RUN git clone --depth 1 --branch v0.24.0 https://github.com/iovisor/bcc.git && \
+	mkdir ./bcc/build && \
+	cd ./bcc/build && \
+	cmake3 .. && \
+	make -j${CCPUS} && \
+	make install && \
+	cd / && \
+	rm -rf /bcc
 
 # Replicate paths from Go image
 ENV GOPATH /go
