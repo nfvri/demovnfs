@@ -104,7 +104,7 @@ RUN curl -fsLo z3-${Z3LIB_VER}.tar.gz https://github.com/Z3Prover/z3/archive/ref
 	rm -rf z3-z3-${Z3LIB_VER}
 
 # Compile and install LLVM & Clang
-RUN git clone --depth=1 --branch llvmorg-9.0.1 https://github.com/llvm/llvm-project.git \
+RUN git clone --depth=1 --branch llvmorg-11.1.0 https://github.com/llvm/llvm-project.git \
     && cd llvm-project \
     && mkdir build \
     && cd build \
