@@ -3,3 +3,7 @@
 
 # ignore keyfiles
 **/.gcloud_keyfile.json
+
+# ignore project dirs
+.project
+.idea
