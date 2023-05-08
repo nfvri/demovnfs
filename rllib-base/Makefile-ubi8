@@ -2,9 +2,9 @@
 export VERSION ?= 2.3.1-2.10
 
 # For private repo
-# export REPO = gcr.io/nfvsap
+# export REPO = europe-docker.pkg.dev/nfv-ri/images
 # For nfvri public repo
-export REPO = europe-docker.pkg.dev/nfv-ri/images
+export REPO = docker.io/nfvri
 export NAME = rllib-base-ubi8
 
 export CONTAINER_MANAGER = podman
