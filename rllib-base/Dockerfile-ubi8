@@ -1,5 +1,5 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest
-ENV TF_VER "2.4.4"
+ENV TF_VER "2.10.0"
 LABEL name="rllib-base-ubi8" \
         maintainer="danchrist@intracom-telecom.com" \
         vendor="Intracom Telecom" \
