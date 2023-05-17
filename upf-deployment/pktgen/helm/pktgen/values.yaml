@@ -56,7 +56,7 @@ access:
     [
       "bash",
       "-xc",
-      "cp /conf/pktgen-access-weekly.bess /conf/pktgen-core-static.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-access-weekly",
+      "cp /conf/pktgen-access-weekly.bess /conf/pktgen-access-static.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-access-weekly",
     ]
 
   # -- (string) Pattern file will be used on access network. Select between small or large.
