@@ -4,8 +4,48 @@ metadata:
   name: {{ include "pktgen.fullname" . }}-access-weekly
   labels:
   {{ include "pktgen.labels" . | nindent 4 }}
-data:  
-  pktgen-premium-access-weekly.bess: |
+data:
+  pktgen-access-static.bess: |
+    """
+        Static access traffic (n3 receive) for premium upf
+    """
+
+    import conf.sim as sim
+    import psutil
+
+    def get_process_affinity():
+        return psutil.Process().cpu_affinity()    
+
+    pkt_size = 1500
+    flows = 100
+
+    # flow create 0 ingress pattern eth / ipv4 / udp / gtpu / ipv4 / end actions rss types ipv4 l3-src-only end key_len 0 queues end / end
+    n36_pkts = [sim.gen_gtpu_packet(pkt_size, "22:53:7a:15:58:50", "{{ .Values.upf.s1u }}", "11.1.1.129", "198.18.0.1", "16.0.0.1", "6.6.6.6", 0x30000000),]
+
+
+    # Initialize workers
+    cores = get_process_affinity()
+    workers = cores[:2]
+
+    # set_process_affinity_all(nonworkers)
+    for wid in range(len(workers)):
+        bess.add_worker(wid=wid, core=int(workers[wid % len(workers)]))
+
+    num_q = len(workers)
+    kwargs = {'num_inc_q': num_q,
+            'num_out_q': num_q}
+    p = PMDPort(port_id=0, **kwargs)
+
+    n3seq_kwargs = sim.gen_gtpu_sequpdate_args(flows, "16.0.0.1", 62, 0x30000000)
+
+    # 25 Gbps each to saturate 100 Gbps
+    bess.add_tc('36_limit', wid=0, policy='rate_limit', resource='bit', limit={'bit': LOAD})
+
+    src36::Source(pkt_size=pkt_size) -> Rewrite(templates=n36_pkts) -> n36update::SequentialUpdate(**n3seq_kwargs) -> L4Checksum() -> IPChecksum() -> QueueOut(port=p.name, qid=1)
+
+    src36.attach_task(parent='36_limit')
+
+  pktgen-access-weekly.bess: |
     """
         Access traffic (n3 receive) for premium upf 
     """
@@ -31,8 +71,7 @@ data:
 
     pkt_size = 1500
     flows = 100
-    #workers=[2,4]
-    #workers=[1,2]
+
     traffic_pattern_file = "./conf/patterns/{{ .Values.access.pattern }}.txt"
     time_step = 10 #secs
     max_load = {{ default "5000000000" .Values.access.maxLoadBits }} 
@@ -40,9 +79,6 @@ data:
     # flow create 0 ingress pattern eth / ipv4 / udp / gtpu / ipv4 / end actions rss types ipv4 l3-src-only end key_len 0 queues end / end
     n36_pkts = [sim.gen_gtpu_packet(pkt_size, "22:53:7a:15:58:50", "{{ .Values.upf.s1u }}", "11.1.1.129", "198.18.0.1", "16.0.0.1", "6.6.6.6", 0x30000000),]
 
-
-    #for wid in range(len(workers)):
-      #     bess.add_worker(wid=wid, core=int(workers[wid]))
 
     # ====================================================
     #       Core Setup
