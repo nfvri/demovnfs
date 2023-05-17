@@ -4,7 +4,45 @@ metadata:
   name: {{ include "pktgen.fullname" . }}-core-weekly
   labels:
   {{ include "pktgen.labels" . | nindent 4 }}
-data:  
+data:
+  pktgen-core-static.bess: |
+    import conf.sim as sim
+    import os
+    import time
+    import psutil
+
+    def get_process_affinity():
+        return psutil.Process().cpu_affinity()    
+
+    pkt_size = 1500
+    flows = 100
+    
+    #flow create 1 ingress pattern eth / ipv4 / end actions rss types ipv4 l3-dst-only end key_len 0 queues end / end
+    n6_pkts = [sim.gen_inet_packet(pkt_size, "22:53:7a:15:58:50", "{{ .Values.upf.sgi }}", "6.6.6.6", "16.0.0.1"),]
+
+
+    # Initialize workers
+    cores = get_process_affinity()
+    workers = cores[:2]
+
+    # set_process_affinity_all(nonworkers)
+    for wid in range(len(workers)):
+        bess.add_worker(wid=wid, core=int(workers[wid % len(workers)]))        
+
+    num_q = len(workers)
+    kwargs = {'num_inc_q': num_q,
+            'num_out_q': num_q}
+    p = PMDPort(port_id=0, **kwargs)
+
+    n6seq_kwargs = sim.gen_inet_sequpdate_args(flows, "16.0.0.1")
+
+    # 25 Gbps each to saturate 100 Gbps
+    ### Max
+    bess.add_tc('6_limit',  wid=1, policy='rate_limit', resource='bit', limit={'bit': LOAD})
+
+    src6::Source(pkt_size=pkt_size) -> Rewrite(templates=n6_pkts) -> n6update::SequentialUpdate(**n6seq_kwargs) -> L4Checksum() -> IPChecksum() -> QueueOut(port=p.name, qid=1)
+
+    src6.attach_task(parent='6_limit')  
   pktgen-core-weekly.bess: |
     """
     Core traffic (n6 receive) for the premium upf

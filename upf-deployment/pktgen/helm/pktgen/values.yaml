@@ -4,14 +4,14 @@
 
 # -- Node labels for node selection
 nodeSelector: {}
-   # kubernetes.io/hostname: "clx1"
+# kubernetes.io/hostname: "clx1"
 
 # Security configuration
 securityContext:
   privileged: false
   capabilities:
     add:
-    - IPC_LOCK
+      - IPC_LOCK
 
 # Pktgen bessd container configuration
 image:
@@ -56,14 +56,15 @@ access:
     [
       "bash",
       "-xc",
-      "cp /conf/pktgen-access-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-access-weekly",
+      "cp /conf/pktgen-access-weekly.bess /conf/pktgen-core-static.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-access-weekly",
     ]
 
   # -- (string) Pattern file will be used on access network. Select between small or large.
   pattern: "small"
 
-  # -- 
-  podAnnotations: {}
+  # --
+  podAnnotations:
+    {}
     # k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net1
 
   # -- Container resources configuration
@@ -92,7 +93,8 @@ core:
   # -- (string) Max Load in Bits on core network
   # maxLoadBits: "13000000000"
 
-  podAnnotations: {}
+  podAnnotations:
+    {}
     #k8s.v1.cni.cncf.io/networks: default/sriov-dpdk-b2b-net2
 
   # -- Default container command to be executed (override when using custom configmaps and traffic patterns)
@@ -100,7 +102,7 @@ core:
     [
       "bash",
       "-xc",
-      "cp /conf/pktgen-core-weekly.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-core-weekly",
+      "cp /conf/pktgen-core-weekly.bess /conf/pktgen-core-static.bess /opt/bess/bessctl/conf/; bessd -grpc-url=0.0.0.0:10514; sleep 10; ./bessctl run pktgen-core-weekly",
     ]
 
   # -- (string) Pattern file will be used on core network. Select between small or large.
