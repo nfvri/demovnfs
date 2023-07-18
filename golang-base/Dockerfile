@@ -1,12 +1,12 @@
-FROM golang:1.19.4-bullseye
+FROM golang:1.20.6-bookworm
 
 ENV TF_VER "2.10.0"
 ENV CCPUS "8"
 
 RUN apt-get update \
  && apt-get -y install bzr libvirt-dev linux-headers-amd64 python3 swig python3-numpy python3-distutils protobuf-compiler curl gnupg ipmitool \
-                       bison build-essential cmake flex git libelf-dev libfl-dev libedit-dev libllvm9 llvm-9-dev libclang-9-dev dh-python zlib1g-dev \
-                       arping bison clang-format cmake \
+                       bison build-essential cmake flex git libelf-dev libfl-dev libedit-dev libllvm14 llvm-14-dev libpolly-14-dev libclang-14-dev libclang-rt-14-dev \
+                       dh-python zlib1g-dev arping bison clang-format cmake \
                        dpkg-dev pkg-kde-tools ethtool flex inetutils-ping iperf \
                        libbpf-dev libclang-dev libclang-cpp-dev libedit-dev libelf-dev \
                        libfl-dev libzip-dev linux-libc-dev llvm-dev libluajit-5.1-dev \
