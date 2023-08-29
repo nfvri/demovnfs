@@ -74,7 +74,7 @@ macaddrs_normal_4=(ae:b2:d3:34:ab:57 d2:9c:55:d4:8a:fb)
 # Static IP addresses of the neighbors of gateway interface(s)
 #
 # In the order of (n-s1u n-sgi)
-nhipaddrs=(198.18.0.2 198.19.0.2 198.28.0.1 198.29.0.1)
+nhipaddrs=(198.18.0.2 198.19.0.2)
 
 # Static MAC addresses of the neighbors of gateway interface(s)
 #
@@ -98,10 +98,12 @@ function setup_trafficgen_routes() {
 		if [ $z -gt 1 ]
 		then z=0
 		fi
-		sudo ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$z]}" dev "${ifaces[$i % num_ifaces]}" || true
+                #sudo ip netns exec pause ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}"
+		sudo ip neighbor add "${nhipaddrs[$z]}" lladdr "${nhmacaddrs[$z]}" dev "${ifaces[$i % num_ifaces]}" || true
                 routelist=${routes[$z]}
                 for route in $routelist; do
-			sudo ip route add "$route" via "${nhipaddrs[$i]}" metric $k || true
+                        #sudo ip netns exec pause ip route add "$route" via "${nhipaddrs[$i]}" metric 100
+			sudo ip route add "$route" via "${nhipaddrs[$z]}" metric $k || true
 			k=$(($k+1))
                 done
 		z=$(($z+1))
@@ -222,6 +224,7 @@ if [ "$mode" != 'sim' ]; then
         setup_trafficgen_routes
 fi
 
+# Run bessd
 docker run --name premium-bess-1 -td --restart unless-stopped \
         --cpuset-cpus=0-12 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
@@ -304,14 +307,21 @@ docker run --name normal-bess-4 -td --restart unless-stopped \
         nfvri/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_normal_4
 
 # Sleep for a couple of secs before setting up the pipeline
-sleep 60
+sleep 180
 docker exec premium-bess-1 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_premium_1 -- run up4_premium_1
+sleep 5
 docker exec premium-bess-2 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_premium_2 -- run up4_premium_2
+sleep 5
 docker exec premium-bess-3 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_premium_3 -- run up4_premium_3
+sleep 5
 docker exec premium-bess-4 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_premium_4 -- run up4_premium_4
+sleep 5
 docker exec normal-bess-1 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_normal_1 -- run up4_normal_1
+sleep 5
 docker exec normal-bess-2 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_normal_2 -- run up4_normal_2
+sleep 5
 docker exec normal-bess-3 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_normal_3 -- run up4_normal_3
+sleep 5
 docker exec normal-bess-4 ./bessctl daemon disconnect -- daemon connect localhost:$bessd_port_normal_4 -- run up4_normal_4
 sleep 40
 
@@ -479,12 +489,20 @@ docker run --name routectl-normal-bess-4 -td --restart unless-stopped \
         nfvri/upf-epc-bess:0.3.0-dev --port $bessd_port_normal_4 -i "${ifaces[@]}"
 
 # Wait and add rules
-sleep 60
+sleep 90
 docker exec pfcpiface-premium-bess-1 pfcpiface -config /conf/upf_premium_1.json -bess localhost:${bessd_port_premium_1} -simulate create &
+sleep 5
 docker exec pfcpiface-premium-bess-2 pfcpiface -config /conf/upf_premium_2.json -bess localhost:${bessd_port_premium_2} -simulate create &
+sleep 5
 docker exec pfcpiface-premium-bess-3 pfcpiface -config /conf/upf_premium_3.json -bess localhost:${bessd_port_premium_3} -simulate create &
+sleep 5
 docker exec pfcpiface-premium-bess-4 pfcpiface -config /conf/upf_premium_4.json -bess localhost:${bessd_port_premium_4} -simulate create &
+sleep 5
 docker exec pfcpiface-normal-bess-1 pfcpiface -config /conf/upf_normal_1.json -bess localhost:${bessd_port_normal_1} -simulate create &
+sleep 5
 docker exec pfcpiface-normal-bess-2 pfcpiface -config /conf/upf_normal_2.json -bess localhost:${bessd_port_normal_2} -simulate create &
+sleep 5
 docker exec pfcpiface-normal-bess-3 pfcpiface -config /conf/upf_normal_3.json -bess localhost:${bessd_port_normal_3} -simulate create &
+sleep 5
 docker exec pfcpiface-normal-bess-4 pfcpiface -config /conf/upf_normal_4.json -bess localhost:${bessd_port_normal_4} -simulate create &
+sleep 5
