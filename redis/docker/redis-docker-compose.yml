@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 
 #networks:
 #  nfvri:
@@ -7,24 +7,25 @@ version: '3'
 
 services:
   redis:
-    image: redis:3.2.8
+    image: redis:7.0
     container_name: redis-benchmark
+    cpuset: "2-5,66-69"
     ports:
-     - "6379:6379"
+      - "6379:6379"
     volumes:
-     - ./redis-data:/data
-     - ./redis.conf:/etc/redis/redis.conf
-     - ./scripts:/scripts
+      - ./redis-data:/data
+      - ./redis.conf:/etc/redis/redis.conf
+      - ./scripts:/scripts
     command: redis-server /etc/redis/redis.conf
-#    networks:
-#      - nfvri
+  #    networks:
+  #      - nfvri
 
   exporter-r:
     image: bitnami/redis-exporter:latest
     container_name: exporter-r
     ports:
-     - "9121:9121"
+      - "9121:9121"
     environment:
       REDIS_ADDR: "redis://redis:6379"
     links:
-     - "redis"
+      - "redis"
