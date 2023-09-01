@@ -55,7 +55,9 @@ ifaces=("ens66f0" "ens66f1" "ens75f0" "ens75f1")
 # Static IP addresses of gateway interface(s) in cidr format
 #
 # In the order of (s1u sgi)
-ipaddrs=(198.18.0.1/30 198.19.0.1/30 198.28.0.1/30 198.29.0.1/30)
+ipaddrs=(198.18.0.1/30 198.19.0.1/30)
+ip_networks=(198.18.0.0/30 198.19.0.0/30)
+ip_gateways=(198.18.0.1 198.19.0.1)
 
 dummy_ipaddrs=(198.20.0.1/30 198.21.0.1/30 198.22.0.1/30 198.23.0.1/30 198.24.0.1/30 198.25.0.1/30 198.26.0.1/30 198.27.0.1/30)
 
@@ -70,6 +72,7 @@ macaddrs_premium_3=(ae:b2:d3:34:ab:27 d2:9c:55:d4:8a:f6)
 macaddrs_premium_4=(ae:b2:d3:34:ab:37 d2:9c:55:d4:8a:f8)
 macaddrs_normal_3=(ae:b2:d3:34:ab:47 d2:9c:55:d4:8a:fa)
 macaddrs_normal_4=(ae:b2:d3:34:ab:57 d2:9c:55:d4:8a:fb)
+#macaddrs_premium_2=(be:b2:d3:34:ab:27 d2:9c:55:d4:8a:f6)
 
 # Static IP addresses of the neighbors of gateway interface(s)
 #
@@ -94,16 +97,15 @@ num_dummy_ipaddrs=${#dummy_ipaddrs[@]}
 function setup_trafficgen_routes() {
 	k=101
 	z=0
-        for ((i = 0; i < num_ipaddrs; i++)); do
-		if [ $z -gt 1 ]
-		then z=0
+        for ((i = 0; i < num_ifaces; i++)); do
+		if [ $z -gt 1 ]; then 
+			z=0
 		fi
-                #sudo ip netns exec pause ip neighbor add "${nhipaddrs[$i]}" lladdr "${nhmacaddrs[$i]}" dev "${ifaces[$i % num_ifaces]}"
 		sudo ip neighbor add "${nhipaddrs[$z]}" lladdr "${nhmacaddrs[$z]}" dev "${ifaces[$i % num_ifaces]}" || true
+		sudo ip route add "${ip_networks[$z]}" dev "${ifaces[$i % num_ifaces]}" proto kernel scope link src "${ip_gateways[$z]}" metric $k || true
                 routelist=${routes[$z]}
                 for route in $routelist; do
-                        #sudo ip netns exec pause ip route add "$route" via "${nhipaddrs[$i]}" metric 100
-			sudo ip route add "$route" via "${nhipaddrs[$z]}" metric $k || true
+			sudo ip route add "$route" via "${nhipaddrs[$z]}" dev "${ifaces[$i % num_ifaces]}" metric $k || true
 			k=$(($k+1))
                 done
 		z=$(($z+1))
@@ -112,9 +114,15 @@ function setup_trafficgen_routes() {
 
 # Assign IP address(es) of gateway interface(s) within the network namespace
 function setup_addrs() {
-        for ((i = 0; i < num_ipaddrs; i++)); do
-		sudo ip addr add "${ipaddrs[$i]}" dev "${ifaces[$i % $num_ifaces]}" || true
+	z=0
+        for ((i = 0; i < num_ifaces; i++)); do
+		if [ $z -gt 1 ]; then 
+			z=0
+		fi
+		sudo ip addr add "${ipaddrs[$z]}" dev "${ifaces[$i % $num_ifaces]}" || true
+		z=$(($z+1))
         done
+
         for ((i = 0; i < num_dummy_ipaddrs; i++)); do
 		sudo ip addr add "${dummy_ipaddrs[$i]}" dev ens12f1  || true
         done
@@ -138,9 +146,6 @@ function setup_mirror_links() {
 # Set up interfaces in the network namespace. For non-"dpdk" mode(s)
 function move_ifaces() {
         for ((i = 0; i < 2; i++)); do
-                #sudo ip link set "${ifaces[$i]}" netns pause up
-                #sudo ip netns exec pause ip link set "${ifaces[$i]}" promisc off
-                #sudo ip netns exec pause ip link set "${ifaces[$i]}" xdp off
 		sudo ip link set "${ifaces[$i]}" up
 		sudo ip link set dev "${ifaces[$i]}" vf 0 mac "${macaddrs_premium_1[$i]}"
 		sudo ip link set dev "${ifaces[$i]}" vf 1 mac "${macaddrs_premium_2[$i]}"
@@ -148,13 +153,6 @@ function move_ifaces() {
 		sudo ip link set dev "${ifaces[$i]}" vf 3 mac "${macaddrs_normal_2[$i]}"
 		sudo ip link set "${ifaces[$i]}" promisc on
 		sudo ip link set "${ifaces[$i]}" xdp off
-                #if [ "$mode" == 'af_xdp' ]; then
-                #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple off
-                #        sudo ip netns exec pause ethtool --features "${ifaces[$i]}" ntuple on
-                #        sudo ip netns exec pause ethtool -N "${ifaces[$i]}" flow-type udp4 action 0
-                #        sudo ip netns exec pause ethtool -N "${ifaces[$i]}" flow-type tcp4 action 0
-                #        sudo ip netns exec pause ethtool -u "${ifaces[$i]}"
-                #fi
         done
         for ((i = 2; i < 4; i++)); do
 		sudo ip link set "${ifaces[$i]}" up
@@ -168,8 +166,6 @@ function move_ifaces() {
         setup_addrs
 }
 
-#docker stop pause
-#docker rm -f pause
 for i in "1" "2" "3" "4";
 do
 docker stop premium-bess-${i} normal-bess-${i} routectl-premium-bess-${i} routectl-normal-bess-${i} web-premium-bess-${i} \
@@ -177,15 +173,9 @@ docker stop premium-bess-${i} normal-bess-${i} routectl-premium-bess-${i} routec
 docker rm -f premium-bess-${i} normal-bess-${i} routectl-premium-bess-${i} routectl-normal-bess-${i} web-premium-bess-${i} \
 	web-normal-bess-${i} pfcpiface-premium-bess-${i} pfcpiface-normal-bess-${i} || true
 done
-# Stop previous instances of bess* before restarting
-#docker stop pause premium-bess-1 normal-bess-1 routectl-premium-bess-1 routectl-normal-bess-1 web-premium-bess-1 \
-#	web-normal-bess-1 pfcpiface-premium-bess-1 pfcpiface-normal-bess-1 || true
-#docker rm -f pause premium-bess-1 normal-bess-1 routectl-premium-bess-1 routectl-normal-bess-1 web-premium-bess-1 \
-#	web-normal-bess-1 pfcpiface-premium-bess-1 pfcpiface-normal-bess-1 || true
+
 sudo rm -rf /var/run/netns/pause
 
-# Build
-#make docker-build
 
 if [ "$mode" == 'dpdk' ]; then
         DEVICES=${DEVICES:-'--device=/dev/vfio/154 --device=/dev/vfio/158 --device=/dev/vfio/vfio'}
@@ -224,9 +214,8 @@ if [ "$mode" != 'sim' ]; then
         setup_trafficgen_routes
 fi
 
-# Run bessd
 docker run --name premium-bess-1 -td --restart unless-stopped \
-        --cpuset-cpus=0-12 \
+        --cpuset-cpus=0-11 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	-v /tmp:/tmp \
@@ -236,7 +225,7 @@ docker run --name premium-bess-1 -td --restart unless-stopped \
 	nfvri/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_premium_1
 
 docker run --name premium-bess-2 -td --restart unless-stopped \
-        --cpuset-cpus=13-25 \
+        --cpuset-cpus=13-24 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	-v /tmp:/tmp \
@@ -246,7 +235,7 @@ docker run --name premium-bess-2 -td --restart unless-stopped \
         nfvri/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_premium_2
 
 docker run --name premium-bess-3 -td --restart unless-stopped \
-        --cpuset-cpus=52-64 \
+        --cpuset-cpus=52-63 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	-v /tmp:/tmp \
@@ -256,7 +245,7 @@ docker run --name premium-bess-3 -td --restart unless-stopped \
         nfvri/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_premium_3
 
 docker run --name premium-bess-4 -td --restart unless-stopped \
-        --cpuset-cpus=65-77 \
+        --cpuset-cpus=65-76 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	-v /tmp:/tmp \
@@ -267,7 +256,7 @@ docker run --name premium-bess-4 -td --restart unless-stopped \
 
 
 docker run --name normal-bess-1 -td --restart unless-stopped \
-        --cpuset-cpus=26-38 \
+        --cpuset-cpus=26-37 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	-v /tmp:/tmp \
@@ -277,7 +266,7 @@ docker run --name normal-bess-1 -td --restart unless-stopped \
         nfvri/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_normal_1
 
 docker run --name normal-bess-2 -td --restart unless-stopped \
-        --cpuset-cpus=39-51 \
+        --cpuset-cpus=39-50 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	-v /tmp:/tmp \
@@ -287,7 +276,7 @@ docker run --name normal-bess-2 -td --restart unless-stopped \
         nfvri/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_normal_2
 
 docker run --name normal-bess-3 -td --restart unless-stopped \
-        --cpuset-cpus=78-90 \
+        --cpuset-cpus=78-89 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	-v /tmp:/tmp \
@@ -297,7 +286,7 @@ docker run --name normal-bess-3 -td --restart unless-stopped \
         nfvri/upf-epc-bess:0.3.0-dev -grpc-url=0.0.0.0:$bessd_port_normal_3
 
 docker run --name normal-bess-4 -td --restart unless-stopped \
-        --cpuset-cpus=91-103 \
+        --cpuset-cpus=91-102 \
         --ulimit memlock=-1 -v /dev/hugepages:/dev/hugepages \
         -v "$PWD/conf":/opt/bess/bessctl/conf \
 	-v /tmp:/tmp \
@@ -373,7 +362,7 @@ docker run --name pfcpiface-premium-bess-1 -td --restart on-failure \
 	-v /tmp:/tmp \
         -v "$PWD/conf/upf_premium_1.json":/conf/upf_premium_1.json \
 	nfvri/upf-epc-pfcpiface:0.3.0-dev \
-        -config /conf/upf_premium_1.json -bess localhost:$bessd_port_premium_1 -http 0.0.0.0:$metrics_port_premium_2 
+        -config /conf/upf_premium_1.json -bess localhost:$bessd_port_premium_1 -http 0.0.0.0:$metrics_port_premium_1 
 
 docker run --name pfcpiface-premium-bess-2 -td --restart on-failure \
 	--network host \
