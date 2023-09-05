@@ -1,0 +1,35 @@
+#NS = your docker namespace
+export VERSION ?= 1.20.6-2.10.0-ubi9
+
+# For private repo
+# export REPO = gcr.io/nfvsap
+# For nfvri public repo
+export REPO = europe-docker.pkg.dev/nfv-ri/images
+export NAME = golang-base-ubi9
+
+export CONTAINER_MANAGER = podman
+
+.PHONY: build-golang-base push-golang-base rm-golang-base
+
+default: build
+
+build-golang-base:
+	$(CONTAINER_MANAGER) build -f Dockerfile-ubi -t $(REPO)/$(NAME):$(VERSION) .
+
+push-golang-base:
+	# For private repo
+	cat .gcloud_keyfile.json | $(CONTAINER_MANAGER) login -u _json_key --password-stdin $(REPO)
+	# For public repo
+	#echo $(REPO_PAT) | base64 -d | $(CONTAINER_MANAGER) login -u $(USERNAME) --password-stdin
+	$(CONTAINER_MANAGER) push $(REPO)/$(NAME):$(VERSION)
+
+clean-golang-base:
+	$(CONTAINER_MANAGER) rmi -f $(REPO)/$(NAME):$(VERSION)
+
+release-golang-base: build-golang-base push-golang-base
+
+release: release-golang-base
+
+build: build-golang-base
+
+clean: clean-golang-base

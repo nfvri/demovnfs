@@ -1,0 +1,35 @@
+#NS = your docker namespace
+export VERSION ?= 2.3.1-2.10
+
+# For private repo
+# export REPO = europe-docker.pkg.dev/nfv-ri/images
+# For nfvri public repo
+export REPO = docker.io/nfvri
+export NAME = rllib-base-ubi9
+
+export CONTAINER_MANAGER = podman
+
+.PHONY: build-rllib-base push-rllib-base rm-rllib-base
+
+default: build
+
+build-rllib-base:
+	$(CONTAINER_MANAGER) build -f Dockerfile-ubi -t $(REPO)/$(NAME):$(VERSION) .
+
+push-rllib-base:
+	# For private repo
+	#cat .gcloud_keyfile.json | docker login -u _json_key --password-stdin https://gcr.io
+	# For public repo
+	echo $(REPO_PAT) | base64 -d | $(CONTAINER_MANAGER) login -u $(USERNAME) --password-stdin https://docker.io/nfvri
+	$(CONTAINER_MANAGER) push $(REPO)/$(NAME):$(VERSION)
+
+clean-rllib-base:
+	$(CONTAINER_MANAGER) rmi -f $(REPO)/$(NAME):$(VERSION)
+
+release-rllib-base: build-rllib-base push-rllib-base
+
+release: release-rllib-base
+
+build: build-rllib-base
+
+clean: clean-rllib-base
