@@ -23,7 +23,6 @@ data:
     #
     import time
     import os
-    import yaml
     import subprocess
 
 
@@ -50,8 +49,6 @@ data:
 
             
         def load_generation(self, cpu_workers, max_load, stressng_time=10):
-            
-
             if not os.path.exists(traffic_pattern_file):
                 print(f"Traffic pattern file {traffic_pattern_file} does not exist!")
                 exit(1)
