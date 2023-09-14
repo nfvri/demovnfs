@@ -19,6 +19,8 @@ command: []
 
 replicas: 10
 
+pattern: pattern-weekly
+
 ## Allows you to add any config files in configmap, such as load_generator.py script
 config: {}
 
