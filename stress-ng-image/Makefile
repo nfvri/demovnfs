@@ -10,7 +10,11 @@ export NAME = stress-ng
 
 .PHONY: build-stress-ng push-stress-ng rm-stress-ng
 
-export BUILD_PLATFORMS = "linux/arm64"  # "linux/amd64,linux/arm64"
+## Use cross-compilation by running:
+##  docker run --privileged --rm tonistiigi/binfmt --install all
+## Make sure you have enabled multibuilds (otherwise you are limited to one platform at a time!):
+##  docker buildx create --name multibuilder --bootstrap --use
+export BUILD_PLATFORMS = "linux/amd64,linux/arm64"
 
 default: build
 
