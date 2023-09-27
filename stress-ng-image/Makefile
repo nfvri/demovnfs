@@ -26,7 +26,8 @@ push-stress-ng:
 	#cat .gcloud_keyfile.json | docker login -u _json_key --password-stdin https://gcr.io
 	# For public repo
 	echo $(REPO_PAT) | base64 -d | docker login -u $(USERNAME) --password-stdin
-	docker push $(REPO)/$(NAME):$(VERSION)
+	docker buildx build --push --platform $(BUILD_PLATFORMS) -t $(REPO)/$(NAME):$(VERSION) .
+	# docker push $(REPO)/$(NAME):$(VERSION)
 
 clean-stress-ng: 
 	docker rmi -f $(REPO)/$(NAME):$(VERSION)
