@@ -63,9 +63,9 @@ data:
             while 1:
                 for day in range(0,7):
                     if day > 1:
-                        max_daily_load = max_load / 2
-                    else:
                         max_daily_load = max_load
+                    else:
+                        max_daily_load = max_load / 2
                     for line in lines:
                         load = (line * max_daily_load) / max_file_load            
                         print(f"Executing stress-ng for {stressng_time} seconds at {int(load)} load")

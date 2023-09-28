@@ -37,6 +37,9 @@
         "nodeSelector": {
             "type": "object"
         },
+        "pattern": {
+            "type": "string"
+        },
         "podAnnotations": {
             "type": "object"
         },
@@ -53,6 +56,9 @@
                     "type": "boolean"
                 }
             }
+        },
+        "replicas": {
+            "type": "integer"
         },
         "resources": {
             "type": "object"
