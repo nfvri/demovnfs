@@ -12,7 +12,7 @@ COPY licenses /licenses
 
 # Update system
 RUN dnf -y update-minimal --disableplugin=subscription-manager --setopt=tsflags=nodocs \
-                --security --sec-severity=Important --sec-severity=Critical
+        --security --sec-severity=Important --sec-severity=Critical
 
 ### Add necessary Red Hat UBI repos here
 RUN export REPOLIST="ubi-9-baseos-rpms,ubi-9-appstream-rpms,ubi-9-codeready-builder" && \
@@ -22,6 +22,11 @@ RUN export REPOLIST="ubi-9-baseos-rpms,ubi-9-appstream-rpms,ubi-9-codeready-buil
         dnf clean all
 
 RUN pip3 install ipython==6.0
+
+# Download cbc
+RUN mkdir -p /cbc \
+        && curl -fsLo /cbc/cbc.tar.gz  https://github.com/coin-or/Cbc/releases/download/releases%2F2.10.10/Cbc-releases.2.10.10-x86_64-ubuntu22-gcc1130-static.tar.gz \
+        && cd /cbc && tar -C /cbc -xzf cbc.tar.gz && cp /cbc/bin/cbc /usr/local/bin && rm -fr /cbc
 
 # Install tensorflow C libs
 RUN mkdir -p /tensorflow && \

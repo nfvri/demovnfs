@@ -1,11 +1,11 @@
 #NS = your docker namespace
-export VERSION ?= 2.3.1-2.10
+export VERSION ?= 2.3.1-2.10-ubi9
 
 # For private repo
 # export REPO = europe-docker.pkg.dev/nfv-ri/images
 # For nfvri public repo
 export REPO = docker.io/nfvri
-export NAME = rllib-base-ubi9
+export NAME = rllib-base-ubi
 
 export CONTAINER_MANAGER = podman
 
