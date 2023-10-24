@@ -7,6 +7,11 @@ RUN apt-get update && \
 
 RUN pip3 install ipython==6.0
 
+# Download cbc
+RUN mkdir -p /cbc \
+    && curl -fsLo /cbc/cbc.tar.gz  https://github.com/coin-or/Cbc/releases/download/releases%2F2.10.10/Cbc-releases.2.10.10-x86_64-ubuntu22-gcc1130-static.tar.gz \
+    && cd /cbc && tar -C /cbc -xzf cbc.tar.gz && cp /cbc/bin/cbc /usr/local/bin && rm -fr /cbc
+
 # Install tensorflow C libs
 RUN mkdir -p /tensorflow \
     && curl -fsLo /tensorflow/libtensorflow-cpu-linux-x86_64-2.10.0.tar.gz  https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.10.0.tar.gz \
