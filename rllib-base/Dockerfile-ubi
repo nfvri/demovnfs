@@ -1,35 +1,38 @@
-#NS = your docker namespace
-export VERSION ?= 1.20.6-2.10.0-ubi9
+FROM registry.access.redhat.com/ubi9/ubi:latest
+ENV TF_VER "2.10.0"
+LABEL name="rllib-base-ubi9" \
+        maintainer="danchrist@intracom-telecom.com" \
+        vendor="Intracom Telecom" \
+        version="2.3.1" \
+        release="1" \
+        summary="RLlib base utilities for Python" \
+        description="RLlib base utilities for Python"
 
-# For private repo
-# export REPO = gcr.io/nfvsap
-# For nfvri public repo
-export REPO = europe-docker.pkg.dev/nfv-ri/images
-export NAME = golang-base-ubi9
+COPY licenses /licenses
 
-export CONTAINER_MANAGER = podman
+# Update system
+RUN dnf -y update-minimal --disableplugin=subscription-manager --setopt=tsflags=nodocs \
+                --security --sec-severity=Important --sec-severity=Critical
 
-.PHONY: build-golang-base push-golang-base rm-golang-base
+### Add necessary Red Hat UBI repos here
+RUN export REPOLIST="ubi-9-baseos-rpms,ubi-9-appstream-rpms,ubi-9-codeready-builder" && \
+        ### Add your package needs here
+        export INSTALL_PKGS="python3 python3-devel python3-Cython curl openssh-clients openssh-server git cmake zlib-devel make gcc" && \
+        dnf -y install --disableplugin=subscription-manager --disablerepo "*" --enablerepo ${REPOLIST} --setopt=tsflags=nodocs ${INSTALL_PKGS} --allowerasing && \
+        dnf clean all
 
-default: build
+RUN pip3 install ipython==6.0
 
-build-golang-base:
-	$(CONTAINER_MANAGER) build -f Dockerfile-ubi -t $(REPO)/$(NAME):$(VERSION) .
+# Install tensorflow C libs
+RUN mkdir -p /tensorflow && \
+        curl -fsLo /tensorflow/libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz  https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz && \
+        cd /tensorflow && \
+        tar -C /usr/local/ -xzf libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz && \
+        ldconfig && \
+        rm -fr /tensorflow
 
-push-golang-base:
-	# For private repo
-	cat .gcloud_keyfile.json | $(CONTAINER_MANAGER) login -u _json_key --password-stdin $(REPO)
-	# For public repo
-	#echo $(REPO_PAT) | base64 -d | $(CONTAINER_MANAGER) login -u $(USERNAME) --password-stdin
-	$(CONTAINER_MANAGER) push $(REPO)/$(NAME):$(VERSION)
-
-clean-golang-base:
-	$(CONTAINER_MANAGER) rmi -f $(REPO)/$(NAME):$(VERSION)
-
-release-golang-base: build-golang-base push-golang-base
-
-release: release-golang-base
-
-build: build-golang-base
-
-clean: clean-golang-base
+# Install tensorflow && rllib
+RUN pip3 install -U tensorflow==${TF_VER} && \
+        pip3 install -U aioredis==1.3.1 && \
+        pip3 install -U ray==2.3.1 && \
+        pip3 install -U 'ray[rllib]'==2.3.1
