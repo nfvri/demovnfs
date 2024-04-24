@@ -27,8 +27,31 @@ clean-rllib-base:
 
 release-rllib-base: build-rllib-base push-rllib-base
 
-release: release-rllib-base
+build-multi-rllib-base:
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(REPO)/$(NAME):$(VERSION) .
 
-build: build-rllib-base
+push-multi-rllib-base:
+	echo $(REPO_PAT) | base64 -d | docker login -u $(USERNAME) --password-stdin
+	docker buildx build --push --platform linux/amd64,linux/arm64 -t $(REPO)/$(NAME):$(VERSION) .
 
-clean: clean-rllib-base
+clean-multi-rllib-base: 
+	docker rmi -f $(REPO)/$(NAME):$(VERSION)
+
+release-multi-rllib-base: build-multi-rllib-base push-multi-rllib-base
+
+# Defaulting to multi-platform builds. To setup your env use:
+## $ docker run --privileged --rm tonistiigi/binfmt --install all
+## $ docker buildx create --name multibuilder --bootstrap --use
+# See also: https://docs.docker.com/build/building/multi-platform/
+
+# If you are running qemu-emulated builds, and you get the following error:
+## Opening zip "/proc/self/exe": lseek(): Bad file descriptor
+# try:
+## $ docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+release: release-multi-rllib-base
+
+build: build-multi-rllib-base
+
+clean: clean-multi-rllib-base
+
