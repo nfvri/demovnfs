@@ -32,7 +32,7 @@ build-multi-golang-base:
 
 push-multi-golang-base:
 	echo $(REPO_PAT) | base64 -d | docker login -u $(USERNAME) --password-stdin
-	docker buildx build --push --platform linux/amd64,linux/arm64 $(REPO)/$(NAME):$(VERSION)
+	docker buildx build --push --platform linux/amd64,linux/arm64 -t $(REPO)/$(NAME):$(VERSION) .
 
 clean-multi-golang-base: 
 	docker rmi -f $(REPO)/$(NAME):$(VERSION)
