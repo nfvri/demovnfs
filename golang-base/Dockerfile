@@ -56,10 +56,6 @@ RUN apt-get update \
  && apt clean
 
 # Install bazel
-#RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg \
-# && mv bazel.gpg /etc/apt/trusted.gpg.d/ \
-# && echo "deb [arch=arm64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list \
-# && apt-get -y update && apt-get -y install bazel && apt clean
 
 RUN curl -fsLo /bazelisk-linux-arm64 https://github.com/bazelbuild/bazelisk/releases/download/v1.17.0/bazelisk-linux-arm64 \
  && chmod +x /bazelisk-linux-arm64 && mv /bazelisk-linux-arm64 /usr/local/bin/bazel
@@ -74,11 +70,6 @@ RUN git clone --depth 1 --branch v0.24.0 https://github.com/iovisor/bcc.git && \
     cd / && \  
     rm -rf /bcc
 
-# Install tensorflow C libs
-#RUN mkdir -p /tensorflow \
-# && curl -fsLo /tensorflow/libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz  https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz \
-# && cd /tensorflow && tar -C /usr/local/ -xzf libtensorflow-cpu-linux-x86_64-${TF_VER}.tar.gz && ldconfig && rm -fr /tensorflow
-
 # Build tensorflow C libs
 RUN mkdir -p /tensorflow \
  && curl -fsLo /tensorflow/v${TF_VER}.tar.gz https://github.com/tensorflow/tensorflow/archive/refs/tags/v${TF_VER}.tar.gz \
@@ -87,6 +78,7 @@ RUN mkdir -p /tensorflow \
 
 RUN cd /tensorflow/tensorflow-${TF_VER}/ && bazel build --jobs 20 --config opt //tensorflow/tools/lib_package:libtensorflow
 
+# Install tensorflow C libs
 RUN find / -name *libtensorflow.tar.gz* \
  && cp /tensorflow/tensorflow-${TF_VER}/bazel-bin/tensorflow/tools/lib_package/libtensorflow.tar.gz /libtensorflow_${TF_VER}.tar.gz \
  && tar -C /usr/local/ -xzf /libtensorflow_${TF_VER}.tar.gz \

@@ -27,8 +27,25 @@ clean-golang-base:
 
 release-golang-base: build-golang-base push-golang-base
 
-release: release-golang-base
+build-multi-golang-base:
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(REPO)/$(NAME):$(VERSION) .
 
-build: build-golang-base
+push-multi-golang-base:
+	echo $(REPO_PAT) | base64 -d | docker login -u $(USERNAME) --password-stdin
+	docker buildx build --push --platform linux/amd64,linux/arm64 $(REPO)/$(NAME):$(VERSION)
 
-clean: clean-golang-base
+clean-multi-golang-base: 
+	docker rmi -f $(REPO)/$(NAME):$(VERSION)
+
+release-multi-golang-base: build-multi-golang-base push-multi-golang-base
+
+# Defaulting to multi-platform builds. To setup your env use:
+## $ docker run --privileged --rm tonistiigi/binfmt --install all
+## $ docker buildx create --name multibuilder --bootstrap --use
+# See also: https://docs.docker.com/build/building/multi-platform/
+
+release: release-multi-golang-base
+
+build: build-multi-golang-base
+
+clean: clean-multi-golang-base
