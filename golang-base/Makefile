@@ -44,6 +44,11 @@ release-multi-golang-base: build-multi-golang-base push-multi-golang-base
 ## $ docker buildx create --name multibuilder --bootstrap --use
 # See also: https://docs.docker.com/build/building/multi-platform/
 
+# If you are running qemu-emulated builds, and you get the following error:
+## Opening zip "/proc/self/exe": lseek(): Bad file descriptor
+# try:
+## $ docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
 release: release-multi-golang-base
 
 build: build-multi-golang-base
