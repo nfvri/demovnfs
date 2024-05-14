@@ -1,0 +1,74 @@
+# Deploy a Prometheus db instance with data data taken from gcp.
+
+version: '1'
+
+networks:
+  arcadia:
+    driver: bridge
+    name: ${ARCADIA_NETWORK}
+
+services:
+  prometheus-server:
+    image: ${PROMETHEUS_IMAGE}
+    container_name: ${PROMETHEUS_CONTAINER_NAME}
+    ports:
+      - ${PROMETHEUS_HOST_PORT}:${PROMETHEUS_CONTAINER_PORT}
+    environment:
+      - TZ=${TZ}
+      - ARCADIA_SERVER_CONTAINER_PORT=${ARCADIA_SERVER_CONTAINER_PORT}
+    user: "root:root"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--log.level=debug"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+      - "--storage.tsdb.retention.time=1y"
+    volumes:
+      - ./deployment/config_files/prometheus:/etc/prometheus
+      - /data/gcp/prometheus-db-raw-storage-binaries/mount/prometheus-db:/prometheus
+    networks:
+      - arcadia
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 12G
+
+  grafana:
+    image: ${GRAFANA_IMAGE}
+    container_name: ${GRAFANA_CONTAINER_NAME}
+    ports:
+      - "${GRAFANA_HOST_PORT}:${GRAFANA_CONTAINER_PORT}"
+    volumes:
+      - ./deployment/data/grafana/var/lib/grafana/:/var/lib/grafana
+      - ./deployment/config_files/grafana/provisioning/:/etc/grafana/provisioning
+      - ./deployment/config_files/grafana/dashboards/:/etc/grafana/dashboards
+      - ./deployment/config_files/grafana/grafana.ini:/etc/grafana/grafana.ini
+    environment:
+      - TZ=${TZ}
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+      - PROMETHEUS_CONTAINER_NAME=${PROMETHEUS_CONTAINER_NAME}
+      - PROMETHEUS_CONTAINER_PORT=${PROMETHEUS_CONTAINER_PORT}
+    command: >
+      bash -c "chown -R root:root /etc/grafana &&
+              chmod -R a+r /etc/grafana &&
+              chown -R grafana:grafana /var/lib/grafana &&
+              chown -R grafana:grafana /usr/share/grafana &&
+              ./run.sh"
+    user: "root"
+    healthcheck:
+      test: wget http://localhost:3000/api/health --spider
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - arcadia
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4'
+
+
