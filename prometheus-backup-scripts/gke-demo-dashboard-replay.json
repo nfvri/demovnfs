@@ -1,0 +1,1006 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 8,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 48,
+      "panels": [],
+      "title": "DC Info",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1E1261563F7772F9"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2271,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "count(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Nodes",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "b1a103d7-fc6f-456e-95ed-9ec67568a5cd"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit",
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "id": 251,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "(100 - avg_over_time(sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})[$__range:$__rate_interval])) / 100",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Average Saved Nodes",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "b1a103d7-fc6f-456e-95ed-9ec67568a5cd"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "id": 2276,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Active Nodes",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "b1a103d7-fc6f-456e-95ed-9ec67568a5cd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "#EF843C",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent",
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "id": 44,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\"})/sum(kube_node_status_allocatable{resource=\"cpu\"})*100",
+          "hide": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "DC CPU Usage",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "#EF843C",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent",
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "id": 42,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_requests{resource=\"memory\"})/sum(kube_node_status_allocatable{resource=\"memory\"})*100",
+          "hide": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "DC Memory Usage",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "b1a103d7-fc6f-456e-95ed-9ec67568a5cd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "green",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent",
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "id": 2286,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time((count(sum_over_time(sum(kube_pod_status_phase{phase=\"Pending\"}) by (pod) [5m:60s]) >= 5) <= bool $pending_pods or on() vector(1))[$__range:$__interval]) / sum_over_time(sum(prometheus_build_info)[$__range:$__interval]) * 100",
+          "hide": true,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "100",
+          "hide": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Pending Pod SLO ",
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2275,
+      "panels": [],
+      "title": "Controller Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "b1a103d7-fc6f-456e-95ed-9ec67568a5cd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "#EF843C",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "short",
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 2282,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "9.4.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\"}) by (resource)",
+          "hide": false,
+          "legendFormat": "Requested CPU",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "sum(sum(kube_node_status_allocatable{resource=\"cpu\"}) by (node) * on(node) (1 - sum (kube_node_spec_unschedulable) by (node)))",
+          "hide": false,
+          "legendFormat": "Available CPU",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "CPU Resource Demand",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "b1a103d7-fc6f-456e-95ed-9ec67568a5cd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 29,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 2281,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(1 - sum (kube_node_spec_unschedulable) by (node), \"short_node\", \"$1-$2\", \"node\", \"gke-(.*)-1-default-pool-f34ee89d-(.*)\")",
+          "legendFormat": "{{short_node}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Instant Nodes Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "#EF843C",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "short",
+          "unitScale": true
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 2287,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "9.4.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1E1261563F7772F9"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
+          "hide": false,
+          "legendFormat": "Active Nodes",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Active Nodes",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "id": 2283,
+      "panels": [],
+      "title": "Resource demand by resource",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P1E1261563F7772F9"
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 5,
+        "x": 0,
+        "y": 39
+      },
+      "id": 2288,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<script>\n\n  let timeSrv = angular.element('grafana-app').injector().get('timeSrv');\n  let play_mode = false\n  let play_interval = 1\n  let reverse = false\n  const update_interval = 1000 //miliseconds!\n  \n  function play() {\n    reverse = false\n    play_mode = true\n    removeAllActiveClasses()\n    setActiveClass('btn-play')\n    console.log('play!')\n  }\n  \n  function pause() {\n    play_mode = false\n    removeAllActiveClasses()\n    setActiveClass('btn-pause')\n    console.log('pause!')\n  }\n  \n  function play_reverse() {\n    reverse = true\n    play_mode = true\n    removeAllActiveClasses()\n    setActiveClass('btn-play-rev')\n    console.log('reverse!')\n  }\n\n  // sleep time expects milliseconds\n  function sleep (time) {\n    return new Promise((resolve) => setTimeout(resolve, time));\n  }\n\n  function increaseTime() {\n    if (!play_mode) return\n    let from = timeSrv.timeRange().from\n    let to = timeSrv.timeRange().to\n\n    sleep(update_interval).then(() => {\n      if (reverse) {\n        timeSrv.setTime({from: from.add(-play_interval, 'seconds'), to: to.add(-play_interval, 'seconds')});\n      } else {\n        timeSrv.setTime({from: from.add(play_interval, 'seconds'), to: to.add(play_interval, 'seconds')});\n      }\n    });\n  }\n  \n  function removeAllActiveClasses() {\n    document.getElementById('btn-play-rev').classList.remove('btn-active')\n    document.getElementById('btn-pause').classList.remove('btn-active')\n    document.getElementById('btn-play').classList.remove('btn-active')\n  }\n\n  function setActiveClass(btn) {\n    document.getElementById(btn).classList.add('btn-active')\n  }\n  \n  window.setInterval(increaseTime, 1000)\n  \n</script>\n\n<style type=\"text/css\">\n  .btn-active {\n    background-color: #25cd93;\n  }\n  .btn-active:hover {\n    background-color: #009f77;\n  }\n</style>\n\n<div class=\"gf-form-inline\">\n  \n  <div class=\"gf-form\">\n    <button id=\"btn-play-rev\" class=\"gf-form-label gf-form-label--btn\" onclick=\"play_reverse()\"><i class=\"fa fa-backward\"></i>️</button>\n  </div>\n  <div class=\"gf-form\">\n    <button id=\"btn-pause\" class=\"gf-form-label gf-form-label--btn btn-active\" onclick=\"pause()\"><i class=\"fa fa-pause\"></i></button>\n  </div>\n  <div class=\"gf-form\">\n    <button id=\"btn-play\" class=\"gf-form-label gf-form-label--btn\" onclick=\"play()\"><i class=\"fa fa-forward\"></i></button>\n  </div>\n\n  <div class=\"gf-form\">\n    <div class=\"gf-form-label\">speed</div>\n    <div class=\"gf-form-select-wrapper\">\n      <select class=\"gf-form-input ng-pristine ng-valid ng-not-empty\" id=\"play-speed\" onchange=\"play_interval = this.options[this.selectedIndex].value\">\n        <option value=\"1\">1x</option>\n        <option value=\"5\">5x</option>\n        <option value=\"10\">10x</option>\n        <option value=\"50\">50x</option>\n        <option value=\"100\">100x</option>\n        <option value=\"500\">500x</option>\n        <option value=\"1000\">1000x</option>\n      </select>\n    </div>\n  </div>\n  \n</div>\n",
+        "mode": "html"
+      },
+      "pluginVersion": "10.3.1",
+      "title": "Panel Title",
+      "type": "text"
+    }
+  ],
+  "refresh": false,
+  "revision": 1,
+  "schemaVersion": 39,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "17000",
+          "value": "17000"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "label": "unoptimized average power consumption daily",
+        "multi": false,
+        "name": "avg_power",
+        "options": [
+          {
+            "selected": false,
+            "text": "58500",
+            "value": "58500"
+          },
+          {
+            "selected": false,
+            "text": "53500",
+            "value": "53500"
+          },
+          {
+            "selected": true,
+            "text": "17000",
+            "value": "17000"
+          }
+        ],
+        "query": "58500,53500,17000",
+        "queryValue": "17000",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "1.7",
+          "value": "1.7"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "label": "PUE",
+        "multi": false,
+        "name": "PUE",
+        "options": [
+          {
+            "selected": true,
+            "text": "1.7",
+            "value": "1.7"
+          }
+        ],
+        "query": "1.7",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "0.2",
+          "value": "0.2"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "label": "kWh price €",
+        "multi": false,
+        "name": "kwh_price",
+        "options": [
+          {
+            "selected": true,
+            "text": "0.2",
+            "value": "0.2"
+          }
+        ],
+        "query": "0.2",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "0.21016",
+          "value": "0.21016"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "label": "co2 kg/kWh",
+        "multi": false,
+        "name": "co2_kwh_factor",
+        "options": [
+          {
+            "selected": true,
+            "text": "0.21016",
+            "value": "0.21016"
+          }
+        ],
+        "query": "0.21016",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "3",
+          "value": "3"
+        },
+        "description": "SLO tolerated pending pods",
+        "hide": 2,
+        "includeAll": false,
+        "label": "SLO tolerated pending pods",
+        "multi": false,
+        "name": "pending_pods",
+        "options": [
+          {
+            "selected": false,
+            "text": "0",
+            "value": "0"
+          },
+          {
+            "selected": false,
+            "text": "1",
+            "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "2",
+            "value": "2"
+          },
+          {
+            "selected": true,
+            "text": "3",
+            "value": "3"
+          },
+          {
+            "selected": false,
+            "text": "4",
+            "value": "4"
+          },
+          {
+            "selected": false,
+            "text": "5",
+            "value": "5"
+          }
+        ],
+        "query": "0,1,2,3,4,5",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "2024-02-04T09:49:12.000Z",
+    "to": "2024-02-05T09:49:12.000Z"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "GKE Demo Dashboard",
+  "uid": "fef33a10-bd1d-4e4d-9eb7-4429d3e60f76",
+  "version": 20,
+  "weekStart": ""
+}
