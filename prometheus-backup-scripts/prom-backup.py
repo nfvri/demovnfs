@@ -78,6 +78,7 @@ def main():
         help="formart date as follows: day-month-year e.g 30-10-2023"
     )
     parser.add_argument('-st', '--step', default=60)
+
     args = parser.parse_args()
 
     prom = PrometheusConnect(args.server, disable_ssl=True)
