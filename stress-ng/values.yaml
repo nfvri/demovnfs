@@ -28,6 +28,10 @@ stress:
   maxLoad: 95
   # -- Specifies the loading time 
   timer: 60
+  # -- Pattern of stress-ng load script
+  patternFilename: "/pattern/patternDailyLarge.txt.txt"
+  # -- Specifies the number of weekdays with half the max load for weekly tests
+  weekdays: 5
 
 ## RBAC Configuration
 rbac:

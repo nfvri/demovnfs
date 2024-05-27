@@ -29,6 +29,10 @@ spec:
         value: {{ .Values.stress.maxLoad | quote }}
       - name: TIMER
         value: {{ .Values.stress.timer | quote }}
+      - name: PATTERN_FILENAME
+        value: {{ .Values.stress.patternFilename | quote }}
+      - name: WEEKDAYS
+        value: {{ .Values.stress.weekdays | quote }}
       resources:
         {{- toYaml .Values.resources | nindent 8 }}
       volumeMounts:

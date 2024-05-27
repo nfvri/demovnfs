@@ -36,9 +36,6 @@ data:
         fp.close()
         return lines
 
-
-    traffic_pattern_file = "/pattern/pattern.txt"
-
     class StressNg(object):
         def __init__(self):
             self.nodename = os.uname()[1]
@@ -48,7 +45,9 @@ data:
             self.cpuusable = len(os.sched_getaffinity(0))
 
             
-        def load_generation(self, cpu_workers, max_load, stressng_time=10):
+        def load_generation(self, cpu_workers, max_load, stressng_time, pattern_filename, weekdays):
+            traffic_pattern_file = pattern_filename
+
             if not os.path.exists(traffic_pattern_file):
                 print(f"Traffic pattern file {traffic_pattern_file} does not exist!")
                 exit(1)
@@ -62,7 +61,7 @@ data:
 
             while 1:
                 for day in range(0,7):
-                    if day > 1:
+                    if day > (6 - weekdays) :
                         max_daily_load = max_load / 2
                     else:
                         max_daily_load = max_load
@@ -84,7 +83,9 @@ data:
         DEFAULT_CPU_WORKERS=1
         DEFAULT_MAX_LOAD=100
         DEFAULT_TIMER=10
+        DEFAULT_PATTERN_FILENAME="/pattern/patternDailyLarge.txt.txt"
         DEFAULT_STEPS=None
+        DEFAULT_WEEKDAYS=5
 
         # fetch LOAD environment variables
         try:
@@ -104,11 +105,21 @@ data:
         except KeyError:
             print(f"Error parsing {os.environ['TIMER']} as interger. Using timer={DEFAULT_TIMER} instead.")
             default_timer = DEFAULT_TIMER
+        # fetch PATTERN_FILENAME environment variables
+        default_pattern_filename = os.getenv('PATTERN_FILENAME', DEFAULT_PATTERN_FILENAME)
+        # fetch WEEKDAYS environment variables
+        try:
+            default_weekdays = int(os.getenv('WEEKDAYS', DEFAULT_WEEKDAYS))
+        except KeyError:
+            print(f"Error parsing {os.environ['WEEKDAYS']} as interger. Using weekdays={DEFAULT_WEEKDAYS} instead.")
+            default_weekdays = DEFAULT_WEEKDAYS
 
         stress=StressNg()
         stress.load_generation(cpu_workers=default_cpu_workers,
                                 max_load=default_max_load, 
-                                stressng_time=default_timer)
+                                stressng_time=default_timer,
+                                pattern_filename=default_pattern_filename,
+                                weekdays=default_weekdays)
 
     #
     # END OF FILE
