@@ -1,0 +1,82 @@
+global:
+  config_version: 3
+input:
+  type: file
+  path: ./grok/metrics.log
+  readall: true # Read from the beginning of the file? False means we start at the end of the file and read only new lines.
+imports:
+- type: grok_patterns
+  dir: ./grok/patterns
+grok_patterns:
+- 'DU_UE_VALUES DU: %{NUMBER:du_id}, CU-UE-ID: %{NUMBER:cu_ue_id}, %{NOTSPACE:sync_status}, dlsch_errors: %{NUMBER:dlsch_errors}, ulsch_errors: %{NUMBER:ulsch_errors}, dlsch_bler: %{NUMBER:dlsch_bler}, ulsch_bler: %{NUMBER:ulsch_bler}, transmitted: %{NUMBER:mac_tx}, received: %{NUMBER:mac_rx}'
+
+
+metrics:
+
+- type: gauge
+  name: ran_ue_sync_status_boolean
+  help: "The boolean value for every UE sync status (in-sync=1, out-of-sync=0)"
+  match: '%{DU_UE_VALUES}'
+  value: '{{if eq .sync_status "in-sync"}}1{{else}}0{{end}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.cu_ue_id}}'
+
+- type: gauge
+  name: ran_dlsch_errors_per_ue_total 
+  help: "The number of errors encountered in DLSCH transmissions."
+  match: '%{DU_UE_VALUES}'
+  value: '{{.dlsch_errors}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.cu_ue_id}}'
+
+- type: gauge
+  name: ran_dlsch_bler_per_ue
+  help: "The ratio of erroneous blocks to the total number of blocks transmitted (DLSCH)."
+  match: '%{DU_UE_VALUES}'
+  value: '{{.dlsch_bler}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.cu_ue_id}}'
+
+
+- type: gauge
+  name: ran_ulsch_errors_per_ue_total 
+  help: "The number of errors encountered in ULSCH transmissions."
+  match: '%{DU_UE_VALUES}'
+  value: '{{.ulsch_errors}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.cu_ue_id}}'
+
+- type: gauge
+  name: ran_ulsch_bler_per_ue
+  help: "The ratio of erroneous blocks to the total number of blocks transmitted (ULSCH)."
+  match: '%{DU_UE_VALUES}'
+  value: '{{.ulsch_bler}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.cu_ue_id}}'
+
+- type: gauge
+  name: ran_load_transmitted_per_ue_total
+  help: "The logs that represent the UE data transmitted (TX) at the MAC layer"
+  match: '%{DU_UE_VALUES}'
+  value: '{{.mac_tx}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.cu_ue_id}}'
+
+- type: gauge
+  name: ran_load_received_per_ue_total
+  help: "The logs that represent the UE data received (RX) at the MAC layer"
+  match: '%{DU_UE_VALUES}'
+  value: '{{.mac_rx}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.cu_ue_id}}'
+
+server:
+  protocol: http
+  port: 8000

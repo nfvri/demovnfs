@@ -1,0 +1,1 @@
+COMPACT_LOG %{NUMBER:time_stamp} \[NR_MAC\] I Frame\.Slot %{NUMBER:slot}

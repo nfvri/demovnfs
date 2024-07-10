@@ -1,0 +1,135 @@
+global:
+  config_version: 3
+input:
+  type: file
+  path: ./grok/du-metrics.log
+  readall: true # Read from the beginning of the file? False means we start at the end of the file and read only new lines.
+imports:
+- type: grok_patterns
+  dir: ./grok/patterns
+grok_patterns:
+- 'UE_HEADING DU %{NUMBER:du_id}: UE RNTI %{WORD:ue_rnti} CU-UE-ID %{NUMBER:cu_ue_id} %{NOTSPACE:sync_status} PH %{NUMBER} dB PCMAX %{NUMBER:pcmax} dBm, average RSRP %{NUMBER:rsrp} \(%{NUMBER:meas} meas\)'
+- 'UE_LOAD_DLSCH DU %{NUMBER:du_id}: UE %{WORD:ue_rnti}: dlsch_rounds %{NUMBER}/%{NUMBER}/%{NUMBER}/%{NUMBER}, dlsch_errors %{NUMBER:dlsch_errors}, pucch0_DTX %{NUMBER:pucch0_dtx}, BLER %{NUMBER:dlsch_bler} MCS \(%{NUMBER:mcs1}\) %{NUMBER:dlsch_mcs}'
+- 'UE_LOAD_ULSCH DU %{NUMBER:du_id}: UE %{WORD:ue_rnti}: ulsch_rounds %{NUMBER}/%{NUMBER}/%{NUMBER}/%{NUMBER}, ulsch_errors %{NUMBER:ulsch_errors}, ulsch_DTX %{NUMBER:ulsch_dtx}, BLER %{NUMBER:ulsch_bler} MCS \(%{NUMBER:mcs2}\) %{NUMBER:ulsch_mcs}'
+- 'UE_LOAD_MAC DU %{NUMBER:du_id}: UE %{WORD:ue_rnti}: MAC:\s+TX\s+%{NUMBER:mac_tx}\s+RX\s+%{NUMBER:mac_rx} bytes' 
+- 'UE_LOAD_LCID DU %{NUMBER:du_id}: UE %{WORD:ue_rnti}: LCID %{NUMBER}:\s+TX\s+%{NUMBER:lcid_tx}\s+RX\s+%{NUMBER:lcid_rx} bytes'
+
+metrics:
+- type: gauge
+  name: ran_du_ue_matching
+  help: "The logs that represent the available DU-UE matches"
+  match: '%{UE_HEADING}'
+  value: '{{.du_id}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.ue_rnti}}'
+    ue_id: '{{.cu_ue_id}}'
+    sync_status: '{{.sync_status}}'
+#    pcmax: '{{.pcmax}}'
+#    rsrp: '{{.rsrp}}'
+#    meas: '{{.meas}}'
+
+
+- type: counter
+  name: ran_dlsch_errors_du_sum 
+  help: "The logs that represent the sum of dlsch_errors per du, it might double count for the same ue."
+  match: '%{UE_LOAD_DLSCH}'
+  value: '{{.dlsch_errors}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+
+- type: gauge
+  name: ran_dlsch_errors 
+  help: "The logs that represent the dlsch ERRORS"
+  match: '%{UE_LOAD_DLSCH}'
+  value: '{{.dlsch_errors}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.ue_rnti}}'
+
+- type: counter
+  name: ran_dlsch_bler_du_sum 
+  help: "The logs that represent the sum of dlsch BLER per du, it might double count for the same ue."
+  match: '%{UE_LOAD_DLSCH}'
+  value: '{{.dlsch_bler}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+
+- type: gauge
+  name: ran_dlsch_bler
+  help: "The logs that represent the dlsch BLER"
+  match: '%{UE_LOAD_DLSCH}'
+  value: '{{.dlsch_bler}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.ue_rnti}}'
+
+
+- type: counter
+  name: ran_ulsch_errors_du_sum
+  help: "The logs that represent the sum of ulsch_errors per du, it might double count for the same ue." 
+  match: '%{UE_LOAD_ULSCH}'
+  value: '{{.ulsch_errors}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+
+- type: gauge
+  name: ran_ulsch_errors
+  help: "The logs that represent the dlsch ERRORS" 
+  match: '%{UE_LOAD_ULSCH}'
+  value: '{{.ulsch_errors}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.ue_rnti}}'
+
+- type: counter
+  name: ran_ulsch_bler_du_sum
+  help: "The logs that represent the sum of ulsch BLER per du, it might double count for the same ue." 
+  match: '%{UE_LOAD_ULSCH}'
+  value: '{{.ulsch_bler}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+
+- type: gauge
+  name: ran_ulsch_bler
+  help: "The logs that represent the ulsch BLER"
+  match: '%{UE_LOAD_ULSCH}'
+  value: '{{.ulsch_bler}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    ue: '{{.ue_rnti}}'
+
+
+- type: gauge
+  name: ran_load_transmitted
+  help: "The logs that represent the UE data transmitted (TX) at the MAC layer"
+  match: '%{UE_LOAD_MAC}'
+  value: '{{.mac_tx}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    # ue: '{{.ue_rnti}}'
+
+- type: gauge
+  name: ran_load_received
+  help: "The logs that represent the UE data received (RX) at the MAC layer"
+  match: '%{UE_LOAD_MAC}'
+  value: '{{.mac_rx}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    # ue: '{{.ue_rnti}}'
+
+
+- type: gauge
+  name: ran_ue_load_lcid
+  help: "The logs that represent the UE data transmitted (TX) and received (RX) for a specific logical channel (LCID)"
+  match: '%{UE_LOAD_LCID}'
+  value: '{{.lcid_tx}}'
+  labels:
+    du: 'oai-du-{{.du_id}}'
+    # ue: '{{.ue_rnti}}'
+    lcid_tx: '{{.lcid_tx}}'
+#    lcid_rx: '{{.lcid_rx}}'
+
+server:
+  protocol: http
+  port: 8000

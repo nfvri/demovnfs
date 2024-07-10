@@ -1,0 +1,100 @@
+version: '3.8'
+services:
+
+    oai-cu-cp-@ID@:
+        container_name: "oai-cu-cp-@ID@"
+        image: oaisoftwarealliance/oai-gnb:v2.1.0
+        expose:
+            - 36412/sctp 	# n2
+            - 38462/sctp	# e1
+            - 2153/udp		# f1c
+        environment:
+            - TZ=UTC
+            - AMF_HOST=oai-amf   # amf ip-address or service-name oai-amf-svc or 192.168.75.130
+            - OAI_GDBSTACKS=0
+        volumes: 
+            - ./conf/cucp.conf:/opt/oai-gnb/etc/gnb.conf
+        privileged: true
+        command: [
+            "/bin/bash", 
+            "-c", 
+            "echo 'Create conf file replacing the IP values' &&
+             sed -e s/@RAN_ID@/@ID@/g -e s/@AMF@/@AMF_IP@/g -e s/@CUCP@/@CUCP_IP@/g -e s/@CUUP@/@CUUP_IP@/g /opt/oai-gnb/etc/gnb.conf > /opt/oai-gnb/etc/cucp.conf &&
+             ls && 
+             cat /opt/oai-gnb/etc/cucp.conf && 
+             /opt/oai-gnb/bin/nr-softmodem -O /opt/oai-gnb/etc/cucp.conf --sa --log_config.global_log_options level,nocolor,time
+            "
+            ]
+        networks:
+            overnet:
+                ipv4_address: @CUCP_IP@
+
+    oai-cu-up-@ID@:
+        container_name: "oai-cu-up-@ID@"
+        image: oaisoftwarealliance/oai-nr-cuup:v2.1.0
+        expose:
+            - 2152/udp		# n3
+            - 38462/sctp	# e1
+            - 2153/udp		# f1u  
+        environment:
+            - TZ=UTC
+            - CU_CP_HOST=oai-cu-cp-@ID@  
+        depends_on:
+            - oai-cu-cp-@ID@
+        volumes: 
+            - ./conf/cuup.conf:/opt/oai-gnb/etc/gnb.conf
+        privileged: true
+        command: [
+            "/bin/bash", 
+            "-c", 
+            "echo 'Create conf file replacing the IP values' &&
+             sed -e s/@RAN_ID@/@ID@/g -e s/@AMF@/@AMF_IP@/g -e s/@CUCP@/@CUCP_IP@/g -e s/@CUUP@/@CUUP_IP@/g /opt/oai-gnb/etc/gnb.conf > /opt/oai-gnb/etc/cuup.conf &&
+             ls &&
+             cat /opt/oai-gnb/etc/cuup.conf &&
+             /opt/oai-gnb/bin/nr-cuup -O /opt/oai-gnb/etc/cuup.conf --sa 
+            "
+            ]
+        networks:
+            overnet:
+                ipv4_address: @CUUP_IP@
+
+    oai-du-@ID@:
+        container_name: "oai-du-@ID@"
+        image: oaisoftwarealliance/oai-gnb:v2.1.0
+        expose:
+            - 38472/sctp	# f1c
+            - 2153/udp		# f1u
+        environment:
+            - TZ=UTC
+            - CU_CP_HOST=oai-cu-cp-@ID@
+        depends_on:
+            - oai-cu-cp-@ID@
+        volumes: 
+            - ./conf/du.conf:/opt/oai-gnb/etc/gnb.conf
+        privileged: true
+        command: [
+            "/bin/bash", 
+            "-c", 
+            "echo 'Create conf file replacing the IP values' &&
+             sed -e s/@RAN_ID@/@ID@/g -e s/@CUCP@/@CUCP_IP@/g -e s/@DU@/@DU_IP@/g /opt/oai-gnb/etc/gnb.conf > /opt/oai-gnb/etc/du.conf &&
+             ls &&
+             cat /opt/oai-gnb/etc/du.conf &&
+             exec /opt/oai-gnb/bin/nr-softmodem -O /opt/oai-gnb/etc/du.conf --sa --rfsim --log_config.global_log_options level,nocolor,time 
+            "
+            ]
+        networks:
+            overnet:
+                ipv4_address: @DU_IP@
+        #deploy:
+        #    resources:
+        #        limits:
+        #            memory: 4g
+        #restart: always
+ 
+networks:
+    overnet:
+        driver: overlay
+        name: demo-oai-public-net
+        ipam:
+            config:
+                - subnet: 192.168.70.0/24

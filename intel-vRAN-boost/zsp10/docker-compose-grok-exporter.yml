@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  grok-exporter:
+    image: ubuntu:22.04 
+    container_name: grok-exporter
+    ports:
+      - 8000:8000
+    command: /bin/bash -c "./grok/grok_exporter -config grok/config.yml"
+    volumes:
+      - ./grok:/grok
+#    networks:
+#      overnet: 
+#        ipv4_address: 192.168.70.139
+#
+#networks:
+#  overnet:
+#    driver: overlay
+#    name: demo-oai-public-net
+#    ipam:
+#      config:
+#        - subnet: 192.168.70.0/24
