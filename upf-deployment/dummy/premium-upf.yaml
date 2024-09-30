@@ -1,0 +1,100 @@
+# Default values for stress-ng.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## Image configuration
+image:
+  # -- image repository
+  repository: quay.io/wcaban/stress-ng
+  # -- image pull policy
+  pullPolicy: Always
+  # -- Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+command: []
+
+## Allows you to add any config files in configmap, such as load_generator.py script
+config: {}
+
+## Configuration for stress command 
+stress:
+  # -- Specifies the thread number
+  cpuWorkers: 8
+  # -- Specifies the load in percentage
+  maxLoad: 100
+  # -- Specifies the loading time 
+  timer: 3600
+  # -- Pattern of stress-ng load script
+  patternFilename: "/pattern/patternStatic.txt"
+  # -- Specifies the number of weekdays with half the max load for weekly tests
+  weekdays: 0
+
+## RBAC Configuration
+rbac:
+  # -- Specifies whether a cluster role binding should be created
+  create: false
+  # -- The cluster role name
+  clusterRole: "cluster-admin"
+
+## Service account for stress-ng to use.
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- (object) podAnnotations Map of annotations to add to the pods
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# -- (object) Security Context Configuration
+securityContext:
+  capabilities:
+    add:
+    - SYS_ADMIN
+
+## Resources configuration of stress-ng 
+resources:
+  limits:
+    cpu: 8000m
+    memory: 8Gi
+    hugepages-1Gi: 1Gi
+  requests:
+    cpu: 8000m
+    memory: 8Gi
+    hugepages-1Gi: 1Gi
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# -- (object) Node labels for stress-ng pods assignment
+nodeSelector:
+  eks.amazonaws.com/nodegroup: "Metal"
+
+# -- (array) Tolerations for stress-ng pods assignment
+tolerations:
+  - key: "metal"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+# -- (object)  Affinity for stress-ng pods assignment
+affinity: {}
+
+
+
