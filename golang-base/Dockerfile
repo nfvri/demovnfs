@@ -1,7 +1,7 @@
-FROM golang:1.20.6-bookworm as base
+FROM golang:1.20.6-bookworm AS base
 
-ENV TF_VER "2.10.0"
-ENV CCPUS "8"
+ENV TF_VER="2.10.0"
+ENV CCPUS="8"
 
 ARG TARGETPLATFORM
 ARG TARGETARCH
@@ -91,7 +91,7 @@ RUN find / -name *libtensorflow.tar.gz* \
 FROM version-linux-${TARGETARCH} AS final
 
 # Replicate paths from golang image
-ENV GOPATH /go
-ENV PATH $GOPATH/bin:$PATH
+ENV GOPATH=/go
+ENV PATH=$GOPATH/bin:$PATH
 RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 WORKDIR $GOPATH
